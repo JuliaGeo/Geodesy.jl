@@ -1,6 +1,6 @@
-The GeoCoordinates.jl package is licensed under the MIT "Expat" License:
+The Geodesy.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2015: Sean Garborg.
+> Copyright (c) 2014-2015: Ted Steiner, Sean Garborg, Yeesian Ng.
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the

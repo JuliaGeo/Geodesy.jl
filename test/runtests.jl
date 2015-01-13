@@ -1,5 +1,3 @@
-using GeoCoordinates
-using Base.Test
-
-# write your own tests here
-@test 1 == 1
+for t in ["types", "conversion", "distance"]
+    include("$t.jl")
+end
