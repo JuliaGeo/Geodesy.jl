@@ -6,12 +6,16 @@
 function ECEF(lla::LLA)
     lat, lon, alt = lla.lat, lla.lon, lla.alt
     d = WGS84
+    e² = d.e * d.e
 
-    N = d.a / sqrt(1 - d.e*d.e * sind(lat)^2)  # Radius of curvature (meters)
+    sinlat, coslat = sind(lat), cosd(lat)
 
-    x = (N + alt) * cosd(lat) * cosd(lon)
-    y = (N + alt) * cosd(lat) * sind(lon)
-    z = (N * (1 - d.e*d.e) + alt) * sind(lat)
+
+    N = d.a / sqrt(1 - e² * sinlat^2)  # Radius of curvature (meters)
+
+    x = (N + alt) * coslat * cosd(lon)
+    y = (N + alt) * coslat * sind(lon)
+    z = (N * (1 - e²) + alt) * sinlat
 
     return ECEF(x, y, z)
 end
@@ -23,13 +27,14 @@ end
 function LLA(ecef::ECEF)
     x, y, z = ecef.x, ecef.y, ecef.z
     d = WGS84
+    e² = d.e * d.e
 
     p = sqrt(x*x + y*y)
     θ = atan2(z*d.a, p*d.b)
     λ = atan2(y, x)
-    ϕ = atan2(z + d.e_prime^2 * d.b * sin(θ)^3, p - d.e*d.e*d.a*cos(θ)^3)
+    ϕ = atan2(z + d.e_prime^2 * d.b * sin(θ)^3, p - e²*d.a*cos(θ)^3)
 
-    N = d.a / sqrt(1 - d.e*d.e * sin(ϕ)^2)  # Radius of curvature (meters)
+    N = d.a / sqrt(1 - e² * sin(ϕ)^2)  # Radius of curvature (meters)
     h = p / cos(ϕ) - N
 
     return LLA(ϕ*180/π, λ*180/π, h)
@@ -41,23 +46,26 @@ end
 
 # Given a reference point for linarization
 function ENU(ecef::ECEF, lla_ref::LLA)
-    # Reference point to linearize about
     ϕ = lla_ref.lat
     λ = lla_ref.lon
 
     ecef_ref = ECEF(lla_ref)
-    ecef_vec = [ecef.x - ecef_ref.x; ecef.y - ecef_ref.y; ecef.z - ecef_ref.z]
+    ∂x = ecef.x - ecef_ref.x
+    ∂y = ecef.y - ecef_ref.y
+    ∂z = ecef.z - ecef_ref.z
 
     # Compute rotation matrix
-    R = [-sind(λ) cosd(λ) 0;
-         -cosd(λ)*sind(ϕ) -sind(λ)*sind(ϕ) cosd(ϕ);
-         cosd(λ)*cosd(ϕ) sind(λ)*cosd(ϕ) sind(ϕ)]
-    ned = R * ecef_vec
+    sinλ, cosλ = sind(λ), cosd(λ)
+    sinϕ, cosϕ = sind(ϕ), cosd(ϕ)
 
-    # Extract elements from vector
-    east = ned[1]
-    north = ned[2]
-    up = ned[3]
+    # R = [     -sinλ       cosλ  0.0
+    #      -cosλ*sinϕ -sinλ*sinϕ cosϕ
+    #       cosλ*cosϕ  sinλ*cosϕ sinϕ]
+    #
+    # east, north, up = R * [∂x, ∂y, ∂z]
+    east  = ∂x * -sinλ      + ∂y * cosλ       + ∂z * 0.0
+    north = ∂x * -cosλ*sinϕ + ∂y * -sinλ*sinϕ + ∂z * cosϕ
+    up    = ∂x * cosλ*cosϕ  + ∂y * sinλ*cosϕ  + ∂z * sinϕ
 
     return ENU(east, north, up)
 end
