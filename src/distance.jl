@@ -5,6 +5,6 @@ distance(a::ECEF, b::ECEF) = distance(a.x, a.y, a.z,
                                       b.x, b.y, b.z)
 
 # Cartesian coordinates
-function distance(x0, y0, z0, x1, y1, z1)
-    return sqrt((x1-x0)^2 + (y1-y0)^2 + (z1-z0)^2)
+function distance(x1, y1, z1, x2, y2, z2)
+    return sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
 end

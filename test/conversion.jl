@@ -34,11 +34,11 @@ macro xyz_approx_eq(a, b)
         @test_approx_eq getZ($(esc(a))) getZ($(esc(b)))
     end
 end
-macro xyz_approx_eq_eps(a, b, eps, zeps)
+macro xyz_approx_eq_eps(a, b, eps)
     quote
         @test_approx_eq_eps getX($(esc(a))) getX($(esc(b))) $(esc(eps))
         @test_approx_eq_eps getY($(esc(a))) getY($(esc(b))) $(esc(eps))
-        @test_approx_eq_eps getZ($(esc(a))) getZ($(esc(b))) $(esc(zeps))
+        @test_approx_eq_eps getZ($(esc(a))) getZ($(esc(b))) $(esc(eps))
     end
 end
 
@@ -54,13 +54,12 @@ ecef_ref = ECEF(1529073.1560519305, -4465040.019013103, 4275835.339260309)
 @type_approx_eq ECEF(lla) ecef_ref
 
 #LLA -> ENU
-enu_ref = ENU(-343.49374908345493, 478.7648554687071, -0.027242884564486758)
-@xyz_approx_eq_eps ENU(lla, lla_ref) enu_ref  1e-8 1e-10
-
-bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
+enu_ref =   ENU(-343.493749083977,   478.764855466788,   -0.027242885224325164)
+@xyz_approx_eq_eps ENU(lla, lla_ref) enu_ref 1e-8
 
 # Bounds{LLA} -> Bounds{ENU}
-bounds_enu_ref = Bounds{ENU}(-249.92653559014204, 249.9353534127322, -247.1091823451915, 247.1268196141778)
+bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
+bounds_enu_ref = Bounds{ENU}(-249.92653559082282, 249.93535341273954, -247.1091823453303, 247.12681961403896)
 @type_approx_eq ENU(bounds) bounds_enu_ref
 
 #############################
@@ -69,7 +68,7 @@ bounds_enu_ref = Bounds{ENU}(-249.92653559014204, 249.9353534127322, -247.109182
 
 randLLA() = (rand() - .5) * 178, (rand() - .5) * 358, (rand() - .5) * 18000
 
-for _ = 1:10_000
+for _ = 1:50_000
     y, x, z = randLLA()
     lla = LLA(y, x, z)
     lla_bounds = Bounds(y - 1, y + 1, x - 1, x + 1)
@@ -80,7 +79,7 @@ for _ = 1:10_000
 
     ecef = ECEF(lla)
 
-    @xyz_approx_eq_eps LLA(ecef) lla 1e-7 1e-6
+    @xyz_approx_eq_eps LLA(ecef) lla 1e-6
 
     @xy_approx_eq center(lla_bounds) lla
 
@@ -89,15 +88,13 @@ for _ = 1:10_000
     @xyz_approx_eq ENU(ecef, lla) enu000
 
     @xy_approx_eq_eps ENU(ecef, lla_bounds) enu000 1e-8
-    # TODO: what's up with alt?
-
     @xy_approx_eq_eps ENU(lla, lla_bounds) enu000 1e-8
 
     enu2 = ENU(ecef, lla2)
 
-    @xy_approx_eq_eps ENU(ecef, lla2_bounds) enu2 1e-8
-
     @xyz_approx_eq ENU(lla, lla2) enu2
+
+    @xy_approx_eq_eps ENU(ecef, lla2_bounds) enu2 1e-8
     @xy_approx_eq_eps ENU(lla, lla2_bounds) enu2 1e-8
 
     @type_approx_eq ENU(lla_bounds) ENU(lla_bounds, center(lla_bounds))

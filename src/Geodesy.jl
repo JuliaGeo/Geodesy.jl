@@ -8,6 +8,12 @@ export
 
     # Other types
     Bounds,
+    Ellipsoid,
+
+    # Constants
+    WGS84,
+    OSGB36,
+    NAD27,
 
     # Methods
     center,

@@ -3,19 +3,17 @@
 ### LLA to ECEF coordinates ###
 ###############################
 
-function ECEF(lla::LLA)
-    lat, lon, alt = lla.lat, lla.lon, lla.alt
-    d = WGS84
-    e² = d.e * d.e
+function ECEF(lla::LLA, datum::Ellipsoid = WGS84)
+    lat, lon, h = lla.lat, lla.lon, lla.alt
+    d = datum
 
     sinlat, coslat = sind(lat), cosd(lat)
 
+    N = d.a / sqrt(1 - d.e² * sinlat^2)  # Radius of curvature (meters)
 
-    N = d.a / sqrt(1 - e² * sinlat^2)  # Radius of curvature (meters)
-
-    x = (N + alt) * coslat * cosd(lon)
-    y = (N + alt) * coslat * sind(lon)
-    z = (N * (1 - e²) + alt) * sinlat
+    x = (N + h) * coslat * cosd(lon)
+    y = (N + h) * coslat * sind(lon)
+    z = (N * (1 - d.e²) + h) * sinlat
 
     return ECEF(x, y, z)
 end
@@ -24,17 +22,16 @@ end
 ### ECEF to LLA coordinates ###
 ###############################
 
-function LLA(ecef::ECEF)
+function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
     x, y, z = ecef.x, ecef.y, ecef.z
-    d = WGS84
-    e² = d.e * d.e
+    d = datum
 
     p = sqrt(x*x + y*y)
     θ = atan2(z*d.a, p*d.b)
     λ = atan2(y, x)
-    ϕ = atan2(z + d.e_prime^2 * d.b * sin(θ)^3, p - e²*d.a*cos(θ)^3)
+    ϕ = atan2(z + d.e′² * d.b * sin(θ)^3, p - d.e²*d.a*cos(θ)^3)
 
-    N = d.a / sqrt(1 - e² * sin(ϕ)^2)  # Radius of curvature (meters)
+    N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
     h = p / cos(ϕ) - N
 
     return LLA(ϕ*180/π, λ*180/π, h)
@@ -45,11 +42,11 @@ end
 ###############################
 
 # Given a reference point for linarization
-function ENU(ecef::ECEF, lla_ref::LLA)
+function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
     ϕ = lla_ref.lat
     λ = lla_ref.lon
 
-    ecef_ref = ECEF(lla_ref)
+    ecef_ref = ECEF(lla_ref, datum)
     ∂x = ecef.x - ecef_ref.x
     ∂y = ecef.y - ecef_ref.y
     ∂z = ecef.z - ecef_ref.z
@@ -71,9 +68,9 @@ function ENU(ecef::ECEF, lla_ref::LLA)
 end
 
 # Given Bounds object for linearization
-function ENU(ecef::ECEF, bounds::Bounds{LLA})
+function ENU(ecef::ECEF, bounds::Bounds{LLA}, datum::Ellipsoid = WGS84)
     lla_ref = center(bounds)
-    return ENU(ecef, lla_ref)
+    return ENU(ecef, lla_ref, datum)
 end
 
 ##############################
@@ -81,27 +78,27 @@ end
 ##############################
 
 # Given a reference point for linarization
-function ENU(lla::LLA, lla_ref::LLA)
-    ecef = ECEF(lla)
-    return ENU(ecef, lla_ref)
+function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid = WGS84)
+    ecef = ECEF(lla, datum)
+    return ENU(ecef, lla_ref, datum)
 end
 
 # Given Bounds object for linearization
-function ENU(lla::LLA, bounds::Bounds{LLA})
-    ecef = ECEF(lla)
-    return ENU(ecef, bounds)
+function ENU(lla::LLA, bounds::Bounds{LLA}, datum::Ellipsoid = WGS84)
+    ecef = ECEF(lla, datum)
+    return ENU(ecef, bounds, datum)
 end
 
 #################################
 ### LLA to ENU Bounds objects ###
 #################################
 
-function ENU(bounds::Bounds{LLA}, lla_ref::LLA = center(bounds))
+function ENU(bounds::Bounds{LLA}, lla_ref::LLA = center(bounds), datum::Ellipsoid = WGS84)
     top_left_LLA = LLA(bounds.max_y, bounds.min_x)
     bottom_right_LLA = LLA(bounds.min_y, bounds.max_x)
 
-    top_left_ENU = ENU(top_left_LLA, lla_ref)
-    bottom_right_ENU = ENU(bottom_right_LLA, lla_ref)
+    top_left_ENU = ENU(top_left_LLA, lla_ref, datum)
+    bottom_right_ENU = ENU(bottom_right_LLA, lla_ref, datum)
 
     return Bounds{ENU}(bottom_right_ENU.north,
                        top_left_ENU.north,
