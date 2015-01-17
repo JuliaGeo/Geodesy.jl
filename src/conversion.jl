@@ -93,17 +93,34 @@ end
 ### LLA to ENU Bounds objects ###
 #################################
 
+# there's not an unambiguous conversion, but for now,
+# returning the minimum bounds that contain all points contained
+# by the input bounds
 function ENU(bounds::Bounds{LLA}, lla_ref::LLA = center(bounds), datum::Ellipsoid = WGS84)
-    top_left_LLA = LLA(bounds.max_y, bounds.min_x)
-    bottom_right_LLA = LLA(bounds.min_y, bounds.max_x)
 
-    top_left_ENU = ENU(top_left_LLA, lla_ref, datum)
-    bottom_right_ENU = ENU(bottom_right_LLA, lla_ref, datum)
+    max_x = max_y = -Inf
+    min_x = min_y = Inf
 
-    return Bounds{ENU}(bottom_right_ENU.north,
-                       top_left_ENU.north,
-                       top_left_ENU.east,
-                       bottom_right_ENU.east)
+    xs = [bounds.min_x, bounds.max_x]
+    ys = [bounds.min_y, bounds.max_y]
+    if bounds.min_y < 0.0 < bounds.max_y
+        push!(ys, 0.0)
+    end
+    ref_x = getX(lla_ref)
+    if bounds.min_x < ref_x < bounds.max_x ||
+       (bounds.min_x > bounds.max_x && !(bounds.min_x >= ref_x >= bounds.max_x))
+        push!(xs, ref_x)
+    end
+
+    for x_lla in xs, y_lla in ys
+        pt = ENU(LLA(y_lla, x_lla), lla_ref, datum)
+        x, y = getX(pt), getY(pt)
+
+        min_x, max_x = min(x, min_x), max(x, max_x)
+        min_y, max_y = min(y, min_y), max(y, max_y)
+    end
+
+    return Bounds{ENU}(min_y, max_y, min_x, max_x)
 end
 
 ########################
@@ -112,8 +129,26 @@ end
 
 ### Get center point of Bounds region ###
 function center{T}(bounds::Bounds{T})
-    y_ref = (bounds.min_y + bounds.max_y) / 2
-    x_ref = (bounds.min_x + bounds.max_x) / 2
+    x_mid = (bounds.min_x + bounds.max_x) / 2
+    y_mid = (bounds.min_y + bounds.max_y) / 2
 
-    return T(XY(x_ref, y_ref))
+    return T(XY(x_mid, y_mid))
 end
+
+### Compute approximate "aspect ratio" at mean latitude ###
+function aspectRatio(bounds::Bounds{LLA})
+    c_adj = cosd((bounds.min_y + bounds.max_y) / 2)
+    range_y = bounds.max_y - bounds.min_y
+    range_x = bounds.max_x - bounds.min_x
+
+    return range_x * c_adj / range_y
+end
+
+### Compute exact "aspect ratio" ###
+function aspectRatio(bounds::Bounds{ENU})
+    range_y = bounds.max_y - bounds.min_y
+    range_x = bounds.max_x - bounds.min_x
+
+    return range_x / range_y
+end
+

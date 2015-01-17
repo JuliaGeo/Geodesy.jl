@@ -54,12 +54,12 @@ ecef_ref = ECEF(1529073.1560519305, -4465040.019013103, 4275835.339260309)
 @type_approx_eq ECEF(lla) ecef_ref
 
 #LLA -> ENU
-enu_ref =   ENU(-343.493749083977,   478.764855466788,   -0.027242885224325164)
+enu_ref = ENU(-343.493749083977, 478.764855466788, -0.027242885224325164)
 @xyz_approx_eq_eps ENU(lla, lla_ref) enu_ref 1e-8
 
 # Bounds{LLA} -> Bounds{ENU}
 bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
-bounds_enu_ref = Bounds{ENU}(-249.92653559082282, 249.93535341273954, -247.1091823453303, 247.12681961403896)
+bounds_enu_ref = Bounds{ENU}(-249.9308954374605, 249.9353534128848, -247.1268196136449, 247.1268196138187)
 @type_approx_eq ENU(bounds) bounds_enu_ref
 
 #############################
@@ -96,6 +96,4 @@ for _ = 1:50_000
 
     @xy_approx_eq_eps ENU(ecef, lla2_bounds) enu2 1e-8
     @xy_approx_eq_eps ENU(lla, lla2_bounds) enu2 1e-8
-
-    @type_approx_eq ENU(lla_bounds) ENU(lla_bounds, center(lla_bounds))
 end
