@@ -4,16 +4,17 @@
 ###############################
 
 function ECEF(lla::LLA, datum::Ellipsoid = WGS84)
-    lat, lon, h = lla.lat, lla.lon, lla.alt
+    ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
     d = datum
 
-    sinlat, coslat = sind(lat), cosd(lat)
+    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    sinλ, cosλ = sind(λdeg), cosd(λdeg)
 
-    N = d.a / sqrt(1 - d.e² * sinlat^2)  # Radius of curvature (meters)
+    N = d.a / sqrt(1 - d.e² * sinϕ^2)  # Radius of curvature (meters)
 
-    x = (N + h) * coslat * cosd(lon)
-    y = (N + h) * coslat * sind(lon)
-    z = (N * (1 - d.e²) + h) * sinlat
+    x = (N + h) * cosϕ * cosλ
+    y = (N + h) * cosϕ * sinλ
+    z = (N * (1 - d.e²) + h) * sinϕ
 
     return ECEF(x, y, z)
 end
@@ -26,7 +27,7 @@ function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
     x, y, z = ecef.x, ecef.y, ecef.z
     d = datum
 
-    p = sqrt(x*x + y*y)
+    p = hypot(x, y)
     θ = atan2(z*d.a, p*d.b)
     λ = atan2(y, x)
     ϕ = atan2(z + d.e′² * d.b * sin(θ)^3, p - d.e²*d.a*cos(θ)^3)
@@ -34,7 +35,7 @@ function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
     N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
     h = p / cos(ϕ) - N
 
-    return LLA(ϕ*180/π, λ*180/π, h)
+    return LLA(rad2deg(ϕ), rad2deg(λ), h)
 end
 
 ###############################
@@ -43,8 +44,7 @@ end
 
 # Given a reference point for linarization
 function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
-    ϕ = lla_ref.lat
-    λ = lla_ref.lon
+    ϕdeg, λdeg = lla_ref.lat, lla_ref.lon
 
     ecef_ref = ECEF(lla_ref, datum)
     ∂x = ecef.x - ecef_ref.x
@@ -52,8 +52,8 @@ function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
     ∂z = ecef.z - ecef_ref.z
 
     # Compute rotation matrix
-    sinλ, cosλ = sind(λ), cosd(λ)
-    sinϕ, cosϕ = sind(ϕ), cosd(ϕ)
+    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
 
     # R = [     -sinλ       cosλ  0.0
     #      -cosλ*sinϕ -sinλ*sinϕ cosϕ
@@ -128,11 +128,22 @@ end
 ########################
 
 ### Get center point of Bounds region ###
-function center{T}(bounds::Bounds{T})
+function center(bounds::Bounds{ENU})
     x_mid = (bounds.min_x + bounds.max_x) / 2
     y_mid = (bounds.min_y + bounds.max_y) / 2
 
-    return T(XY(x_mid, y_mid))
+    return ENU(x_mid, y_mid)
+end
+
+function center(bounds::Bounds{LLA})
+    x_mid = (bounds.min_x + bounds.max_x) / 2
+    y_mid = (bounds.min_y + bounds.max_y) / 2
+
+    if bounds.min_x > bounds.max_x
+        x_mid = x_mid > 0 ? x_mid - 180 : x_mid + 180
+    end
+
+    return LLA(y_mid, x_mid)
 end
 
 ### Compute approximate "aspect ratio" at mean latitude ###

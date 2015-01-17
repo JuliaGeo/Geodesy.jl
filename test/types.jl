@@ -18,8 +18,8 @@ x, y = (rand() - .5) * 360, (rand() - .5) * 180
 Bounds{LLA}(y, y + 1, x, x + 1)
 
 Bounds(y, y, x, x)
+Bounds(y, y, x, x - 1)
 @test_throws ArgumentError Bounds(y, y - 1, x, x)
-@test_throws ArgumentError Bounds(y, y, x, x - 1)
 
 @test_throws ArgumentError Bounds(-90.1, 90.1, 0, 1)
 @test_throws ArgumentError Bounds(0, 1, -180.1, 180.1)

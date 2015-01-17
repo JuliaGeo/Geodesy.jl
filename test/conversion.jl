@@ -62,20 +62,26 @@ bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
 bounds_enu_ref = Bounds{ENU}(-249.9308954374605, 249.9353534128848, -247.1268196136449, 247.1268196138187)
 @type_approx_eq ENU(bounds) bounds_enu_ref
 
+@xy_approx_eq center(Bounds(0, 0, 179, -178)) LLA(0, -179.5)
+
 #############################
 ### Testing random errors ###
 #############################
 
-randLLA() = (rand() - .5) * 178, (rand() - .5) * 358, (rand() - .5) * 18000
+randLLA() = (rand() - .5) * 178, (rand() - .5) * 360, (rand() - .5) * 18000
 
 for _ = 1:50_000
     y, x, z = randLLA()
+    min_x = x < -179 ? x + 359 : x - 1
+    max_x = x >  179 ? x - 359 : x + 1
     lla = LLA(y, x, z)
-    lla_bounds = Bounds(y - 1, y + 1, x - 1, x + 1)
+    lla_bounds = Bounds(y - 1, y + 1, min_x, max_x)
 
     y, x, z = randLLA()
+    min_x = x < -179 ? x + 359 : x - 1
+    max_x = x >  179 ? x - 359 : x + 1
     lla2 = LLA(y, x, z)
-    lla2_bounds = Bounds(y - 1, y + 1, x - 1, x + 1)
+    lla2_bounds = Bounds(y - 1, y + 1, min_x, max_x)
 
     ecef = ECEF(lla)
 

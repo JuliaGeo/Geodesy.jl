@@ -99,7 +99,9 @@ type Bounds{T <: Union(LLA, ENU)}
     max_x::Float64
 end
 function Bounds(min_lat, max_lat, min_lon, max_lon)
-    if !(-90 <= min_lat <= max_lat <= 90 && -180 <= min_lon <= max_lon <= 180)
+    if !(-90 <= min_lat <= max_lat <= 90 &&
+         -180 <= min_lon <= 180 &&
+         -180 <= max_lon <= 180)
         throw(ArgumentError("Bounds out of range of LLA coordinate system. " *
                             "Perhaps you're looking for Bounds{ENU}(...)"))
     end
