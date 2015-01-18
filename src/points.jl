@@ -30,6 +30,8 @@ immutable ENU
 end
 ENU(x, y) = ENU(x, y, 0.0)
 
+### Ellipsoid
+# Specify datum for translation between LLA and other coordinate systems
 immutable Ellipsoid
     a::Float64        # Semi-major axis
     b::Float64        # Semi-minor axis
@@ -68,7 +70,9 @@ const WGS84  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
 const OSGB36 = Ellipsoid(a = "6377563.396", b = "6356256.909")
 const NAD27  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
 
-### Helper for creating other point types
+### XYZ
+# Helper for creating other point types in generic code
+# e.g. myfunc{T <: Union(ENU, LLA)}(...) = (x, y = ...; T(XY(x, y)))
 type XYZ
     x::Float64
     y::Float64
@@ -79,7 +83,8 @@ XY(x, y) = XYZ(x, y, 0.0)
 LLA(xyz::XYZ) = LLA(xyz.y, xyz.x, xyz.z)
 ENU(xyz::XYZ) = ENU(xyz.x, xyz.y, xyz.z)
 
-### Point translators
+### get*
+# Point translators
 getX(lla::LLA) = lla.lon
 getY(lla::LLA) = lla.lat
 getZ(lla::LLA) = lla.alt
@@ -88,22 +93,14 @@ getX(enu::ENU) = enu.east
 getY(enu::ENU) = enu.north
 getZ(enu::ENU) = enu.up
 
-####################
-### Bounds Types ###
-####################
+### distance
+# Point translators
+distance(a::ENU, b::ENU) = distance(a.east, a.north, a.up,
+                                    b.east, b.north, b.up)
 
-type Bounds{T <: Union(LLA, ENU)}
-    min_y::Float64
-    max_y::Float64
-    min_x::Float64
-    max_x::Float64
-end
-function Bounds(min_lat, max_lat, min_lon, max_lon)
-    if !(-90 <= min_lat <= max_lat <= 90 &&
-         -180 <= min_lon <= 180 &&
-         -180 <= max_lon <= 180)
-        throw(ArgumentError("Bounds out of range of LLA coordinate system. " *
-                            "Perhaps you're looking for Bounds{ENU}(...)"))
-    end
-    Bounds{LLA}(min_lat, max_lat, min_lon, max_lon)
+distance(a::ECEF, b::ECEF) = distance(a.x, a.y, a.z,
+                                      b.x, b.y, b.z)
+
+function distance(x1, y1, z1, x2, y2, z2)
+    return sqrt((x2-x1)^2 + (y2-y1)^2 + (z2-z1)^2)
 end

@@ -1,3 +1,3 @@
-for t in ["types", "conversion", "distance"]
+for t in ["points", "bounds", "conversion"]
     include("$t.jl")
 end

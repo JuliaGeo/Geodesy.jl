@@ -62,8 +62,6 @@ bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
 bounds_enu_ref = Bounds{ENU}(-249.9308954374605, 249.9353534128848, -247.1268196136449, 247.1268196138187)
 @type_approx_eq ENU(bounds) bounds_enu_ref
 
-@xy_approx_eq center(Bounds(0, 0, 179, -178)) LLA(0, -179.5)
-
 #############################
 ### Testing random errors ###
 #############################

@@ -20,10 +20,11 @@ export
     distance,
     getX,
     getY,
-    getZ
+    getZ,
+    inBounds
 
-include("types.jl")
+include("points.jl")
+include("bounds.jl")
 include("conversion.jl")
-include("distance.jl")
 
 end # module Geodesy
