@@ -46,10 +46,7 @@ test_bounds(Bounds(1.1, 2.2, 3.3, 4.4))
 test_bounds(Bounds(1.1, 2.2, 179.3, -179.4))
 
 # boundaryPoint
-
-for bounds in (Bounds(0, 1, 78, 79), Bounds(0, 1, 179.9, -179.1), Bounds{ENU}(-1, 1, -1, 1))
-    T = isa(bounds, Bounds{LLA}) ? LLA : ENU
-
+function test_boundary{T}(bounds::Bounds{T})
     c = center(bounds)
     cx, cy = getX(c), getY(c)
 
@@ -64,6 +61,9 @@ for bounds in (Bounds(0, 1, 78, 79), Bounds(0, 1, 179.9, -179.1), Bounds{ENU}(-1
         @test onBounds(boundaryPoint(in_x2, in_both, bounds), bounds)
         @test onBounds(boundaryPoint(in_both, in_y, bounds), bounds)
         @test onBounds(boundaryPoint(in_neither, in_both, bounds), bounds)
-
     end
+end
+
+for bounds in (Bounds(0, 1, 78, 79), Bounds(0, 1, 179.9, -179.1), Bounds{ENU}(-1, 1, -1, 1))
+    test_boundary(bounds)
 end
