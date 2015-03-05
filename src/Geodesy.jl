@@ -23,8 +23,8 @@ export
     getZ,
     inBounds
 
-include("points.jl")
-include("bounds.jl")
-include("conversion.jl")
+for f in ["datum", "point", "bounds", "conversion"]
+    include("$f.jl")
+end
 
 end # module Geodesy
