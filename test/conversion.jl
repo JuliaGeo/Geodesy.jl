@@ -1,14 +1,20 @@
 using Geodesy
 using Base.Test
+using Compat
 
 ################################################
 ### Helpers for testing approximate equality ###
 ################################################
 
+# TODO: Move this to Compat
+if VERSION < v"0.4.0-dev+3616"
+    fieldnames = names
+end
+
 macro type_approx_eq(a, b)
     quote
-        @test names($(esc(a))) == names($(esc(b)))
-        for n in names($(esc(a)))
+        @test fieldnames($(esc(a))) == fieldnames($(esc(b)))
+        for n in fieldnames($(esc(a)))
             @test_approx_eq $(esc(a)).(n) $(esc(b)).(n)
         end
     end
