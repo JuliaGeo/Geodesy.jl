@@ -1,10 +1,10 @@
 
-###############################
-### LLA to ECEF coordinates ###
-###############################
+##############################
+### LL to ECEF coordinates ###
+##############################
 
-function ECEF(lla::LLA, datum::Ellipsoid = WGS84)
-    ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
+function ECEF{T <: Union(LL, LLA)}(ll::T, datum::Ellipsoid = WGS84)
+    ϕdeg, λdeg, h = ll.lat, ll.lon, T <: LLA ? ll.alt : 0
     d = datum
 
     sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
@@ -19,9 +19,9 @@ function ECEF(lla::LLA, datum::Ellipsoid = WGS84)
     return ECEF(x, y, z)
 end
 
-###############################
-### ECEF to LLA coordinates ###
-###############################
+##############################
+### ECEF to LL coordinates ###
+##############################
 
 function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
     x, y, z = ecef.x, ecef.y, ecef.z
@@ -38,15 +38,32 @@ function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
     return LLA(rad2deg(ϕ), rad2deg(λ), h)
 end
 
+# TODO:
+# more coercion than conversion?
+# what would not having this a conversion mean for viability of LL type?
+function LL(ecef::ECEF, datum::Ellipsoid = WGS84)
+    x, y, z = ecef.x, ecef.y, ecef.z
+    d = datum
+
+    p = hypot(x, y)
+    θ = atan2(z*d.a, p*d.b)
+    λ = atan2(y, x)
+    ϕ = atan2(z + d.e′² * d.b * sin(θ)^3, p - d.e²*d.a*cos(θ)^3)
+
+    N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
+
+    return LL(rad2deg(ϕ), rad2deg(λ))
+end
+
 ###############################
 ### ECEF to ENU coordinates ###
 ###############################
 
 # Given a reference point for linarization
-function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
-    ϕdeg, λdeg = lla_ref.lat, lla_ref.lon
+function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T, datum::Ellipsoid = WGS84)
+    ϕdeg, λdeg = ll_ref.lat, ll_ref.lon
 
-    ecef_ref = ECEF(lla_ref, datum)
+    ecef_ref = ECEF(ll_ref, datum)
     ∂x = ecef.x - ecef_ref.x
     ∂y = ecef.y - ecef_ref.y
     ∂z = ecef.z - ecef_ref.z
@@ -68,35 +85,35 @@ function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
 end
 
 # Given Bounds object for linearization
-function ENU(ecef::ECEF, bounds::Bounds{LLA}, datum::Ellipsoid = WGS84)
+function ENU{T <: Union(LL, LLA)}(ecef::ECEF, bounds::Bounds{T}, datum::Ellipsoid = WGS84)
     lla_ref = center(bounds)
     return ENU(ecef, lla_ref, datum)
 end
 
-##############################
-### LLA to ENU coordinates ###
-##############################
+#############################
+### LL to ENU coordinates ###
+#############################
 
 # Given a reference point for linarization
-function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid = WGS84)
-    ecef = ECEF(lla, datum)
-    return ENU(ecef, lla_ref, datum)
+function ENU{T <: Union(LL, LLA)}(ll::T, ll_ref::T, datum::Ellipsoid = WGS84)
+    ecef = ECEF(ll, datum)
+    return ENU(ecef, ll_ref, datum)
 end
 
 # Given Bounds object for linearization
-function ENU(lla::LLA, bounds::Bounds{LLA}, datum::Ellipsoid = WGS84)
-    ecef = ECEF(lla, datum)
+function ENU{T <: Union(LL, LLA)}(ll::T, bounds::Bounds{T}, datum::Ellipsoid = WGS84)
+    ecef = ECEF(ll, datum)
     return ENU(ecef, bounds, datum)
 end
 
-#################################
-### LLA to ENU Bounds objects ###
-#################################
+################################
+### LL to ENU Bounds objects ###
+################################
 
 # there's not an unambiguous conversion, but for now,
 # returning the minimum bounds that contain all points contained
 # by the input bounds
-function ENU(bounds::Bounds{LLA}, lla_ref::LLA = center(bounds), datum::Ellipsoid = WGS84)
+function ENU{T <: Union(LL, LLA)}(bounds::Bounds{T}, ll_ref::T = center(bounds), datum::Ellipsoid = WGS84)
 
     max_x = max_y = -Inf
     min_x = min_y = Inf
@@ -106,14 +123,14 @@ function ENU(bounds::Bounds{LLA}, lla_ref::LLA = center(bounds), datum::Ellipsoi
     if bounds.min_y < 0.0 < bounds.max_y
         push!(ys, 0.0)
     end
-    ref_x = getX(lla_ref)
+    ref_x = getX(ll_ref)
     if bounds.min_x < ref_x < bounds.max_x ||
        (bounds.min_x > bounds.max_x && !(bounds.min_x >= ref_x >= bounds.max_x))
         push!(xs, ref_x)
     end
 
-    for x_lla in xs, y_lla in ys
-        pt = ENU(LLA(y_lla, x_lla), lla_ref, datum)
+    for x_ll in xs, y_ll in ys
+        pt = ENU(T(y_ll, x_ll), ll_ref, datum)
         x, y = getX(pt), getY(pt)
 
         min_x, max_x = min(x, min_x), max(x, max_x)

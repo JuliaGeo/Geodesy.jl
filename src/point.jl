@@ -12,6 +12,12 @@ immutable LLA
 end
 LLA(lat, lon) = LLA(lat, lon, 0.0)
 
+### Latitude-Longitude (LL) coordinates
+immutable LL
+    lat::Float64
+    lon::Float64
+end
+
 ### Point in Earth-Centered-Earth-Fixed (ECEF) coordinates
 # Global cartesian coordinate system rotating with the Earth
 immutable ECEF
@@ -40,11 +46,15 @@ type XYZ
 end
 XY(x, y) = XYZ(x, y, 0.0)
 
+LL(xyz::XYZ) = LL(xyz.y, xyz.x)
 LLA(xyz::XYZ) = LLA(xyz.y, xyz.x, xyz.z)
 ENU(xyz::XYZ) = ENU(xyz.x, xyz.y, xyz.z)
 
 ### get*
 # Point translators
+getX(ll::LL) = ll.lon
+getY(ll::LL) = ll.lat
+
 getX(lla::LLA) = lla.lon
 getY(lla::LLA) = lla.lat
 getZ(lla::LLA) = lla.alt

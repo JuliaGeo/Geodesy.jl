@@ -6,7 +6,7 @@ using Compat
 ### Helpers for testing approximate equality ###
 ################################################
 
-# TODO: Move this to Compat
+# TODO: Move this to Compat.jl
 if VERSION < v"0.4.0-dev+3616"
     fieldnames = names
 end
@@ -20,10 +20,25 @@ macro type_approx_eq(a, b)
     end
 end
 
+macro xyz_approx_eq(a, b)
+    quote
+        @test_approx_eq getX($(esc(a))) getX($(esc(b)))
+        @test_approx_eq getY($(esc(a))) getY($(esc(b)))
+        @test_approx_eq getZ($(esc(a))) getZ($(esc(b)))
+    end
+end
 macro xy_approx_eq(a, b)
     quote
         @test_approx_eq getX($(esc(a))) getX($(esc(b)))
         @test_approx_eq getY($(esc(a))) getY($(esc(b)))
+    end
+end
+
+macro xyz_approx_eq_eps(a, b, eps)
+    quote
+        @test_approx_eq_eps getX($(esc(a))) getX($(esc(b))) $(esc(eps))
+        @test_approx_eq_eps getY($(esc(a))) getY($(esc(b))) $(esc(eps))
+        @test_approx_eq_eps getZ($(esc(a))) getZ($(esc(b))) $(esc(eps))
     end
 end
 macro xy_approx_eq_eps(a, b, eps)
@@ -32,18 +47,8 @@ macro xy_approx_eq_eps(a, b, eps)
         @test_approx_eq_eps getY($(esc(a))) getY($(esc(b))) $(esc(eps))
     end
 end
-
-macro xyz_approx_eq(a, b)
+macro z_approx_eq_eps(a, b, eps)
     quote
-        @test_approx_eq getX($(esc(a))) getX($(esc(b)))
-        @test_approx_eq getY($(esc(a))) getY($(esc(b)))
-        @test_approx_eq getZ($(esc(a))) getZ($(esc(b)))
-    end
-end
-macro xyz_approx_eq_eps(a, b, eps)
-    quote
-        @test_approx_eq_eps getX($(esc(a))) getX($(esc(b))) $(esc(eps))
-        @test_approx_eq_eps getY($(esc(a))) getY($(esc(b))) $(esc(eps))
         @test_approx_eq_eps getZ($(esc(a))) getZ($(esc(b))) $(esc(eps))
     end
 end
@@ -79,31 +84,65 @@ for _ = 1:50_000
     min_x = x < -179 ? x + 359 : x - 1
     max_x = x >  179 ? x - 359 : x + 1
     lla = LLA(y, x, z)
-    lla_bounds = Bounds(y - 1, y + 1, min_x, max_x)
+    lla_bounds = Bounds{LLA}(y - 1, y + 1, min_x, max_x)
+    ll = LL(y, x)
+    ll_bounds = Bounds(y - 1, y + 1, min_x, max_x)
 
     y, x, z = randLLA()
     min_x = x < -179 ? x + 359 : x - 1
     max_x = x >  179 ? x - 359 : x + 1
     lla2 = LLA(y, x, z)
-    lla2_bounds = Bounds(y - 1, y + 1, min_x, max_x)
+    lla2_bounds = Bounds{LLA}(y - 1, y + 1, min_x, max_x)
+    ll2 = LL(y, x)
+    ll2_bounds = Bounds(y - 1, y + 1, min_x, max_x)
 
-    ecef = ECEF(lla)
+    ecefa = ECEF(lla)
+    ecef = ECEF(ll)
+    @test_approx_eq_eps distance(ecef, ecefa) abs(getZ(lla)) 1e-8
+    # TODO: could test proportionality
 
-    @xyz_approx_eq_eps LLA(ecef) lla 1e-6
+    @xyz_approx_eq_eps LLA(ecefa) lla 1e-6
+    @xy_approx_eq_eps LL(ecefa) ll 1e-6
 
     @xy_approx_eq center(lla_bounds) lla
+    @xy_approx_eq center(ll_bounds) ll
 
     enu000 = ENU(0.0, 0.0, 0.0)
 
-    @xyz_approx_eq ENU(ecef, lla) enu000
+    @xyz_approx_eq ENU(ecefa, lla) enu000
 
-    @xy_approx_eq_eps ENU(ecef, lla_bounds) enu000 1e-8
+    @xy_approx_eq_eps ENU(ecefa, ll) enu000 1e-8
+    @z_approx_eq_eps ENU(ecefa, ll) lla 1e-8
+
+    @xy_approx_eq_eps ENU(ecefa, lla_bounds) enu000 1e-8
+    @z_approx_eq_eps ENU(ecefa, lla_bounds) lla 1e-8
+
+    @xyz_approx_eq ENU(ecefa, ll_bounds) ENU(ecefa, lla_bounds)
+
     @xy_approx_eq_eps ENU(lla, lla_bounds) enu000 1e-8
+    @z_approx_eq_eps ENU(lla, lla_bounds) lla 1e-8
 
-    enu2 = ENU(ecef, lla2)
+    @xyz_approx_eq_eps ENU(ll, ll_bounds) enu000 1e-8
 
-    @xyz_approx_eq ENU(lla, lla2) enu2
+    ecefa2 = ECEF(lla2)
+    ecef2 = ECEF(ll2)
 
-    @xy_approx_eq_eps ENU(ecef, lla2_bounds) enu2 1e-8
+    enu2 = ENU(ecefa, lla2)
+    @xyz_approx_eq enu2 ENU(lla, lla2)
+
+    @xy_approx_eq_eps enu2 ENU(ecefa, ll2) 1e-8
+    zdiff = getZ(ENU(ecefa, ll2)) - getZ(enu2)
+    @test_approx_eq_eps getZ(lla2) zdiff 1e-8
+
+    @xy_approx_eq_eps ENU(ecefa, lla2_bounds) enu2 1e-8
     @xy_approx_eq_eps ENU(lla, lla2_bounds) enu2 1e-8
+    @test ENU(ecefa, ll2_bounds) == ENU(ecefa, lla2_bounds)
+
+    dist_ecefa = distance(ecefa, ecefa2)
+    dist_enua = distance(ENU(lla, lla), ENU(lla2, lla))
+    @test_approx_eq dist_ecefa dist_enua
+
+    dist_ecef = distance(ecef, ecef2)
+    dist_enu = distance(ENU(ll, ll), ENU(ll2, ll))
+    @test_approx_eq dist_ecef dist_enu
 end

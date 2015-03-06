@@ -4,6 +4,7 @@ export
     # Points
     ECEF,
     ENU,
+    LL,
     LLA,
 
     # Other types

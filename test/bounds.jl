@@ -23,7 +23,9 @@ Bounds(y, y, x, x - 1)
 
 # center
 
-@test center(Bounds(0, 0, 179, -178)) == LLA(0, -179.5)
+@test center(     Bounds(0, 0, 179, -178)) ==  LL(0, -179.5)
+@test center(Bounds{LLA}(0, 0, 179, -178)) == LLA(0, -179.5)
+@test center(Bounds{ENU}(0, 0, 179, -178)) == ENU(0.5, 0)
 
 # inBounds
 
@@ -42,6 +44,7 @@ function test_bounds{T}(bounds::Bounds{T})
 end
 
 test_bounds(Bounds{ENU}(1.1, 2.2, 3.3, 4.4))
+test_bounds(Bounds{LLA}(1.1, 2.2, 3.3, 4.4))
 test_bounds(Bounds(1.1, 2.2, 3.3, 4.4))
 test_bounds(Bounds(1.1, 2.2, 179.3, -179.4))
 
