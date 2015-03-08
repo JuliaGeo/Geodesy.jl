@@ -25,14 +25,13 @@ Bounds(y, y, x, x - 1)
 
 @test center(     Bounds(0, 0, 179, -178)) ==  LL(0, -179.5)
 @test center(Bounds{LLA}(0, 0, 179, -178)) == LLA(0, -179.5)
+@test center(Bounds{LLA{NAD27}}(0, 0, 179, -178)) == LLA{NAD27}(0, -179.5)
 @test center(Bounds{ENU}(0, 0, 179, -178)) == ENU(0.5, 0)
 
 # inBounds
 
 function test_bounds{T}(bounds::Bounds{T})
     min_x, min_y, max_x, max_y = bounds.min_x, bounds.min_y, bounds.max_x, bounds.max_y
-
-    XY = Geodesy.XY
 
     @test inBounds(T(XY(min_x, min_y)), bounds)
     @test !inBounds(T(XY(min_x - eps(min_x), min_y)), bounds)
@@ -43,12 +42,15 @@ function test_bounds{T}(bounds::Bounds{T})
     @test !inBounds(T(XY(max_x, max_y + eps(max_y))), bounds)
 end
 
-test_bounds(Bounds{ENU}(1.1, 2.2, 3.3, 4.4))
-test_bounds(Bounds{LLA}(1.1, 2.2, 3.3, 4.4))
-test_bounds(Bounds(1.1, 2.2, 3.3, 4.4))
-test_bounds(Bounds(1.1, 2.2, 179.3, -179.4))
+for bounds in (Bounds{ENU}(1.1, 2.2, 3.3, 4.4),
+               Bounds{LLA{NAD27}}(1.1, 2.2, 3.3, 4.4),
+               Bounds(1.1, 2.2, 3.3, 4.4),
+               Bounds(1.1, 2.2, 179.3, -179.4))
+    test_bounds(bounds)
+end
 
 # boundaryPoint
+
 function test_boundary{T}(bounds::Bounds{T})
     c = center(bounds)
     cx, cy = getX(c), getY(c)
@@ -67,6 +69,9 @@ function test_boundary{T}(bounds::Bounds{T})
     end
 end
 
-for bounds in (Bounds(0, 1, 78, 79), Bounds(0, 1, 179.9, -179.1), Bounds{ENU}(-1, 1, -1, 1))
+for bounds in (Bounds(0, 1, 78, 79),
+               Bounds(0, 1, 179.9, -179.1),
+               Bounds{LLA{NAD27}}(0, 1, 78, 79),
+               Bounds{ENU}(-1, 1, -1, 1))
     test_boundary(bounds)
 end

@@ -9,6 +9,7 @@ export
 
     # Other types
     Bounds,
+    Datum,
     Ellipsoid,
 
     # Constants

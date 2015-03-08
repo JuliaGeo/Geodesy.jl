@@ -33,7 +33,18 @@ end
 ### World Geodetic Coordinate System of 1984 (WGS 84)
 # Standardized coordinate system for Earth
 # Global ellipsoidal reference surface
-const WGS84  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
+const eWGS84  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
 
-const OSGB36 = Ellipsoid(a = "6377563.396", b = "6356256.909")
-const NAD27  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
+const eNAD27  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
+const eOSGB36 = Ellipsoid(a = "6377563.396", b = "6356256.909")
+
+abstract Datum
+
+immutable WGS84 <: Datum end
+ellipsoid(::Type{WGS84}) = eWGS84
+
+immutable NAD27 <: Datum end
+ellipsoid(::Type{NAD27}) = eNAD27
+
+immutable OSGB36 <: Datum end
+ellipsoid(::Type{OSGB36}) = eOSGB36

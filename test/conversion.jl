@@ -73,6 +73,26 @@ bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
 bounds_enu_ref = Bounds{ENU}(-249.9308954374605, 249.9353534128848, -247.1268196136449, 247.1268196138187)
 @type_approx_eq ENU(bounds) bounds_enu_ref
 
+###################################
+### Testing datum relationships ###
+###################################
+
+ecef = ECEF(5.953150599314804e6, 1.5951418955072558e6, 1.6403589592409942e6)
+ecef2wgs = LLA{WGS84}(ecef)
+ecef2nad = LLA{NAD27}(ecef)
+ecef2osgb = LLA{OSGB36}(ecef)
+
+@test LLA(ecef) == ecef2wgs
+@test LL(ecef) == LL{WGS84}(ecef)
+
+@test getX(ecef2wgs) == getX(ecef2nad)
+@test abs(getY(ecef2wgs) - getY(ecef2nad)) > 1e-4
+@test abs(getZ(ecef2wgs) - getZ(ecef2nad)) > 10
+
+@test getX(ecef2wgs) == getX(ecef2osgb)
+@test abs(getY(ecef2wgs) - getY(ecef2osgb)) > 1e-4
+@test abs(getZ(ecef2wgs) - getZ(ecef2osgb)) > 10
+
 #############################
 ### Testing random errors ###
 #############################

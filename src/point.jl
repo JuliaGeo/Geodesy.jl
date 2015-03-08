@@ -4,19 +4,27 @@
 ###################
 
 ### Point in Latitude-Longitude-Altitude (LLA) coordinates
-# Used to store node data in OpenStreetMap XML files
-immutable LLA
+immutable LLA{T <: Datum}
     lat::Float64
     lon::Float64
     alt::Float64
 end
-LLA(lat, lon) = LLA(lat, lon, 0.0)
+# LLA(lat, lon) = LLA(lat, lon, 0.0)
+call{T}(::Type{LLA{T}}, lat, lon) = LLA{T}(lat, lon, 0.0)
+
+LLA(lat, lon, alt) = LLA{WGS84}(lat, lon, alt)
+LLA(lat, lon) = LLA{WGS84}(lat, lon)
+
+ellipsoid{T}(::Type{LLA{T}}) = ellipsoid(T)
 
 ### Latitude-Longitude (LL) coordinates
-immutable LL
+immutable LL{T <: Datum}
     lat::Float64
     lon::Float64
 end
+LL(lat, lon) = LL{WGS84}(lat, lon)
+
+ellipsoid{T}(::Type{LL{T}}) = ellipsoid(T)
 
 ### Point in Earth-Centered-Earth-Fixed (ECEF) coordinates
 # Global cartesian coordinate system rotating with the Earth
@@ -46,8 +54,8 @@ type XYZ
 end
 XY(x, y) = XYZ(x, y, 0.0)
 
-LL(xyz::XYZ) = LL(xyz.y, xyz.x)
-LLA(xyz::XYZ) = LLA(xyz.y, xyz.x, xyz.z)
+call{T}(::Type{LL{T}}, xyz::XYZ) = LL{T}(xyz.y, xyz.x)
+call{T}(::Type{LLA{T}}, xyz::XYZ) = LLA{T}(xyz.y, xyz.x, xyz.z)
 ENU(xyz::XYZ) = ENU(xyz.x, xyz.y, xyz.z)
 
 ### get*

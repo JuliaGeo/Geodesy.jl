@@ -16,7 +16,7 @@ function Bounds(min_lat, max_lat, min_lon, max_lon)
         throw(ArgumentError("Bounds out of range of LL coordinate system. " *
                             "Perhaps you're looking for Bounds{ENU}(...)"))
     end
-    Bounds{LL}(min_lat, max_lat, min_lon, max_lon)
+    Bounds{LL{WGS84}}(min_lat, max_lat, min_lon, max_lon)
 end
 
 
@@ -69,7 +69,7 @@ function onBounds{T <: Union(LL, LLA, ENU)}(loc::T, bounds::Bounds{T})
 end
 
 # only for points where inBounds(p1) != inBounds(p2)
-# TODO: fix for cases where bounds.min_x > bounds.max_x
+# TODO: return actual altitude rather than zero
 function boundaryPoint{T <: Union(LL, LLA, ENU)}(p1::T, p2::T, bounds::Bounds{T})
     x1, y1 = getX(p1), getY(p1)
     x2, y2 = getX(p2), getY(p2)

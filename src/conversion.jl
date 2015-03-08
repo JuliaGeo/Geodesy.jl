@@ -3,9 +3,9 @@
 ### LL to ECEF coordinates ###
 ##############################
 
-function ECEF{T <: Union(LL, LLA)}(ll::T, datum::Ellipsoid = WGS84)
+function ECEF{T <: Union(LL, LLA)}(ll::T)
     ϕdeg, λdeg, h = ll.lat, ll.lon, T <: LLA ? ll.alt : 0
-    d = datum
+    d = ellipsoid(T)
 
     sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
     sinλ, cosλ = sind(λdeg), cosd(λdeg)
@@ -23,9 +23,9 @@ end
 ### ECEF to LL coordinates ###
 ##############################
 
-function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
+function Base.convert{T}(::Type{LLA{T}}, ecef::ECEF)
     x, y, z = ecef.x, ecef.y, ecef.z
-    d = datum
+    d = ellipsoid(T)
 
     p = hypot(x, y)
     θ = atan2(z*d.a, p*d.b)
@@ -35,15 +35,16 @@ function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
     N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
     h = p / cos(ϕ) - N
 
-    return LLA(rad2deg(ϕ), rad2deg(λ), h)
+    return LLA{T}(rad2deg(ϕ), rad2deg(λ), h)
 end
+Base.convert(::Type{LLA}, ecef::ECEF) = LLA{WGS84}(ecef)
 
 # TODO:
 # more coercion than conversion?
 # what would not having this a conversion mean for viability of LL type?
-function LL(ecef::ECEF, datum::Ellipsoid = WGS84)
+function Base.convert{T}(::Type{LL{T}}, ecef::ECEF)
     x, y, z = ecef.x, ecef.y, ecef.z
-    d = datum
+    d = ellipsoid(T)
 
     p = hypot(x, y)
     θ = atan2(z*d.a, p*d.b)
@@ -52,18 +53,19 @@ function LL(ecef::ECEF, datum::Ellipsoid = WGS84)
 
     N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
 
-    return LL(rad2deg(ϕ), rad2deg(λ))
+    return LL{T}(rad2deg(ϕ), rad2deg(λ))
 end
+Base.convert(::Type{LL}, ecef::ECEF) = LL{WGS84}(ecef)
 
 ###############################
 ### ECEF to ENU coordinates ###
 ###############################
 
 # Given a reference point for linarization
-function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T, datum::Ellipsoid = WGS84)
+function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T)
     ϕdeg, λdeg = ll_ref.lat, ll_ref.lon
 
-    ecef_ref = ECEF(ll_ref, datum)
+    ecef_ref = ECEF(ll_ref)
     ∂x = ecef.x - ecef_ref.x
     ∂y = ecef.y - ecef_ref.y
     ∂z = ecef.z - ecef_ref.z
@@ -85,9 +87,9 @@ function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T, datum::Ellipsoid = WGS8
 end
 
 # Given Bounds object for linearization
-function ENU{T <: Union(LL, LLA)}(ecef::ECEF, bounds::Bounds{T}, datum::Ellipsoid = WGS84)
-    lla_ref = center(bounds)
-    return ENU(ecef, lla_ref, datum)
+function ENU{T <: Union(LL, LLA)}(ecef::ECEF, bounds::Bounds{T})
+    ll_ref = center(bounds)
+    return ENU(ecef, ll_ref)
 end
 
 #############################
@@ -95,15 +97,15 @@ end
 #############################
 
 # Given a reference point for linarization
-function ENU{T <: Union(LL, LLA)}(ll::T, ll_ref::T, datum::Ellipsoid = WGS84)
-    ecef = ECEF(ll, datum)
-    return ENU(ecef, ll_ref, datum)
+function ENU{T <: Union(LL, LLA)}(ll::T, ll_ref::T)
+    ecef = ECEF(ll)
+    return ENU(ecef, ll_ref)
 end
 
 # Given Bounds object for linearization
-function ENU{T <: Union(LL, LLA)}(ll::T, bounds::Bounds{T}, datum::Ellipsoid = WGS84)
-    ecef = ECEF(ll, datum)
-    return ENU(ecef, bounds, datum)
+function ENU{T <: Union(LL, LLA)}(ll::T, bounds::Bounds{T})
+    ecef = ECEF(ll)
+    return ENU(ecef, bounds)
 end
 
 ################################
@@ -113,7 +115,7 @@ end
 # there's not an unambiguous conversion, but for now,
 # returning the minimum bounds that contain all points contained
 # by the input bounds
-function ENU{T <: Union(LL, LLA)}(bounds::Bounds{T}, ll_ref::T = center(bounds), datum::Ellipsoid = WGS84)
+function ENU{T <: Union(LL, LLA)}(bounds::Bounds{T}, ll_ref::T = center(bounds))
 
     max_x = max_y = -Inf
     min_x = min_y = Inf
@@ -130,7 +132,7 @@ function ENU{T <: Union(LL, LLA)}(bounds::Bounds{T}, ll_ref::T = center(bounds),
     end
 
     for x_ll in xs, y_ll in ys
-        pt = ENU(T(y_ll, x_ll), ll_ref, datum)
+        pt = ENU(T(y_ll, x_ll), ll_ref)
         x, y = getX(pt), getY(pt)
 
         min_x, max_x = min(x, min_x), max(x, max_x)
