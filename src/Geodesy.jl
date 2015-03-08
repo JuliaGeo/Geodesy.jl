@@ -25,7 +25,7 @@ export
     getZ,
     inBounds
 
-for f in ["datum", "point", "bounds", "conversion"]
+for f in ["datum", "point", "bounds", "transform"]
     include("$f.jl")
 end
 
