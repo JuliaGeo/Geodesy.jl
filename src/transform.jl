@@ -61,7 +61,6 @@ Base.convert(::Type{LL}, ecef::ECEF) = LL{WGS84}(ecef)
 ### ECEF to ENU coordinates ###
 ###############################
 
-# Given a reference point for linarization
 function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T)
     ϕdeg, λdeg = ll_ref.lat, ll_ref.lon
 
@@ -86,26 +85,13 @@ function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T)
     return ENU(east, north, up)
 end
 
-# Given Bounds object for linearization
-function ENU{T <: Union(LL, LLA)}(ecef::ECEF, bounds::Bounds{T})
-    ll_ref = center(bounds)
-    return ENU(ecef, ll_ref)
-end
-
 #############################
 ### LL to ENU coordinates ###
 #############################
 
-# Given a reference point for linarization
 function ENU{T <: Union(LL, LLA)}(ll::T, ll_ref::T)
     ecef = ECEF(ll)
     return ENU(ecef, ll_ref)
-end
-
-# Given Bounds object for linearization
-function ENU{T <: Union(LL, LLA)}(ll::T, bounds::Bounds{T})
-    ecef = ECEF(ll)
-    return ENU(ecef, bounds)
 end
 
 ################################

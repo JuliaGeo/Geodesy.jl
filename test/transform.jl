@@ -134,16 +134,6 @@ for _ = 1:50_000
     @xy_approx_eq_eps ENU(ecefa, ll) enu000 1e-8
     @z_approx_eq_eps ENU(ecefa, ll) lla 1e-8
 
-    @xy_approx_eq_eps ENU(ecefa, lla_bounds) enu000 1e-8
-    @z_approx_eq_eps ENU(ecefa, lla_bounds) lla 1e-8
-
-    @xyz_approx_eq ENU(ecefa, ll_bounds) ENU(ecefa, lla_bounds)
-
-    @xy_approx_eq_eps ENU(lla, lla_bounds) enu000 1e-8
-    @z_approx_eq_eps ENU(lla, lla_bounds) lla 1e-8
-
-    @xyz_approx_eq_eps ENU(ll, ll_bounds) enu000 1e-8
-
     ecefa2 = ECEF(lla2)
     ecef2 = ECEF(ll2)
 
@@ -153,10 +143,6 @@ for _ = 1:50_000
     @xy_approx_eq_eps enu2 ENU(ecefa, ll2) 1e-8
     zdiff = getZ(ENU(ecefa, ll2)) - getZ(enu2)
     @test_approx_eq_eps getZ(lla2) zdiff 1e-8
-
-    @xy_approx_eq_eps ENU(ecefa, lla2_bounds) enu2 1e-8
-    @xy_approx_eq_eps ENU(lla, lla2_bounds) enu2 1e-8
-    @test ENU(ecefa, ll2_bounds) == ENU(ecefa, lla2_bounds)
 
     dist_ecefa = distance(ecefa, ecefa2)
     dist_enua = distance(ENU(lla, lla), ENU(lla2, lla))
