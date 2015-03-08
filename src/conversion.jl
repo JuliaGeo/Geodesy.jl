@@ -3,7 +3,7 @@
 ### LL to ECEF coordinates ###
 ##############################
 
-function ECEF{T <: Union(LL, LLA)}(ll::T)
+function Base.convert{T <: Union(LL, LLA)}(::Type{ECEF}, ll::T)
     ϕdeg, λdeg, h = ll.lat, ll.lon, T <: LLA ? ll.alt : 0
     d = ellipsoid(T)
 
