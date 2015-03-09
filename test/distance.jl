@@ -1,8 +1,8 @@
 using Geodesy
 using Base.Test
 
-@test distance(ENU(1, 1, 1), ENU(2, 2, 2)) == sqrt(3)
-@test distance(ECEF(1, 1, 1), ECEF(3, 3, 3)) == sqrt(12)
+@test_approx_eq distance(ENU(1, 1, 1), ENU(2, 2, 2)) sqrt(3)
+@test_approx_eq distance(ECEF(1, 1, 1), ECEF(3, 3, 3)) sqrt(12)
 @test_throws MethodError distance(lla, lla)
 @test_throws MethodError distance(ll, ll)
 
