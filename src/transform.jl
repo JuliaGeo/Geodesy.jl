@@ -37,7 +37,6 @@ function Base.convert{T}(::Type{LLA{T}}, ecef::ECEF)
 
     return LLA{T}(rad2deg(ϕ), rad2deg(λ), h)
 end
-Base.convert(::Type{LLA}, ecef::ECEF) = LLA{WGS84}(ecef)
 
 # TODO:
 # more coercion than conversion?
@@ -55,13 +54,12 @@ function Base.convert{T}(::Type{LL{T}}, ecef::ECEF)
 
     return LL{T}(rad2deg(ϕ), rad2deg(λ))
 end
-Base.convert(::Type{LL}, ecef::ECEF) = LL{WGS84}(ecef)
 
 ###############################
 ### ECEF to ENU coordinates ###
 ###############################
 
-function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T)
+function ENU(ecef::ECEF, ll_ref::Union(LL, LLA))
     ϕdeg, λdeg = ll_ref.lat, ll_ref.lon
 
     ecef_ref = ECEF(ll_ref)
@@ -78,11 +76,39 @@ function ENU{T <: Union(LL, LLA)}(ecef::ECEF, ll_ref::T)
     #       cosλ*cosϕ  sinλ*cosϕ sinϕ]
     #
     # east, north, up = R * [∂x, ∂y, ∂z]
-    east  = ∂x * -sinλ      + ∂y * cosλ       + ∂z * 0.0
-    north = ∂x * -cosλ*sinϕ + ∂y * -sinλ*sinϕ + ∂z * cosϕ
-    up    = ∂x * cosλ*cosϕ  + ∂y * sinλ*cosϕ  + ∂z * sinϕ
+    east  =      -sinλ * ∂x +       cosλ * ∂y +  0.0 * ∂z
+    north = -cosλ*sinϕ * ∂x + -sinλ*sinϕ * ∂y + cosϕ * ∂z
+    up    =  cosλ*cosϕ * ∂x +  sinλ*cosϕ * ∂y + sinϕ * ∂z
 
     return ENU(east, north, up)
+end
+
+###############################
+### ENU to ECEF coordinates ###
+###############################
+
+function ECEF(enu::ENU, ll_ref::Union(LL, LLA))
+    ϕdeg, λdeg = ll_ref.lat, ll_ref.lon
+
+    ecef_ref = ECEF(ll_ref)
+
+    # Compute rotation matrix
+    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+
+    # Rᵀ = [-sinλ -cosλ*sinϕ cosλ*cosϕ
+    #        cosλ -sinλ*sinϕ sinλ*cosϕ
+    #         0.0       cosϕ      sinϕ]
+    # ∂x, ∂y, ∂z = Rᵀ * [east, north, up]
+    ∂x = -sinλ * enu.east + -cosλ*sinϕ * enu.north + cosλ*cosϕ * enu.up
+    ∂y =  cosλ * enu.east + -sinλ*sinϕ * enu.north + sinλ*cosϕ * enu.up
+    ∂z =   0.0 * enu.east +       cosϕ * enu.north +      sinϕ * enu.up
+
+    X = ∂x + ecef_ref.x
+    Y = ∂y + ecef_ref.y
+    Z = ∂z + ecef_ref.z
+
+    return ECEF(X, Y, Z)
 end
 
 #############################
@@ -92,6 +118,20 @@ end
 function ENU{T <: Union(LL, LLA)}(ll::T, ll_ref::T)
     ecef = ECEF(ll)
     return ENU(ecef, ll_ref)
+end
+
+#############################
+### ENU to LL coordinates ###
+#############################
+
+function Base.call{T <: LLA}(::Type{T}, enu::ENU, ll_ref::Union(LL, LLA))
+    ecef = ECEF(enu, ll_ref)
+    return T(ecef)
+end
+
+function Base.call{T <: LL}(::Type{T}, enu::ENU, ll_ref::Union(LL, LLA))
+    ecef = ECEF(enu, ll_ref)
+    return T(ecef)
 end
 
 ################################

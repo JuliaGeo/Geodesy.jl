@@ -9,11 +9,8 @@ immutable LLA{T <: Datum}
     lon::Float64
     alt::Float64
 end
-# LLA(lat, lon) = LLA(lat, lon, 0.0)
-call{T}(::Type{LLA{T}}, lat, lon) = LLA{T}(lat, lon, 0.0)
-
-LLA(lat, lon, alt) = LLA{WGS84}(lat, lon, alt)
-LLA(lat, lon) = LLA{WGS84}(lat, lon)
+Base.call{T}(::Type{LLA{T}}, lat::Real, lon::Real) = LLA{T}(lat, lon, 0.0)
+LLA(args...) = LLA{WGS84}(args...)
 
 ellipsoid{T}(::Type{LLA{T}}) = ellipsoid(T)
 
@@ -22,7 +19,7 @@ immutable LL{T <: Datum}
     lat::Float64
     lon::Float64
 end
-LL(lat, lon) = LL{WGS84}(lat, lon)
+LL(args...) = LL{WGS84}(args...)
 
 ellipsoid{T}(::Type{LL{T}}) = ellipsoid(T)
 
@@ -54,8 +51,8 @@ type XYZ
 end
 XY(x, y) = XYZ(x, y, 0.0)
 
-call{T}(::Type{LL{T}}, xyz::XYZ) = LL{T}(xyz.y, xyz.x)
-call{T}(::Type{LLA{T}}, xyz::XYZ) = LLA{T}(xyz.y, xyz.x, xyz.z)
+Base.call{T}(::Type{LL{T}}, xyz::XYZ) = LL{T}(xyz.y, xyz.x)
+Base.call{T}(::Type{LLA{T}}, xyz::XYZ) = LLA{T}(xyz.y, xyz.x, xyz.z)
 ENU(xyz::XYZ) = ENU(xyz.x, xyz.y, xyz.z)
 
 ### get*

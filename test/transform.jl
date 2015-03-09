@@ -20,6 +20,10 @@ macro type_approx_eq(a, b)
     end
 end
 
+Geodesy.getX(ecef::ECEF) = ecef.x
+Geodesy.getY(ecef::ECEF) = ecef.y
+Geodesy.getZ(ecef::ECEF) = ecef.z
+
 macro xyz_approx_eq(a, b)
     quote
         @test_approx_eq getX($(esc(a))) getX($(esc(b)))
@@ -62,7 +66,7 @@ lla_ref = LLA(42.36299, -71.09183, 0)
 
 # LLA -> ECEF
 ecef_ref = ECEF(1529073.1560519305, -4465040.019013103, 4275835.339260309)
-@type_approx_eq ECEF(lla) ecef_ref
+@xyz_approx_eq ECEF(lla) ecef_ref
 
 #LLA -> ENU
 enu_ref = ENU(-343.493749083977, 478.764855466788, -0.027242885224325164)
@@ -143,6 +147,15 @@ for _ = 1:50_000
     @xy_approx_eq_eps enu2 ENU(ecefa, ll2) 1e-8
     zdiff = getZ(ENU(ecefa, ll2)) - getZ(enu2)
     @test_approx_eq_eps getZ(lla2) zdiff 1e-8
+
+    # ECEF => ENU => ECEF w/ little change
+    enu2v1 = ENU(ecef2, lla)
+    @xyz_approx_eq_eps ECEF(enu2v1, lla) ecef2 1e-8
+
+    # ENU => LL same as ENU => ECEF => LLA
+    ecef2v1 = ECEF(enu2v1, lla)
+    @xyz_approx_eq LLA(enu2v1, lla) LLA(ecef2v1)
+    @xy_approx_eq LL(enu2v1, lla) LL(ecef2v1)
 
     dist_ecefa = distance(ecefa, ecefa2)
     dist_enua = distance(ENU(lla, lla), ENU(lla2, lla))
