@@ -25,6 +25,14 @@ export
     getZ,
     inBounds
 
+    #= Unexported / Experimental
+    decimal2dms
+    dms2decimal
+
+    boundaryPoint
+    onBounds
+    =#
+
 for f in ["datum", "point", "bounds", "transform", "distance"]
     include("$f.jl")
 end
