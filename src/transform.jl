@@ -63,9 +63,9 @@ function ENU(ecef::ECEF, ll_ref::Union(LL, LLA))
     ϕdeg, λdeg = ll_ref.lat, ll_ref.lon
 
     ecef_ref = ECEF(ll_ref)
-    ∂x = ecef.x - ecef_ref.x
-    ∂y = ecef.y - ecef_ref.y
-    ∂z = ecef.z - ecef_ref.z
+    Δx = ecef.x - ecef_ref.x
+    Δy = ecef.y - ecef_ref.y
+    Δz = ecef.z - ecef_ref.z
 
     # Compute rotation matrix
     sinλ, cosλ = sind(λdeg), cosd(λdeg)
@@ -75,10 +75,10 @@ function ENU(ecef::ECEF, ll_ref::Union(LL, LLA))
     #      -cosλ*sinϕ -sinλ*sinϕ cosϕ
     #       cosλ*cosϕ  sinλ*cosϕ sinϕ]
     #
-    # east, north, up = R * [∂x, ∂y, ∂z]
-    east  =      -sinλ * ∂x +       cosλ * ∂y +  0.0 * ∂z
-    north = -cosλ*sinϕ * ∂x + -sinλ*sinϕ * ∂y + cosϕ * ∂z
-    up    =  cosλ*cosϕ * ∂x +  sinλ*cosϕ * ∂y + sinϕ * ∂z
+    # east, north, up = R * [Δx, Δy, Δz]
+    east  =      -sinλ * Δx +       cosλ * Δy +  0.0 * Δz
+    north = -cosλ*sinϕ * Δx + -sinλ*sinϕ * Δy + cosϕ * Δz
+    up    =  cosλ*cosϕ * Δx +  sinλ*cosϕ * Δy + sinϕ * Δz
 
     return ENU(east, north, up)
 end
@@ -99,14 +99,14 @@ function ECEF(enu::ENU, ll_ref::Union(LL, LLA))
     # Rᵀ = [-sinλ -cosλ*sinϕ cosλ*cosϕ
     #        cosλ -sinλ*sinϕ sinλ*cosϕ
     #         0.0       cosϕ      sinϕ]
-    # ∂x, ∂y, ∂z = Rᵀ * [east, north, up]
-    ∂x = -sinλ * enu.east + -cosλ*sinϕ * enu.north + cosλ*cosϕ * enu.up
-    ∂y =  cosλ * enu.east + -sinλ*sinϕ * enu.north + sinλ*cosϕ * enu.up
-    ∂z =   0.0 * enu.east +       cosϕ * enu.north +      sinϕ * enu.up
+    # Δx, Δy, Δz = Rᵀ * [east, north, up]
+    Δx = -sinλ * enu.east + -cosλ*sinϕ * enu.north + cosλ*cosϕ * enu.up
+    Δy =  cosλ * enu.east + -sinλ*sinϕ * enu.north + sinλ*cosϕ * enu.up
+    Δz =   0.0 * enu.east +       cosϕ * enu.north +      sinϕ * enu.up
 
-    X = ∂x + ecef_ref.x
-    Y = ∂y + ecef_ref.y
-    Z = ∂z + ecef_ref.z
+    X = ecef_ref.x + Δx
+    Y = ecef_ref.y + Δy
+    Z = ecef_ref.z + Δz
 
     return ECEF(X, Y, Z)
 end
