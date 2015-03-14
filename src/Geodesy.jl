@@ -29,11 +29,13 @@ export
     decimal2dms
     dms2decimal
 
+    haversine_distance
+
     boundaryPoint
     onBounds
     =#
 
-for f in ["datum", "point", "bounds", "transform", "distance"]
+for f in ["datum", "point", "bounds", "transform", "vicenty", "distance"]
     include("$f.jl")
 end
 
