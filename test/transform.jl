@@ -1,4 +1,5 @@
 using Geodesy
+using Geodesy: NAD27, OSGB36
 using Base.Test
 using Compat
 

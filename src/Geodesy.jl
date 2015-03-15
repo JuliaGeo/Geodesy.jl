@@ -14,8 +14,6 @@ export
 
     # Constants
     WGS84,
-    OSGB36,
-    NAD27,
 
     # Methods
     center,
@@ -26,6 +24,12 @@ export
     inBounds
 
     #= Unexported / Experimental
+    ETRS89
+    NAD83
+    ED50
+    OSGB36
+    NAD27
+
     decimal2dms
     dms2decimal
 

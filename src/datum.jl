@@ -1,5 +1,10 @@
-### Ellipsoid
-# Specify datum for translation between LLA and other coordinate systems
+
+# parameters used for distance calculations and coordinate system transforms
+
+#
+# Ellipsoid
+#
+
 immutable Ellipsoid
     a::Float64        # Semi-major axis
     b::Float64        # Semi-minor axis
@@ -30,21 +35,38 @@ function _ellipsoid_af(a::BigFloat, f_inv::BigFloat)
     _ellipsoid_ab(a, b)
 end
 
-### World Geodetic Coordinate System of 1984 (WGS 84)
-# Standardized coordinate system for Earth
-# Global ellipsoidal reference surface
-const eWGS84  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
+# A few common Ellipsoids
 
-const eNAD27  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
-const eOSGB36 = Ellipsoid(a = "6377563.396", b = "6356256.909")
+const eWGS84      = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
+const eGRS80      = Ellipsoid(a = "6378137.0", f_inv = "298.257222100882711243") # f_inv derived
+const eHayford    = Ellipsoid(a = "6378388.0", f_inv = "297.0")
+const eClarke1866 = Ellipsoid(a = "6378206.4",   b = "6356583.8")
+const eAiry       = Ellipsoid(a = "6377563.396", b = "6356256.909")
+
+#
+# Datum
+#
 
 abstract Datum
 
+# A few common datums
+
+# Default Datum: World Geodetic Coordinate System of 1984 (WGS 84)
 immutable WGS84 <: Datum end
 ellipsoid(::Type{WGS84}) = eWGS84
 
-immutable NAD27 <: Datum end
-ellipsoid(::Type{NAD27}) = eNAD27
+
+immutable ETRS89 <: Datum end
+ellipsoid(::Type{ETRS89}) = eGRS80
+
+immutable NAD83 <: Datum end
+ellipsoid(::Type{NAD83}) = eGRS80
+
+immutable ED50 <: Datum end
+ellipsoid(::Type{ED50}) = eHayford
 
 immutable OSGB36 <: Datum end
-ellipsoid(::Type{OSGB36}) = eOSGB36
+ellipsoid(::Type{OSGB36}) = eAiry
+
+immutable NAD27 <: Datum end
+ellipsoid(::Type{NAD27}) = eClarke1866

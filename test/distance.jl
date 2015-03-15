@@ -1,4 +1,5 @@
 using Geodesy
+using Geodesy: ED50
 using Base.Test
 
 @test_approx_eq distance(ENU(1, 1, 1), ENU(2, 2, 2)) sqrt(3)
@@ -99,9 +100,6 @@ end
 # Test data over the Hayford ellipsoid, "exact" distances this time
 # Source: http://geographiclib.sourceforge.net/1.1/geodesic.html
 
-immutable International <: Datum end
-Geodesy.ellipsoid(::Type{International}) = Ellipsoid(a = "6378388.0", f_inv = "297.0")
-
 function todec(x)
     r = match(r"^([\-0-9]+)d([0-9]+)'([0-9\.]+)$", x)
     Geodesy.dms2decimal(map(float, r.captures)...)
@@ -142,8 +140,8 @@ for t in [
 ]
     lat1, lat2, dlon, azi1, azi2, s12 = testvals(t)
 
-    p1 = LL{International}(lat1, 0)
-    p2 = LL{International}(lat2, dlon)
+    p1 = LL{ED50}(lat1, 0)
+    p2 = LL{ED50}(lat2, dlon)
 
     try
         vi = Geodesy.vicentys_inverse(p1, p2)
