@@ -3,7 +3,7 @@
 ### Bounds Type ###
 ###################
 
-type Bounds{T <: Union(LLA, ENU)}
+type Bounds{T <: Union(LL, LLA, ENU)}
     min_y::Float64
     max_y::Float64
     min_x::Float64
@@ -13,10 +13,10 @@ function Bounds(min_lat, max_lat, min_lon, max_lon)
     if !(-90 <= min_lat <= max_lat <= 90 &&
          -180 <= min_lon <= 180 &&
          -180 <= max_lon <= 180)
-        throw(ArgumentError("Bounds out of range of LLA coordinate system. " *
+        throw(ArgumentError("Bounds out of range of LL coordinate system. " *
                             "Perhaps you're looking for Bounds{ENU}(...)"))
     end
-    Bounds{LLA}(min_lat, max_lat, min_lon, max_lon)
+    Bounds{LL{WGS84}}(min_lat, max_lat, min_lon, max_lon)
 end
 
 
@@ -32,7 +32,7 @@ function center(bounds::Bounds{ENU})
     return ENU(x_mid, y_mid)
 end
 
-function center(bounds::Bounds{LLA})
+function center{T <: Union(LL, LLA)}(bounds::Bounds{T})
     x_mid = (bounds.min_x + bounds.max_x) / 2
     y_mid = (bounds.min_y + bounds.max_y) / 2
 
@@ -40,7 +40,7 @@ function center(bounds::Bounds{LLA})
         x_mid = x_mid > 0 ? x_mid - 180 : x_mid + 180
     end
 
-    return LLA(y_mid, x_mid)
+    return T(y_mid, x_mid)
 end
 
 ### Check whether a location is within bounds ###
@@ -51,7 +51,7 @@ function inBounds(loc::ENU, bounds::Bounds{ENU})
     bounds.min_y <= y <= bounds.max_y
 end
 
-function inBounds(loc::LLA, bounds::Bounds{LLA})
+function inBounds{T <: Union(LL, LLA)}(loc::T, bounds::Bounds{T})
     x, y = getX(loc), getY(loc)
 
     min_x, max_x = bounds.min_x, bounds.max_x
@@ -61,7 +61,7 @@ function inBounds(loc::LLA, bounds::Bounds{LLA})
 end
 
 # only for points that have passed the inBounds test
-function onBounds{T<:Union(LLA,ENU)}(loc::T, bounds::Bounds{T})
+function onBounds{T <: Union(LL, LLA, ENU)}(loc::T, bounds::Bounds{T})
     x, y = getX(loc), getY(loc)
 
     x == bounds.min_x || x == bounds.max_x ||
@@ -69,8 +69,8 @@ function onBounds{T<:Union(LLA,ENU)}(loc::T, bounds::Bounds{T})
 end
 
 # only for points where inBounds(p1) != inBounds(p2)
-# TODO: fix for cases where bounds.min_x > bounds.max_x
-function boundaryPoint{T<:Union(LLA,ENU)}(p1::T, p2::T, bounds::Bounds)
+# TODO: return actual altitude rather than zero
+function boundaryPoint{T <: Union(LL, LLA, ENU)}(p1::T, p2::T, bounds::Bounds{T})
     x1, y1 = getX(p1), getY(p1)
     x2, y2 = getX(p2), getY(p2)
 
