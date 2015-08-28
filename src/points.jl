@@ -44,9 +44,9 @@ function Ellipsoid(; a::String="", b::String="", f_inv::String="")
         throw(ArgumentError("Specify parameter 'a' and either 'b' or 'f_inv'"))
     end
     if isempty(b)
-        _ellipsoid_af(parse(BigFloat,a), parse(BigFloat,f_inv))
+        _ellipsoid_af(Compat.@compat(parse(BigFloat,a)), Compat.@compat(parse(BigFloat,f_inv)))
     else
-        _ellipsoid_ab(parse(BigFloat,a), parse(BigFloat,b))
+        _ellipsoid_ab(Compat.@compat(parse(BigFloat,a)), Compat.@compat(parse(BigFloat,b)))
     end
 end
 

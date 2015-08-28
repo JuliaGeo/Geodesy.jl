@@ -1,5 +1,7 @@
 module Geodesy
 
+import Compat
+
 export
     # Points
     ECEF,
