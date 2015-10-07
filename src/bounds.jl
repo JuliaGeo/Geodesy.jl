@@ -3,7 +3,7 @@
 ### Bounds Type ###
 ###################
 
-type Bounds{T <: Union(LLA, ENU)}
+type Bounds{T <: @compat(Union{LLA, ENU})}
     min_y::Float64
     max_y::Float64
     min_x::Float64
@@ -61,7 +61,7 @@ function inBounds(loc::LLA, bounds::Bounds{LLA})
 end
 
 # only for points that have passed the inBounds test
-function onBounds{T<:Union(LLA,ENU)}(loc::T, bounds::Bounds{T})
+function onBounds{T<:@compat(Union{LLA,ENU})}(loc::T, bounds::Bounds{T})
     x, y = getX(loc), getY(loc)
 
     x == bounds.min_x || x == bounds.max_x ||
@@ -70,7 +70,7 @@ end
 
 # only for points where inBounds(p1) != inBounds(p2)
 # TODO: fix for cases where bounds.min_x > bounds.max_x
-function boundaryPoint{T<:Union(LLA,ENU)}(p1::T, p2::T, bounds::Bounds)
+function boundaryPoint{T<:@compat(Union{LLA,ENU})}(p1::T, p2::T, bounds::Bounds)
     x1, y1 = getX(p1), getY(p1)
     x2, y2 = getX(p2), getY(p2)
 

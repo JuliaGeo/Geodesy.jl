@@ -39,14 +39,14 @@ immutable Ellipsoid
     e′²::Float64      # Second eccentricity squared
 end
 
-function Ellipsoid(; a::String="", b::String="", f_inv::String="")
+function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="")
     if isempty(a) || isempty(b) == isempty(f_inv)
         throw(ArgumentError("Specify parameter 'a' and either 'b' or 'f_inv'"))
     end
     if isempty(b)
-        _ellipsoid_af(BigFloat(a), BigFloat(f_inv))
+        _ellipsoid_af(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,f_inv)))
     else
-        _ellipsoid_ab(BigFloat(a), BigFloat(b))
+        _ellipsoid_ab(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,b)))
     end
 end
 
