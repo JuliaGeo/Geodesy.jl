@@ -9,7 +9,6 @@ export
     LLA,
 
     # Other types
-    Bounds,
     Ellipsoid,
 
     # Constants
@@ -18,15 +17,12 @@ export
     NAD27,
 
     # Methods
-    center,
     distance,
     getX,
     getY,
     getZ,
-    inBounds
 
 include("points.jl")
-include("bounds.jl")
 include("conversion.jl")
 
 end # module Geodesy

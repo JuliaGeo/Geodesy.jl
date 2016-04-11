@@ -57,11 +57,6 @@ ecef_ref = ECEF(1529073.1560519305, -4465040.019013103, 4275835.339260309)
 enu_ref = ENU(-343.493749083977, 478.764855466788, -0.027242885224325164)
 @xyz_approx_eq_eps ENU(lla, lla_ref) enu_ref 1e-8
 
-# Bounds{LLA} -> Bounds{ENU}
-bounds = Bounds(42.365, 42.3695, -71.1, -71.094)
-bounds_enu_ref = Bounds{ENU}(-249.9308954374605, 249.9353534128848, -247.1268196136449, 247.1268196138187)
-@type_approx_eq ENU(bounds) bounds_enu_ref
-
 #############################
 ### Testing random errors ###
 #############################
@@ -73,31 +68,22 @@ for _ = 1:50_000
     min_x = x < -179 ? x + 359 : x - 1
     max_x = x >  179 ? x - 359 : x + 1
     lla = LLA(y, x, z)
-    lla_bounds = Bounds(y - 1, y + 1, min_x, max_x)
 
     y, x, z = randLLA()
     min_x = x < -179 ? x + 359 : x - 1
     max_x = x >  179 ? x - 359 : x + 1
     lla2 = LLA(y, x, z)
-    lla2_bounds = Bounds(y - 1, y + 1, min_x, max_x)
 
     ecef = ECEF(lla)
 
     @xyz_approx_eq_eps LLA(ecef) lla 1e-6
 
-    @xy_approx_eq center(lla_bounds) lla
-
     enu000 = ENU(0.0, 0.0, 0.0)
 
     @xyz_approx_eq ENU(ecef, lla) enu000
-
-    @xy_approx_eq_eps ENU(ecef, lla_bounds) enu000 1e-8
-    @xy_approx_eq_eps ENU(lla, lla_bounds) enu000 1e-8
 
     enu2 = ENU(ecef, lla2)
 
     @xyz_approx_eq ENU(lla, lla2) enu2
 
-    @xy_approx_eq_eps ENU(ecef, lla2_bounds) enu2 1e-8
-    @xy_approx_eq_eps ENU(lla, lla2_bounds) enu2 1e-8
 end

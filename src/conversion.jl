@@ -67,12 +67,6 @@ function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
     return ENU(east, north, up)
 end
 
-# Given Bounds object for linearization
-function ENU(ecef::ECEF, bounds::Bounds{LLA}, datum::Ellipsoid = WGS84)
-    lla_ref = center(bounds)
-    return ENU(ecef, lla_ref, datum)
-end
-
 ##############################
 ### LLA to ENU coordinates ###
 ##############################
@@ -81,44 +75,4 @@ end
 function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid = WGS84)
     ecef = ECEF(lla, datum)
     return ENU(ecef, lla_ref, datum)
-end
-
-# Given Bounds object for linearization
-function ENU(lla::LLA, bounds::Bounds{LLA}, datum::Ellipsoid = WGS84)
-    ecef = ECEF(lla, datum)
-    return ENU(ecef, bounds, datum)
-end
-
-#################################
-### LLA to ENU Bounds objects ###
-#################################
-
-# there's not an unambiguous conversion, but for now,
-# returning the minimum bounds that contain all points contained
-# by the input bounds
-function ENU(bounds::Bounds{LLA}, lla_ref::LLA = center(bounds), datum::Ellipsoid = WGS84)
-
-    max_x = max_y = -Inf
-    min_x = min_y = Inf
-
-    xs = [bounds.min_x, bounds.max_x]
-    ys = [bounds.min_y, bounds.max_y]
-    if bounds.min_y < 0.0 < bounds.max_y
-        push!(ys, 0.0)
-    end
-    ref_x = getX(lla_ref)
-    if bounds.min_x < ref_x < bounds.max_x ||
-       (bounds.min_x > bounds.max_x && !(bounds.min_x >= ref_x >= bounds.max_x))
-        push!(xs, ref_x)
-    end
-
-    for x_lla in xs, y_lla in ys
-        pt = ENU(LLA(y_lla, x_lla), lla_ref, datum)
-        x, y = getX(pt), getY(pt)
-
-        min_x, max_x = min(x, min_x), max(x, max_x)
-        min_y, max_y = min(y, min_y), max(y, max_y)
-    end
-
-    return Bounds{ENU}(min_y, max_y, min_x, max_x)
 end
