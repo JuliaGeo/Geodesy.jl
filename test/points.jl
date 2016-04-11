@@ -11,14 +11,6 @@ x, y = (rand(2) - .5) * 10_000
 
 ECEF(x, y, 0.0)
 
-# get* methods
-
-lla = LLA(y, x, rand())
-@test LLA(getY(lla), getX(lla), getZ(lla)) == lla
-
-enu = ENU(x, y, rand())
-@test ENU(getX(enu), getY(enu), getZ(enu)) == enu
-
 # Distance
 
 @test distance(ENU(1, 1, 1), ENU(2, 2, 2)) == sqrt(3)

@@ -5,40 +5,31 @@ using Base.Test
 ### Helpers for testing approximate equality ###
 ################################################
 
-macro type_approx_eq(a, b)
-    quote
-        @test names($(esc(a))) == names($(esc(b)))
-        for n in names($(esc(a)))
-            @test_approx_eq $(esc(a)).(n) $(esc(b)).(n)
-        end
-    end
-end
-
 macro xy_approx_eq(a, b)
     quote
-        @test_approx_eq getX($(esc(a))) getX($(esc(b)))
-        @test_approx_eq getY($(esc(a))) getY($(esc(b)))
+        @test_approx_eq ($(esc(a))).(1) ($(esc(b))).(1)
+        @test_approx_eq ($(esc(a))).(2) ($(esc(b))).(2)
     end
 end
 macro xy_approx_eq_eps(a, b, eps)
     quote
-        @test_approx_eq_eps getX($(esc(a))) getX($(esc(b))) $(esc(eps))
-        @test_approx_eq_eps getY($(esc(a))) getY($(esc(b))) $(esc(eps))
+        @test_approx_eq_eps ($(esc(a))).(1) ($(esc(b))).(1) $(esc(eps))
+        @test_approx_eq_eps ($(esc(a))).(2) ($(esc(b))).(2) $(esc(eps))
     end
 end
 
 macro xyz_approx_eq(a, b)
     quote
-        @test_approx_eq getX($(esc(a))) getX($(esc(b)))
-        @test_approx_eq getY($(esc(a))) getY($(esc(b)))
-        @test_approx_eq getZ($(esc(a))) getZ($(esc(b)))
+        @test_approx_eq ($(esc(a))).(1) ($(esc(b))).(1)
+        @test_approx_eq ($(esc(a))).(2) ($(esc(b))).(2)
+        @test_approx_eq ($(esc(a))).(3) ($(esc(b))).(3)
     end
 end
 macro xyz_approx_eq_eps(a, b, eps)
     quote
-        @test_approx_eq_eps getX($(esc(a))) getX($(esc(b))) $(esc(eps))
-        @test_approx_eq_eps getY($(esc(a))) getY($(esc(b))) $(esc(eps))
-        @test_approx_eq_eps getZ($(esc(a))) getZ($(esc(b))) $(esc(eps))
+        @test_approx_eq_eps ($(esc(a))).(1) ($(esc(b))).(1) $(esc(eps))
+        @test_approx_eq_eps ($(esc(a))).(2) ($(esc(b))).(2) $(esc(eps))
+        @test_approx_eq_eps ($(esc(a))).(3) ($(esc(b))).(3) $(esc(eps))
     end
 end
 
@@ -51,7 +42,7 @@ lla_ref = LLA(42.36299, -71.09183, 0)
 
 # LLA -> ECEF
 ecef_ref = ECEF(1529073.1560519305, -4465040.019013103, 4275835.339260309)
-@type_approx_eq ECEF(lla) ecef_ref
+@xyz_approx_eq ECEF(lla) ecef_ref
 
 #LLA -> ENU
 enu_ref = ENU(-343.493749083977, 478.764855466788, -0.027242885224325164)

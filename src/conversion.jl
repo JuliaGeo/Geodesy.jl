@@ -3,7 +3,7 @@
 ### LLA to ECEF coordinates ###
 ###############################
 
-function ECEF(lla::LLA, datum::Ellipsoid = WGS84)
+function ECEF(lla::LLA, datum::Ellipsoid = WGS84_el)
     ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
     d = datum
 
@@ -23,7 +23,7 @@ end
 ### ECEF to LLA coordinates ###
 ###############################
 
-function LLA(ecef::ECEF, datum::Ellipsoid = WGS84)
+function LLA(ecef::ECEF, datum::Ellipsoid = WGS84_el)
     x, y, z = ecef.x, ecef.y, ecef.z
     d = datum
 
@@ -43,7 +43,7 @@ end
 ###############################
 
 # Given a reference point for linarization
-function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84)
+function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84_el)
     ϕdeg, λdeg = lla_ref.lat, lla_ref.lon
 
     ecef_ref = ECEF(lla_ref, datum)
@@ -72,7 +72,7 @@ end
 ##############################
 
 # Given a reference point for linarization
-function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid = WGS84)
+function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid = WGS84_el)
     ecef = ECEF(lla, datum)
     return ENU(ecef, lla_ref, datum)
 end

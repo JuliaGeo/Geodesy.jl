@@ -1,5 +1,6 @@
 module Geodesy
 
+using FixedSizeArrays
 using Compat
 
 export
@@ -17,12 +18,11 @@ export
     NAD27,
 
     # Methods
-    distance,
-    getX,
-    getY,
-    getZ,
+    distance
+
 
 include("points.jl")
+include("datums.jl")
 include("conversion.jl")
 
 end # module Geodesy
