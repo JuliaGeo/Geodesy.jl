@@ -25,11 +25,11 @@ for _ = 1:1_000
     lla = randLLA()
     lla2 = randLLA()
 
-    enu = ENU(lla, lla)
-    enu2 = ENU(lla2, lla)
+    enu = ENU(lla, lla, wgs84)
+    enu2 = ENU(lla2, lla, wgs84)
 
-    ecef = ECEF(lla)
-    ecef2 = ECEF(lla2)
+    ecef = ECEF(lla, wgs84)
+    ecef2 = ECEF(lla2, wgs84)
 
     @test_throws MethodError distance(lla, lla2)
     @test_approx_eq distance(enu, enu2) distance(ecef, ecef2)

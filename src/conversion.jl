@@ -1,9 +1,18 @@
 
+################################
+### Identity transformations ###
+################################
+
+ECEF(ecef::ECEF, datum) = ecef
+ECEF(lla::LLA, datum) = lla
+ECEF(enu::ENU, datum) = enu
+
+
 ###############################
 ### LLA to ECEF coordinates ###
 ###############################
 
-function ECEF(lla::LLA, datum::Ellipsoid = WGS84_el)
+function ECEF(lla::LLA, datum::Ellipsoid)
     ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
     d = datum
 
@@ -18,12 +27,14 @@ function ECEF(lla::LLA, datum::Ellipsoid = WGS84_el)
 
     return ECEF(x, y, z)
 end
+ECEF(lla::LLA, datum) = ECEF(lla, ellipsoid(datum))
+
 
 ###############################
 ### ECEF to LLA coordinates ###
 ###############################
 
-function LLA(ecef::ECEF, datum::Ellipsoid = WGS84_el)
+function LLA(ecef::ECEF, datum::Ellipsoid)
     x, y, z = ecef.x, ecef.y, ecef.z
     d = datum
 
@@ -37,13 +48,15 @@ function LLA(ecef::ECEF, datum::Ellipsoid = WGS84_el)
 
     return LLA(rad2deg(ϕ), rad2deg(λ), h)
 end
+LLA(ecef::ECEF, datum) = LLA(ecef, ellipsoid(datum))
+
 
 ###############################
 ### ECEF to ENU coordinates ###
 ###############################
 
 # Given a reference point for linarization
-function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84_el)
+function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid)
     ϕdeg, λdeg = lla_ref.lat, lla_ref.lon
 
     ecef_ref = ECEF(lla_ref, datum)
@@ -66,13 +79,15 @@ function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid = WGS84_el)
 
     return ENU(east, north, up)
 end
+ENU(ecef::ECEF, lla_ref::LLA, datum) = ENU(ecef, lla_ref, ellipsoid(datum))
 
 ##############################
 ### LLA to ENU coordinates ###
 ##############################
 
 # Given a reference point for linarization
-function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid = WGS84_el)
+function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid)
     ecef = ECEF(lla, datum)
     return ENU(ecef, lla_ref, datum)
 end
+ENU(lla::LLA, lla_ref::LLA, datum) = ENU(lla, lla_ref, ellipsoid(datum))

@@ -1,3 +1,15 @@
+# Built-in geodetic datums (singletons types and instances)
+immutable WGS84; end
+const wgs84 = WGS84()
+Base.show(io::IO, ::WGS84) = print(io,"wgs84")
+
+immutable OSGB36; end
+const osgb36 = OSGB36()
+Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
+
+immutable NAD27; end
+const nad27 = NAD27()
+Base.show(io::IO, ::NAD27) = print(io,"nad27")
 
 ### Ellipsoid
 # Specify datum for translation between LLA and other coordinate systems
@@ -38,12 +50,7 @@ const WGS84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
 const OSGB36_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
 const NAD27_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
 
-# Datums
-immutable WGS84; end
-@inline ellipsoid(::WGS84) = WGS84_el
-
-immutable OSGB36; end
-@inline ellipsoid(::OSGB36) = OSGB36_el
-
-immutable NAD27; end
-@inline ellipsoid(::NAD27) = NAD27_el
+# TODO GRS80
+@inline ellipsoid(::Union{WGS84,Type{WGS84}})   = WGS84_el
+@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = OSGB36_el
+@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = NAD27_el

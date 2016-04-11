@@ -13,9 +13,9 @@ export
     Ellipsoid,
 
     # Constants
-    WGS84,
-    OSGB36,
-    NAD27,
+    WGS84, wgs84,
+    OSGB36, osgb36,
+    NAD27, nad27,
 
     # Methods
     distance
