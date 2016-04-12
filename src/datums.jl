@@ -11,8 +11,14 @@ immutable NAD27; end
 const nad27 = NAD27()
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
 
-### Ellipsoid
-# Specify datum for translation between LLA and other coordinate systems
+immutable GRS80; end
+const grs80 = GRS80()
+Base.show(io::IO, ::GRS80) = print(io,"grs80")
+
+"""
+An ellipsoidal representation of the earth, for converting between LLA and
+other co-ordinate systems such as ECEF.
+"""
 immutable Ellipsoid
     a::Float64        # Semi-major axis
     b::Float64        # Semi-minor axis
@@ -49,8 +55,11 @@ end
 const WGS84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
 const OSGB36_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
 const NAD27_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
+const GRS80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366")
 
-# TODO GRS80
 @inline ellipsoid(::Union{WGS84,Type{WGS84}})   = WGS84_el
 @inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = OSGB36_el
 @inline ellipsoid(::Union{NAD27,Type{NAD27}})   = NAD27_el
+@inline ellipsoid(::Union{GRS80,Type{GRS80}})   = GRS80_el
+@inline ellispoid(x::Ellipsoid) = x
+ellispoid(x) = error("No ellipsoid defined for datum $x")
