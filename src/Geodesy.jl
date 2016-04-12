@@ -8,6 +8,7 @@ export
     ECEF,
     ENU,
     LLA,
+    LatLon,
 
     # Other types
     Ellipsoid,
