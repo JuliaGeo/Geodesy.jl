@@ -1,4 +1,4 @@
-@testset "Points" begin
+@testset "Points and distances" begin
     # Construction
 
     x, y = (rand(2) - .5) * 10_000
@@ -29,8 +29,9 @@
         ecef = ECEF(lla, wgs84)
         ecef2 = ECEF(lla2, wgs84)
 
-        @test_throws MethodError distance(lla, lla2)
-        @test_approx_eq distance(enu, enu2) distance(ecef, ecef2)
+        #@test_throws MethodError distance(lla, lla2)
+        @test distance(lla, lla2, wgs84) ≈ distance(ecef, ecef2)
+        @test distance(enu, enu2) ≈ distance(ecef, ecef2)
     end
 
 end # @testset

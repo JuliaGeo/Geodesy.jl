@@ -1,60 +1,32 @@
 
-################################
-### Identity transformations ###
-################################
+############################
+### Identity conversions ###
+############################
 
 ECEF(ecef::ECEF, datum) = ecef
-ECEF(lla::LLA, datum) = lla
-ECEF(enu::ENU, datum) = enu
+LLA(lla::LLA, datum) = lla
+ENU(enu::ENU, datum) = enu
 
 
-###############################
-### LLA to ECEF coordinates ###
-###############################
+################################
+### LLA <-> ECEF coordinates ###
+################################
 
-function ECEF(lla::LLA, datum::Ellipsoid)
-    ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
-    d = datum
+ECEF(lla::LLA, datum) = transform(ECEFfromLLA(datum), lla)
 
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+LLA(ecef::ECEF, datum) = transform(LLAfromECEF(datum), ecef)
 
-    N = d.a / sqrt(1 - d.e² * sinϕ^2)  # Radius of curvature (meters)
+################################
+### ECEF <-> ENU coordinates ###
+################################
 
-    x = (N + h) * cosϕ * cosλ
-    y = (N + h) * cosϕ * sinλ
-    z = (N * (1 - d.e²) + h) * sinϕ
+ENU(ecef::ECEF, origin_lla::LLA, datum) = transform(ENUfromECEF(origin_lla, datum), ecef)
+ENU(ecef::ECEF, origin_ecef::ECEF, datum) = transform(ENUfromECEF(origin_ecef, datum), ecef)
 
-    return ECEF(x, y, z)
-end
-ECEF(lla::LLA, datum) = ECEF(lla, ellipsoid(datum))
+ENU(lla::LLA, origin_lla::LLA, datum) =  transform(ENUfromLLA(origin_lla, datum), lla)
+ENU(lla::LLA, origin_ecef::ECEF, datum) =  transform(ENUfromLLA(origin_ecef, datum), lla)
 
-
-###############################
-### ECEF to LLA coordinates ###
-###############################
-
-function LLA(ecef::ECEF, datum::Ellipsoid)
-    x, y, z = ecef.x, ecef.y, ecef.z
-    d = datum
-
-    p = hypot(x, y)
-    θ = atan2(z*d.a, p*d.b)
-    λ = atan2(y, x)
-    ϕ = atan2(z + d.e′² * d.b * sin(θ)^3, p - d.e²*d.a*cos(θ)^3)
-
-    N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
-    h = p / cos(ϕ) - N
-
-    return LLA(rad2deg(ϕ), rad2deg(λ), h)
-end
-LLA(ecef::ECEF, datum) = LLA(ecef, ellipsoid(datum))
-
-
-###############################
-### ECEF to ENU coordinates ###
-###############################
-
+#=
 # Given a reference point for linarization
 function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid)
     ϕdeg, λdeg = lla_ref.lat, lla_ref.lon
@@ -91,3 +63,4 @@ function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid)
     return ENU(ecef, lla_ref, datum)
 end
 ENU(lla::LLA, lla_ref::LLA, datum) = ENU(lla, lla_ref, ellipsoid(datum))
+=#
