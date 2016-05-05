@@ -33,9 +33,13 @@ macro xyz_approx_eq_eps(a, b, eps)
     end
 end
 
+Base.isapprox{T<:Tuple}(a::T, b::T; kwargs...) = all(ntuple(i->isapprox(a[i],b[i]), length(a)); kwargs...)
+
 @testset "Geodesy" begin
 
 include("points.jl")
+include("utm.jl")
+include("transverse_mercator.jl")
 include("transformations.jl")
 include("conversion.jl")
 

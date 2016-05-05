@@ -16,6 +16,8 @@ export
     ENU,
     LLA,
     LatLon,
+    UTM,
+    UTMZ,
 
     # Other types
     Ellipsoid,
@@ -31,7 +33,12 @@ export
 
     # transformation methods
     transform, transform, transform_deriv_params, compose, ∘,
-    ECEFfromLLA, LLAfromECEF, ENUfromECEF, ECEFfromENU, ENUfromLLA, LLAfromENU
+    ECEFfromLLA, LLAfromECEF, ENUfromECEF, ECEFfromENU, ENUfromLLA, LLAfromENU,
+    UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM,
+    UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ,
+
+    # UTM helpers
+    utm_zone
 
 
 
@@ -40,6 +47,7 @@ include("datums.jl")
 include("transformations.jl")
 include("conversion.jl")
 include("distances.jl")
-
+include("transverse_mercator.jl")
+include("utm.jl")
 
 end # module Geodesy

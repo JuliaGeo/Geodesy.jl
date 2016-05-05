@@ -16,6 +16,7 @@ ECEF(lla::LLA, datum) = transform(ECEFfromLLA(datum), lla)
 
 LLA(ecef::ECEF, datum) = transform(LLAfromECEF(datum), ecef)
 
+
 ################################
 ### ECEF <-> ENU coordinates ###
 ################################
@@ -23,44 +24,35 @@ LLA(ecef::ECEF, datum) = transform(LLAfromECEF(datum), ecef)
 ENU(ecef::ECEF, origin_lla::LLA, datum) = transform(ENUfromECEF(origin_lla, datum), ecef)
 ENU(ecef::ECEF, origin_ecef::ECEF, datum) = transform(ENUfromECEF(origin_ecef, datum), ecef)
 
-ENU(lla::LLA, origin_lla::LLA, datum) =  transform(ENUfromLLA(origin_lla, datum), lla)
-ENU(lla::LLA, origin_ecef::ECEF, datum) =  transform(ENUfromLLA(origin_ecef, datum), lla)
+ECEF(enu::ENU, origin_lla::LLA, datum) = transform(ECEFfromENU(origin_lla, datum), enu)
+ECEF(enu::ENU, origin_ecef::ECEF, datum) = transform(ECEFfromENU(origin_ecef, datum), enu)
 
-#=
-# Given a reference point for linarization
-function ENU(ecef::ECEF, lla_ref::LLA, datum::Ellipsoid)
-    ϕdeg, λdeg = lla_ref.lat, lla_ref.lon
 
-    ecef_ref = ECEF(lla_ref, datum)
-    ∂x = ecef.x - ecef_ref.x
-    ∂y = ecef.y - ecef_ref.y
-    ∂z = ecef.z - ecef_ref.z
+################################
+### LLA <-> ENU coordinates ###
+################################
 
-    # Compute rotation matrix
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+ENU(lla::LLA, origin, datum) =  transform(ENUfromLLA(origin, datum), lla)
 
-    # R = [     -sinλ       cosλ  0.0
-    #      -cosλ*sinϕ -sinλ*sinϕ cosϕ
-    #       cosλ*cosϕ  sinλ*cosϕ sinϕ]
-    #
-    # east, north, up = R * [∂x, ∂y, ∂z]
-    east  = ∂x * -sinλ      + ∂y * cosλ       + ∂z * 0.0
-    north = ∂x * -cosλ*sinϕ + ∂y * -sinλ*sinϕ + ∂z * cosϕ
-    up    = ∂x * cosλ*cosϕ  + ∂y * sinλ*cosϕ  + ∂z * sinϕ
+LLA(enu::ENU, origin, datum) = transform(LLAfromENU(origin, datum), enu)
 
-    return ENU(east, north, up)
-end
-ENU(ecef::ECEF, lla_ref::LLA, datum) = ENU(ecef, lla_ref, ellipsoid(datum))
+################################
+### LLA <-> UTMZ coordinates ###
+################################
 
-##############################
-### LLA to ENU coordinates ###
-##############################
+LLA(utm::UTMZ, datum) = transform(LLAfromUTMZ(datum), utm)
+UTMZ(lla::LLA, datum) = transform(UTMZfromLLA(datum), lla)
 
-# Given a reference point for linarization
-function ENU(lla::LLA, lla_ref::LLA, datum::Ellipsoid)
-    ecef = ECEF(lla, datum)
-    return ENU(ecef, lla_ref, datum)
-end
-ENU(lla::LLA, lla_ref::LLA, datum) = ENU(lla, lla_ref, ellipsoid(datum))
-=#
+#################################
+### ECEF <-> UTMZ coordinates ###
+#################################
+
+ECEF(utm::UTMZ, datum) = transform(ECEFfromUTMZ(datum), utm)
+UTMZ(ecef::ECEF, datum) = transform(UTMZfromECEF(datum), ecef)
+
+#################################
+### ECEF <-> UTMZ coordinates ###
+#################################
+
+ENU(utm::UTMZ, origin, datum) = transform(ENUfromUTMZ(origin, datum), utm)
+UTMZ(ecef::ENU, origin, datum) = transform(UTMZfromECEF(origin, datum), ecef)

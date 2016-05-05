@@ -12,8 +12,21 @@
     @test ecef ≈ ECEF(-654007.2768949205,5.794061748224952e6,-2.5796231395720555e6)
     @test lla ≈ transform(lla_ecef, ecef)
 
-    
+    lla_utm = LLAfromUTM(utm_zone(lla)..., wgs84)
+    utm_lla = UTMfromLLA(utm_zone(lla)..., wgs84)
 
+    utm = transform(utm_lla, lla)
+
+    @test utm ≈ UTM(239579.67583179142,7.342551466042985e6,1374.7804632852078)
+    @test lla ≈ transform(lla_utm, utm)
+
+    lla_utmz = LLAfromUTMZ(wgs84)
+    utmz_lla = UTMZfromLLA(wgs84)
+
+    utmz = transform(utmz_lla, lla)
+
+    @test utmz ≈ UTMZ(239579.67583179142,7.342551466042985e6,1374.7804632852078, UInt8(47), false)
+    @test lla ≈ transform(lla_utmz, utmz)
 
 
 end

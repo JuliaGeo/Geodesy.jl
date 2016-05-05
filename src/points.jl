@@ -17,6 +17,8 @@ LLA(lat, lon) = LLA(lat, lon, 0.0)
 Base.show(io::IO, lla::LLA) = print(io, "LLA(lat=$(lla.lat)°, lon=$(lla.lon)°, alt=$(lla.alt))") # Maybe show to nearest mm, or 6 decimel places?
 Base.isapprox(lla1::LLA, lla2::LLA; atol = 1e-6, kwargs...) = isapprox(lla1.lat, lla2.lat; atol = 180*atol/6.371e6, kwargs...) & isapprox(lla1.lon, lla2.lon; atol = 180*atol/6.371e6, kwargs...) & isapprox(lla1.alt, lla2.alt; atol = atol, kwargs...) # atol in metres (1μm)
 
+# For radians, we could export ° = pi/180, then output in degrees... ??
+
 """
 Latitude and longitude co-ordinates.
 (Note: assumes degrees not radians)
@@ -35,6 +37,7 @@ LLA(ll::LatLon) = LLA(ll.lat, ll.lon)
 Base.show(io::IO, lla::LatLon) = print(io, "LatLon(lat=$(lla.lat)°, lon=$(lla.lon)°)") # Maybe show to nearest mm, or 6 decimel places?
 Base.isapprox(ll1::LatLon, ll2::LatLon; atol = 1e-6, kwargs...) = isapprox(ll1.lat, ll2.lat; atol = 180*atol/6.371e6, kwargs...) & isapprox(ll1.lon, ll2.lon; atol = 180*atol/6.371e6, kwargs...) # atol in metres (1μm)
 
+
 """
 ECEF(x,y,z): Earth-Centered-Earth-Fixed (ECEF) coordinates
 
@@ -45,6 +48,7 @@ immutable ECEF{T} <: FixedVectorNoTuple{3,Float64}
     y::T
     z::T
 end
+
 
 """
 ENU(e,n,u): East-North-Up (ENU) coordinates
@@ -57,3 +61,38 @@ immutable ENU{T} <: FixedVectorNoTuple{3,Float64}
     u::T
 end
 ENU(x, y) = ENU(x, y, 0.0)
+
+
+"""
+UTM(x,y,z): Universal transverse Mercator (UTM) coordinates
+
+Common projection type for world points. Zone not included in coordinates - it
+is a parameterized in the relavant transformations (see also the `UTMZ` type)
+"""
+immutable UTM{T}
+    x::T
+    y::T
+    z::T
+end
+UTM(x, y) = UTM(x, y, 0.0)
+Base.isapprox(utm1::UTM, utm2::UTM; atol = 1e-6, kwargs...) = isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
+
+
+"""
+UTMZ(x,y,z): Universal transverse Mercator (UTM) coordinates with zone number
+
+Common projection type for world points. The UTM zone is included in coordinates
+(see also the `UTM` type)
+"""
+immutable UTMZ{T}
+    x::T
+    y::T
+    z::T
+    zone::UInt8
+    hemisphere::Bool # true = north, false = south
+end
+UTMZ(x, y, zone::Integer, hemisphere::Bool) = UTMZ(x, y, 0.0, UInt8(zone), hemisphere)
+UTMZ(x, y, z, zone::Integer, hemisphere::Bool) = UTMZ(x, y, z, UInt8(zone), hemisphere)
+UTMZ(utm::UTM, zone::Integer, hemisphere::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), hemisphere)
+UTM(utmz::UTMZ) = UTM(utmz.x, utmz.y, utmz.z)
+Base.isapprox(utm1::UTMZ, utm2::UTMZ; atol = 1e-6, kwargs...) = (utm1.zone == utm2.zone) & (utm1.hemisphere == utm2.hemisphere) & isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)

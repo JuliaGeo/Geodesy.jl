@@ -122,8 +122,131 @@ end
 ## LLA <-> ENU ##
 #################
 
-ENUfromLLA(origin::LLA, datum) = ENUfromECEF(transform(ECEFfromLLA(datum),origin), origin.lat, origin.lon) ∘ ECEFfromLLA(datum)
-ENUfromLLA(origin::ECEF, datum) = ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)
+ENUfromLLA(origin, datum) = ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)
 
-LLAfromENU(origin::LLA, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(transform(ECEFfromLLA(datum),origin), origin.lat, origin.lon)
-LLAfromENU(origin::ECEF, datum) = LLAfromECEF(datum) ∘ ENUfromECEF(origin, datum)
+LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)
+
+#################
+## LLA <-> UTM ##
+#################
+
+immutable LLAfromUTM{Datum} <: AbstractTransformation{LLA, UTM}
+    zone::UInt8
+    hemisphere::Bool # true = north, false = south
+    datum::Datum
+end
+LLAfromUTM(zone::Integer, h, d) = LLAfromUTM(UInt8(zone), h, d)
+
+function transform(trans::LLAfromUTM, utm::UTM)
+    if trans.zone == 0
+        # Do polar steriographic projection
+        error("Zone 0 not implemented")
+    else
+        lat_ref = 0.0
+        lon_ref = utm_meridian(trans.zone)
+        k0 = 0.9996 # Horizontal scaling factor
+        x = (utm.x - 5e5) / k0 # Convention has 500km offset for easting
+        y = (utm.y - (trans.hemisphere ? 0.0 : 1e7)) / k0 # Northing offset for southern hemisphere
+        (lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
+        return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
+    end
+end
+
+immutable UTMfromLLA{Datum} <: AbstractTransformation{UTM, LLA}
+    zone::UInt8
+    hemisphere::Bool # true = north, false = south
+    datum::Datum
+end
+UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
+
+function transform(trans::UTMfromLLA, lla::LLA)
+    if trans.zone == 0
+        # Do polar steriographic projection
+        error("Zone 0 not implemented")
+    else
+        lat_ref = 0.0
+        lon_ref = utm_meridian(trans.zone)
+        (x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
+        k0 = 0.9996 # Horizontal scaling factor
+        x = 5e5 + k0*x # Convention has 500km offset for easting
+        y = (trans.hemisphere ? 0.0 : 1e7) + k0*y # Northing offset for southern hemisphere
+        # also, k = k * k0
+        return UTM(x, y, lla.alt) # Note: scaling not applied to vertical dimension
+    end
+end
+
+Base.inv(trans::LLAfromUTM) = UTMfromLLA(trans.zone, trans.hemisphere, trans.datum)
+Base.inv(trans::UTMfromLLA) = LLAfromUTM(trans.zone, trans.hemisphere, trans.datum)
+
+
+##################
+## ECEF <-> UTM ##
+##################
+
+UTMfromECEF(zone, hemisphere, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromECEF(datum)
+ECEFfromUTM(zone, hemisphere, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, hemisphere, datum)
+
+##################
+## LLA <-> UTMZ ##
+##################
+
+immutable LLAfromUTMZ{Datum} <: AbstractTransformation{LLA, UTMZ}
+    datum::Datum
+end
+
+function transform(trans::LLAfromUTMZ, utm::UTMZ)
+    if utm.zone == 0
+        # Do polar steriographic projection
+        error("Zone 0 not implemented")
+    else
+        lat_ref = 0.0
+        lon_ref = utm_meridian(utm.zone)
+        k0 = 0.9996 # Horizontal scaling factor
+        x = (utm.x - 5e5) / k0 # Convention has 500km offset for easting
+        y = (utm.y - (utm.hemisphere ? 0.0 : 1e7)) / k0 # Northing offset for southern hemisphere
+        (lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
+        return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
+    end
+end
+
+immutable UTMZfromLLA{Datum} <: AbstractTransformation{UTMZ, LLA}
+    datum::Datum
+end
+
+function transform(trans::UTMZfromLLA, lla::LLA)
+    (zone, hemisphere) = utm_zone(lla)
+    if zone == 0
+        # Do polar steriographic projection
+        error("Zone 0 not implemented")
+    else
+        lat_ref = 0.0
+        lon_ref = utm_meridian(zone)
+        (x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
+        k0 = 0.9996 # Horizontal scaling factor
+        x = 5e5 + k0*x # Convention has 500km offset for easting
+        y = (hemisphere ? 0.0 : 1e7) + k0*y # Northing offset for southern hemisphere
+        # also, k = k * k0
+        return UTMZ(x, y, lla.alt, zone, hemisphere) # Note: scaling not applied to vertical dimension
+    end
+end
+
+Base.inv(trans::LLAfromUTMZ) = UTMZfromLLA(trans.datum)
+Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.datum)
+
+###################
+## ECEF <-> UTMZ ##
+###################
+
+UTMZfromECEF(datum) = UTMZfromLLA(datum) ∘ LLAfromECEF(datum)
+ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)
+
+##################
+## ENU <-> UTMZ ##
+##################
+
+ENUfromECEF(origin::UTMZ, datum) = ENUfromECEF(transform(ECEFfromUTMZ(datum),origin), origin.lat, origin.lon)
+ECEFfromENU(origin::UTMZ, datum) = ECEFfromENU(transform(ECEFfromUTMZ(datum),origin), origin.lat, origin.lon)
+
+ENUfromUTMZ(origin, datum)  = ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)
+
+UTMZfromENU(origin, datum)  = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)
