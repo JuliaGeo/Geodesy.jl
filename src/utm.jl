@@ -10,9 +10,14 @@ bound_thetad(theta) = theta - floor((theta+180) / (360)) * 360
     utm_zone(ecef::ECEF, datum)
 
 Find the UTM zone and hemisphere for the given latitude and longitude (or world
-point).
+point). Zone 0 corresponds to the UPS regions.
 """
 function utm_zone{T}(lat::T, lon::T)
+    if lat > 84
+        return (0, true)
+    elseif lat < -80
+        return (0, false)
+    end
 
     # int versions
     ilat = floor(Int64, bound_thetad(lat))

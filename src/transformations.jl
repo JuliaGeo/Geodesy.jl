@@ -152,6 +152,7 @@ function transform(trans::LLAfromECEF, ecef::ECEF)
 end
 
 #=
+# Old code - series expansion approximation.
 function transform(trans::LLAfromECEF, ecef::ECEF)
     x, y, z = ecef.x, ecef.y, ecef.z
     d = ellipsoid(trans.datum)
@@ -167,6 +168,7 @@ function transform(trans::LLAfromECEF, ecef::ECEF)
     return LLA(rad2deg(ϕ), rad2deg(λ), h)
 end
 =#
+
 immutable ECEFfromLLA{Datum} <: AbstractTransformation{ECEF, LLA}
     a::Float64   # Ellipsoidal major axis
     e²::Float64  # Ellipsoidal square-eccentricity = 1 - b^2/a^2
@@ -198,6 +200,8 @@ end
 
 Base.inv(trans::LLAfromECEF) = ECEFfromLLA(trans.datum)
 Base.inv(trans::ECEFfromLLA) = LLAfromECEF(trans.datum)
+
+# It's not clear if this is worthwhile or not... (return is not type-certain)
 compose(trans1::ECEFfromLLA, trans2::LLAfromECEF) = t1.datum === t2.datum ? IdentityTransform{ECEF}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
 compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? IdentityTransform{LLA}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
 
@@ -215,6 +219,8 @@ function ENUfromECEF(origin::ECEF, datum)
     origin_lla = transform(LLAfromECEF(datum), origin)
     ENUfromECEF(origin, origin_lla.lat, origin_lla.lon)
 end
+Base.show(io::IO, trans::ENUfromECEF) = print(io, "ENUfromECEF($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
+
 
 function transform(trans::ENUfromECEF, ecef::ECEF)
     ϕdeg, λdeg = trans.lat, trans.lon
@@ -249,6 +255,7 @@ function ECEFfromENU(origin::ECEF, datum)
     origin_lla = transform(LLAfromECEF(datum), origin)
     ECEFfromENU(origin, origin_lla.lat, origin_lla.lon)
 end
+Base.show(io::IO, trans::ECEFfromENU) = print(io, "ECEFfromENU($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 
 
 function transform(trans::ECEFfromENU, enu::ENU)
@@ -291,11 +298,15 @@ immutable LLAfromUTM{Datum} <: AbstractTransformation{LLA, UTM}
     datum::Datum
 end
 LLAfromUTM(zone::Integer, h, d) = LLAfromUTM(UInt8(zone), h, d)
+Base.show(io::IO, trans::LLAfromUTM) = print(io, "LLAfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 
 function transform(trans::LLAfromUTM, utm::UTM)
     if trans.zone == 0
-        # Do polar steriographic projection
-        error("Zone 0 not implemented")
+        # Do inverse steriographic projection
+        k0 = 0.994
+        (lat,lon,gamma,k) = polarst_inv(trans.hemisphere, k0, PolarStereographic(trans.datum), utm.x, utm.y)
+
+        return LLA(lat, lon, utm.z)
     else
         lat_ref = 0.0
         lon_ref = utm_meridian(trans.zone)
@@ -313,11 +324,15 @@ immutable UTMfromLLA{Datum} <: AbstractTransformation{UTM, LLA}
     datum::Datum
 end
 UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
+Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 
 function transform(trans::UTMfromLLA, lla::LLA)
     if trans.zone == 0
         # Do polar steriographic projection
-        error("Zone 0 not implemented")
+        k0 = 0.994
+        (x,y,gamma,k) = polarst_fwd(trans.hemisphere, k0, PolarStereographic(trans.datum), lla.lat, lla.lon)
+
+        return UTM(x, y, lla.alt)
     else
         lat_ref = 0.0
         lon_ref = utm_meridian(trans.zone)
@@ -348,11 +363,16 @@ ECEFfromUTM(zone, hemisphere, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, h
 immutable LLAfromUTMZ{Datum} <: AbstractTransformation{LLA, UTMZ}
     datum::Datum
 end
+Base.show(io::IO, trans::LLAfromUTMZ) = print(io, "LLAfromUTMZ($(trans.datum))")
+
 
 function transform(trans::LLAfromUTMZ, utm::UTMZ)
     if utm.zone == 0
-        # Do polar steriographic projection
-        error("Zone 0 not implemented")
+        # Do inverse steriographic projection
+        k0 = 0.994
+        (lat,lon,gamma,k) = polarst_inv(utm.hemisphere, k0, PolarStereographic(trans.datum), utm.x, utm.y)
+
+        return LLA(lat, lon, utm.z)
     else
         lat_ref = 0.0
         lon_ref = utm_meridian(utm.zone)
@@ -367,12 +387,17 @@ end
 immutable UTMZfromLLA{Datum} <: AbstractTransformation{UTMZ, LLA}
     datum::Datum
 end
+Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
+
 
 function transform(trans::UTMZfromLLA, lla::LLA)
     (zone, hemisphere) = utm_zone(lla)
     if zone == 0
         # Do polar steriographic projection
-        error("Zone 0 not implemented")
+        k0 = 0.994
+        (x,y,gamma,k) = polarst_fwd(hemisphere, k0, PolarStereographic(trans.datum), lla.lat, lla.lon)
+
+        return UTMZ(x, y, lla.alt, 0, hemisphere)
     else
         lat_ref = 0.0
         lon_ref = utm_meridian(zone)

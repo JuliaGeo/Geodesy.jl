@@ -48,6 +48,7 @@ include("transformations.jl")
 include("conversion.jl")
 include("distances.jl")
 include("transverse_mercator.jl")
+include("polar_stereographic.jl")
 include("utm.jl")
 
 end # module Geodesy
