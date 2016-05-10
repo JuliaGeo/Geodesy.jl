@@ -17,31 +17,30 @@
     #############################
     ### Testing random errors ###
     #############################
+    """
+        randLLA(h_min = -5e6, h_max = 5e6)
 
-    randLLA() = (rand() - .5) * 178, (rand() - .5) * 360, (rand() - .5) * 18000
+    Random LLA coordinate with evenly-distributed angles (according to the
+    Haar measure over the sphere)
+    """
+    function randLLA(h_min = -5e6, h_max = 5e6)
+        lon = 180*(2*rand()-1)
+        lat = asind(2*rand()-1)
+        h = h_min + (h_max-h_min)*rand()
+        return LLA(lat,lon,h)
+    end
 
     for _ = 1:50_000
-        y, x, z = randLLA()
-        min_x = x < -179 ? x + 359 : x - 1
-        max_x = x >  179 ? x - 359 : x + 1
-        lla = LLA(y, x, z)
-
-        y, x, z = randLLA()
-        min_x = x < -179 ? x + 359 : x - 1
-        max_x = x >  179 ? x - 359 : x + 1
-        lla2 = LLA(y, x, z)
+        lla = randLLA()
+        lla2 = randLLA()
 
         ecef = ECEF(lla, wgs84)
-
         @xyz_approx_eq_eps LLA(ecef, wgs84) lla 1e-6
 
         enu000 = ENU(0.0, 0.0, 0.0)
-
         @xyz_approx_eq ENU(ecef, lla, wgs84) enu000
 
         enu2 = ENU(ecef, lla2, wgs84)
-
         @xyz_approx_eq ENU(lla, lla2, wgs84) enu2
-
     end
 end # @testset

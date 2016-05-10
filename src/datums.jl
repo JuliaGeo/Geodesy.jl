@@ -62,4 +62,4 @@ const GRS80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628
 @inline ellipsoid(::Union{NAD27,Type{NAD27}})   = NAD27_el
 @inline ellipsoid(::Union{GRS80,Type{GRS80}})   = GRS80_el
 @inline ellispoid(x::Ellipsoid) = x
-ellispoid(x) = error("No ellipsoid defined for datum $x")
+ellipsoid(x) = error("No ellipsoid defined for datum $x")

@@ -51,7 +51,7 @@ ECEF(utm::UTMZ, datum) = transform(ECEFfromUTMZ(datum), utm)
 UTMZ(ecef::ECEF, datum) = transform(UTMZfromECEF(datum), ecef)
 
 #################################
-### ECEF <-> UTMZ coordinates ###
+### ENU <-> UTMZ coordinates ###
 #################################
 
 ENU(utm::UTMZ, origin, datum) = transform(ENUfromUTMZ(origin, datum), utm)

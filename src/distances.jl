@@ -14,6 +14,8 @@ distance(a::LLA, b, datum = wgs84) = distance(transform(ECEFfromLLA(datum), a), 
 distance(a::ECEF, b::LLA, datum = wgs84) = distance(a, transform(ECEFfromLLA(datum), b), datum)
 distance(a::LatLon, b, datum = wgs84) = distance(transform(ECEFfromLLA(datum), LLA(a)), b, datum)
 distance(a::ECEF, b::LatLon, datum = wgs84) = distance(a, transform(ECEFfromLLA(datum), LLA(b)), datum)
+distance(a::UTMZ, b, datum = wgs84) = distance(transform(ECEFfromUTMZ(datum), a), b, datum)
+distance(a::ECEF, b::UTMZ, datum = wgs84) = distance(a, transform(ECEFfromUTMZ(datum), b), datum)
 
 
 # Also add geodesic distances here
