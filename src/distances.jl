@@ -2,7 +2,8 @@
     distance(a, b, [datum = wgs84])
 
 The Cartesian distance between points `a` and `b`. Uses `datum` to perform
-transformations as necessary.
+transformations as necessary, and unlike other *Geodesy* functions, this defaults
+to use the common WGS-84 datum for convenience.
 """
 distance{T <: FixedVector}(a::T, b::T) = norm(a-b)
 

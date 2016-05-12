@@ -52,14 +52,14 @@ end
 ### World Geodetic Coordinate System of 1984 (WGS 84)
 # Standardized coordinate system for Earth
 # Global ellipsoidal reference surface
-const WGS84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
-const OSGB36_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
-const NAD27_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
-const GRS80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366")
+const wgs84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
+const osgb36_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
+const nad27_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
+const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366")
 
-@inline ellipsoid(::Union{WGS84,Type{WGS84}})   = WGS84_el
-@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = OSGB36_el
-@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = NAD27_el
-@inline ellipsoid(::Union{GRS80,Type{GRS80}})   = GRS80_el
+@inline ellipsoid(::Union{WGS84,Type{WGS84}})   = wgs84_el
+@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = osgb36_el
+@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = nad27_el
+@inline ellipsoid(::Union{GRS80,Type{GRS80}})   = grs80_el
 @inline ellispoid(x::Ellipsoid) = x
 ellipsoid(x) = error("No ellipsoid defined for datum $x")

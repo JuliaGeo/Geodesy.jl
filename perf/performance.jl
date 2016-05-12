@@ -10,9 +10,9 @@ function perf_geodesy(n)
     for i = 1:n
         utm = Geodesy.transform(trans1, lla)
         lla2 = Geodesy.transform(trans2, utm)
-        if !(lla ≈ lla2)
-            error("Not invertable")
-        end
+        #if !(lla ≈ lla2)
+    #        error("Not invertable")
+#        end
     end
 end
 
@@ -20,13 +20,13 @@ end
 function perf_proj4(n)
     wgs84 = Proj4.Projection("+proj=longlat +datum=WGS84 +no_defs")
     utm56 = Proj4.Projection("+proj=utm +zone=56 +south +datum=WGS84 +units=m +no_defs")
+    lla = [150.0, -27.0, 0.0]
     for i = 1:n
-        lla = [150.0, -27.0, 0.0]
         utm = Proj4.transform(wgs84, utm56, lla)
         lla2 = Proj4.transform(utm56, wgs84, utm)
-        if !(lla ≈ lla2)
-            error("Not invertable")
-        end
+#        if !(lla ≈ lla2)
+#            error("Not invertable")
+#        end
     end
 end
 
@@ -45,7 +45,7 @@ println("\nPerforming (2×) $n transformations with Proj4")
 perf_proj4(1)
 @time perf_proj4(n)
 
-# 5/5/2016 1:40pm (14 × slower)
+# 5/5/2016 1:40pm (~14 × slower) (probably more like 25 × slower excluding ≈ test)
 #
 # Comparing LLA->UTM->LLA transformation speed for Geodesy and Proj4
 #
@@ -59,3 +59,17 @@ perf_proj4(1)
 # Performing (2×) 1000000 transformations with Proj4
 #   1.126085 seconds (12.00 M allocations: 488.281 MB, 2.59% gc time)
 #
+# ------------------------------------------------------------------------------
+# 12/5/2016 1:35pm (~2.4 × slower, ran excluding ≈ test)
+#
+# Comparing LLA->UTM->LLA transformation speed for Geodesy and Proj4
+#
+# warming up...
+#   0.000067 seconds (856 allocations: 32.526 KB)
+#   0.000022 seconds (9 allocations: 512 bytes)
+#
+# Performing (2×) 1000000 transformations with Geodesy
+#   1.445283 seconds (712 allocations: 22.531 KB)
+#
+# Performing (2×) 1000000 transformations with Proj4
+#   0.608355 seconds (3.00 M allocations: 274.658 MB, 1.71% gc time)

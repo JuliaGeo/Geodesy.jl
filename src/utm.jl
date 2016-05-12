@@ -27,7 +27,7 @@ function utm_zone{T}(lat::T, lon::T)
     band = max(-10, min(9,  fld((ilat + 80), 8) - 10))
 
     # and check for weird ones
-    zone = fld((ilon + 186), 6);
+    zone = fld((ilon + 186), 6)
     if ((band == 7) && (zone == 31) && (ilon >= 3))
         zone = 32
     elseif ((band == 9) && (ilon >= 0) && (ilon < 42))
@@ -37,13 +37,18 @@ function utm_zone{T}(lat::T, lon::T)
     # TODO: Svalbard (31X-37X)
 
     return (zone, lat >= 0)
-
 end
 
 utm_zone(ll::LatLon) = utm_zone(ll.lat, ll.lon)
 utm_zone(lla::LLA) = utm_zone(lla.lat, lla.lon)
 utm_zone(ecef::ECEF, datum) = utm_zone(transform(LLAfromECEF(datum), ecef))
 
+"""
+    utm_meridian(zone)
+
+Central meridian of the given UTM `zone` (note - does not include the
+conventiional 500km false easting offset).
+"""
 function utm_meridian(zone::Integer)
     if zone < 1 || zone > 60
         error("UTM zone $zone not defined")

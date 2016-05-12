@@ -3,9 +3,10 @@
 ###################
 
 """
-LLA(lat,lon,alt): Latitude, longitude, and alititude co-ordinates.
+    LLA(lat, lon, alt = 0.0)
+    LLA(lat = ϕ, lon = Θ, alt = h)
 
-Note: assumes degrees not radians
+Latitude, longitude, and alititude co-ordinates. *Note:* assumes degrees not radians
 """
 immutable LLA{T}
     lat::T
@@ -20,8 +21,10 @@ Base.isapprox(lla1::LLA, lla2::LLA; atol = 1e-6, kwargs...) = isapprox(lla1.lat,
 # For radians, we could export ° = pi/180, then output in degrees... ??
 
 """
-Latitude and longitude co-ordinates.
-(Note: assumes degrees not radians)
+    LatLon(lat, lon)
+    LatLon(lat = ϕ, lon = Θ)
+
+Latitude and longitude co-ordinates. *Note:* assumes degrees not radians
 """
 immutable LatLon{T}
     lat::T
@@ -39,9 +42,10 @@ Base.isapprox(ll1::LatLon, ll2::LatLon; atol = 1e-6, kwargs...) = isapprox(ll1.l
 
 
 """
-ECEF(x,y,z): Earth-Centered-Earth-Fixed (ECEF) coordinates
+    ECEF(x, y, z)
 
-A global Cartesian coordinate system rotating with the Earth.
+Earth-Centered-Earth-Fixed (ECEF) coordinates. A global Cartesian coordinate
+system rotating with the Earth.
 """
 immutable ECEF{T} <: FixedVectorNoTuple{3,Float64}
     x::T
@@ -52,9 +56,9 @@ Base.show(io::IO, ecef::ECEF) = print(io, "ECEF($(ecef.x), $(ecef.y), $(ecef.z))
 
 
 """
-ENU(e,n,u): East-North-Up (ENU) coordinates
+    ENU(e, n, u = 0.0)
 
-A local Cartesian coordinate system, linearized about a reference point.
+East-North-Up (ENU) coordinates. A local Cartesian coordinate system, linearized about a reference point.
 """
 immutable ENU{T} <: FixedVectorNoTuple{3,Float64}
     e::T
@@ -66,10 +70,11 @@ Base.show(io::IO, enu::ENU) = print(io, "ENU($(enu.e), $(enu.n), $(enu.u))")
 
 
 """
-UTM(x,y,z): Universal transverse Mercator (UTM) coordinates
+    UTM(x, y, z = 0.0)
 
-Common projection type for world points. Zone not included in coordinates - it
-is a parameterized in the relavant transformations (see also the `UTMZ` type).
+Universal transverse Mercator (UTM) coordinates. Common projection type for
+world points. Zone not included in coordinates - it is a parameterized in the
+relavant transformations `UTMfromLLA` and `LLAfromUTM` (see also the `UTMZ` type).
 
 This type may be used to parameterize UPS coordinates (Universal Polar
 Stereographic) to accurately represent the polar regions, in zone "0".
@@ -85,9 +90,10 @@ Base.show(io::IO, utm::UTM) = print(io, "UTM($(utm.x), $(utm.y), $(utm.z))")
 
 
 """
-UTMZ(x,y,z): Universal transverse Mercator (UTM) coordinates with zone number
+    UTMZ(x, y, z = 0.0, zone::Integer, hemisphere::Bool)
 
-Common projection type for world points. The UTM zone is included in coordinates
+Universal transverse Mercator (UTM) coordinates with zone number. Common
+projection type for world points. The UTM zone is included in coordinates
 (see also the `UTM` type).
 
 This type may be used to parameterize UPS coordinates (Universal Polar

@@ -38,8 +38,9 @@ Base.isapprox{T<:Tuple}(a::T, b::T; kwargs...) = all(ntuple(i->isapprox(a[i],b[i
 @testset "Geodesy" begin
 
 include("points.jl")
-include("utm.jl")
 include("transverse_mercator.jl")
+include("polar_stereographic.jl")
+include("utm.jl")
 include("transformations.jl")
 include("conversion.jl")
 

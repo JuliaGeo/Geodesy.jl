@@ -6,6 +6,7 @@
 ECEF(ecef::ECEF, datum) = ecef
 LLA(lla::LLA, datum) = lla
 ENU(enu::ENU, datum) = enu
+UTMZ(utm::UTMZ, datum) = utm
 
 
 ################################

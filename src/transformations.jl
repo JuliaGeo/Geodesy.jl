@@ -24,6 +24,12 @@ immutable LLAfromECEF{Datum} <: AbstractTransformation{LLA, ECEF}
 end
 Base.show(io::IO, trans::LLAfromECEF) = print(io, "LLAfromECEF($(trans.datum))")
 
+"""
+    LLAfromECEF(datum)
+
+Construct a `AbstractTransformation` object to convert from ECEF coordinates
+to LLA coordinates. Pre-caches ellipsoidal parameters for efficiency.
+"""
 function LLAfromECEF{Datum}(datum::Datum)
     el = ellipsoid(datum)
 
@@ -169,6 +175,12 @@ function transform(trans::LLAfromECEF, ecef::ECEF)
 end
 =#
 
+"""
+    ECEFfromLLA(datum)
+
+Construct a `AbstractTransformation` object to convert from LLA coordinates
+to ECEF coordinates.
+"""
 immutable ECEFfromLLA{Datum} <: AbstractTransformation{ECEF, LLA}
     a::Float64   # Ellipsoidal major axis
     e²::Float64  # Ellipsoidal square-eccentricity = 1 - b^2/a^2
@@ -209,6 +221,14 @@ compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? Iden
 ## ECEF <-> ENU ##
 ##################
 
+"""
+    ENUfromECEF(origin, datum)
+    ENUfromECEF(origin::ECEF, lat, lon)
+
+Construct a `AbstractTransformation` object to convert from global `ECEF` coordinates
+to local `ENU` coordinates centered at the `origin`. This object pre-caches both the
+ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
+"""
 immutable ENUfromECEF{T} <: AbstractTransformation{ENU, ECEF}
     origin::ECEF{T}
     lat::T
@@ -245,6 +265,14 @@ function transform(trans::ENUfromECEF, ecef::ECEF)
     return ENU(east, north, up)
 end
 
+"""
+    ECEFfromENU(origin, datum)
+    ECEFfromENU(origin::ECEF, lat, lon)
+
+Construct a `AbstractTransformation` object to convert from local `ENU` coordinates
+centred at `origin` to global `ECEF` coodinates. This object pre-caches both the
+ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
+"""
 immutable ECEFfromENU{T} <: AbstractTransformation{ECEF, ENU}
     origin::ECEF{T}
     lat::T
@@ -292,11 +320,23 @@ LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)
 ## LLA <-> UTM ##
 #################
 
-immutable LLAfromUTM{Datum} <: AbstractTransformation{LLA, UTM}
+"""
+    LLAfromUTM(zone, northern_hemisphere::Bool, datum)
+
+Construct a `AbstractTransformation` object to convert from `UTM` coordinates in
+the specified zone and hemisphere to global `LLA` coordinates. Pre-caches
+ellipsoidal parameters for efficiency and performs Charles Karney's accurate
+6th-order series expansion algorithm.
+
+(See also `LLAfromUTMZ`)
+"""
+immutable LLAfromUTM{Datum,Order} <: AbstractTransformation{LLA, UTM}
     zone::UInt8
     hemisphere::Bool # true = north, false = south
+    tm::TransverseMercator{Order}
     datum::Datum
 end
+LLAfromUTM(zone::UInt8, h, d) = LLAfromUTM(UInt8(zone), h, TransverseMercator(d), d)
 LLAfromUTM(zone::Integer, h, d) = LLAfromUTM(UInt8(zone), h, d)
 Base.show(io::IO, trans::LLAfromUTM) = print(io, "LLAfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 
@@ -304,25 +344,39 @@ function transform(trans::LLAfromUTM, utm::UTM)
     if trans.zone == 0
         # Do inverse steriographic projection
         k0 = 0.994
-        (lat,lon,gamma,k) = polarst_inv(trans.hemisphere, k0, PolarStereographic(trans.datum), utm.x, utm.y)
+        x = (utm.x - 2e6)
+        y = (utm.y - 2e6)
+        (lat,lon,γ,k) = polarst_inv(trans.hemisphere, k0, trans.tm, x, y)
 
         return LLA(lat, lon, utm.z)
     else
-        lat_ref = 0.0
-        lon_ref = utm_meridian(trans.zone)
+        lon_ref = Float64(utm_meridian(trans.zone))
         k0 = 0.9996 # Horizontal scaling factor
-        x = (utm.x - 5e5) / k0 # Convention has 500km offset for easting
-        y = (utm.y - (trans.hemisphere ? 0.0 : 1e7)) / k0 # Northing offset for southern hemisphere
-        (lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
+        x = (utm.x - 5e5) # Convention has 500km offset for easting
+        y = (utm.y - (trans.hemisphere ? 0.0 : 1e7)) # Northing offset for southern hemisphere
+        #(lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
+        (lat,lon,γ,k) = transverse_mercator_reverse(lon_ref, x, y, k0, trans.tm)
         return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
     end
 end
 
-immutable UTMfromLLA{Datum} <: AbstractTransformation{UTM, LLA}
+"""
+    UTMfromLLA(zone, northern_hemisphere::Bool, datum)
+
+Construct a `AbstractTransformation` object to convert from global `LLA` coordinates
+to `UTM` coordinates in the specified zone and hemisphere. Pre-caches
+ellipsoidal parameters for efficiency and performs Charles Karney's accurate
+6th-order series expansion algorithm.
+
+(See also `UTMZfromLLA`)
+"""
+immutable UTMfromLLA{Datum,Order} <: AbstractTransformation{UTM, LLA}
     zone::UInt8
     hemisphere::Bool # true = north, false = south
+    tm::TransverseMercator{Order}
     datum::Datum
 end
+UTMfromLLA(zone::UInt8, h, d) = UTMfromLLA(UInt8(zone), h, TransverseMercator(d), d)
 UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 
@@ -330,23 +384,25 @@ function transform(trans::UTMfromLLA, lla::LLA)
     if trans.zone == 0
         # Do polar steriographic projection
         k0 = 0.994
-        (x,y,gamma,k) = polarst_fwd(trans.hemisphere, k0, PolarStereographic(trans.datum), lla.lat, lla.lon)
+        (x,y,γ,k) = polarst_fwd(trans.hemisphere, k0, trans.tm, lla.lat, lla.lon)
+        x = x + 2e6
+        y = y + 2e6
 
         return UTM(x, y, lla.alt)
     else
-        lat_ref = 0.0
-        lon_ref = utm_meridian(trans.zone)
-        (x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
+        lon_ref = Float64(utm_meridian(trans.zone))
         k0 = 0.9996 # Horizontal scaling factor
-        x = 5e5 + k0*x # Convention has 500km offset for easting
-        y = (trans.hemisphere ? 0.0 : 1e7) + k0*y # Northing offset for southern hemisphere
+        #(x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
+        (x,y,γ,k) = transverse_mercator_forward(lon_ref, lla.lat, lla.lon, k0, trans.tm)
+        x = 5e5 + x # Convention has 500km offset for easting
+        y = (trans.hemisphere ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
         # also, k = k * k0
         return UTM(x, y, lla.alt) # Note: scaling not applied to vertical dimension
     end
 end
 
-Base.inv(trans::LLAfromUTM) = UTMfromLLA(trans.zone, trans.hemisphere, trans.datum)
-Base.inv(trans::UTMfromLLA) = LLAfromUTM(trans.zone, trans.hemisphere, trans.datum)
+Base.inv(trans::LLAfromUTM) = UTMfromLLA(trans.zone, trans.hemisphere, trans.tm, trans.datum)
+Base.inv(trans::UTMfromLLA) = LLAfromUTM(trans.zone, trans.hemisphere, trans.tm, trans.datum)
 
 
 ##################
@@ -360,9 +416,21 @@ ECEFfromUTM(zone, hemisphere, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, h
 ## LLA <-> UTMZ ##
 ##################
 
-immutable LLAfromUTMZ{Datum} <: AbstractTransformation{LLA, UTMZ}
+"""
+    LLAfromUTMZ(datum)
+
+Construct a `AbstractTransformation` object to convert from global `UTMZ`
+coordinates to global `LLA` coordinates. Pre-caches
+ellipsoidal parameters for efficiency and performs Charles Karney's accurate
+6th-order series expansion algorithm.
+
+(See also `LLAfromUTM`)
+"""
+immutable LLAfromUTMZ{Datum,Order} <: AbstractTransformation{LLA, UTMZ}
+    tm::TransverseMercator{Order}
     datum::Datum
 end
+LLAfromUTMZ(datum) = LLAfromUTMZ(TransverseMercator(datum), datum)
 Base.show(io::IO, trans::LLAfromUTMZ) = print(io, "LLAfromUTMZ($(trans.datum))")
 
 
@@ -370,48 +438,67 @@ function transform(trans::LLAfromUTMZ, utm::UTMZ)
     if utm.zone == 0
         # Do inverse steriographic projection
         k0 = 0.994
-        (lat,lon,gamma,k) = polarst_inv(utm.hemisphere, k0, PolarStereographic(trans.datum), utm.x, utm.y)
+        x = (utm.x - 2e6)
+        y = (utm.y - 2e6)
+        (lat,lon,γ,k) = polarst_inv(utm.hemisphere, k0, trans.tm, x, y)
 
         return LLA(lat, lon, utm.z)
     else
-        lat_ref = 0.0
-        lon_ref = utm_meridian(utm.zone)
+        lon_ref = Float64(utm_meridian(utm.zone))
         k0 = 0.9996 # Horizontal scaling factor
-        x = (utm.x - 5e5) / k0 # Convention has 500km offset for easting
-        y = (utm.y - (utm.hemisphere ? 0.0 : 1e7)) / k0 # Northing offset for southern hemisphere
-        (lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
+        x = (utm.x - 5e5) # Convention has 500km offset for easting
+        y = (utm.y - (utm.hemisphere ? k0 : 1e7)) # Northing offset for southern hemisphere
+        #(lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
+        (lat,lon,γ,k) = transverse_mercator_reverse(lon_ref, x, y, k0, trans.tm)
         return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
     end
 end
 
-immutable UTMZfromLLA{Datum} <: AbstractTransformation{UTMZ, LLA}
+"""
+    UTMZfromLLA(zone, northern_hemisphere::Bool, datum)
+
+Construct a `AbstractTransformation` object to convert from global `LLA` coordinates
+to global `UTMZ` coordinates. The zone and hemisphere is automatically calculated
+following the standard definitions (including exceptions in Norway). Pre-caches
+ellipsoidal parameters for efficiency and performs Charles Karney's accurate
+6th-order series expansion algorithm.
+
+(See also `UTMfromLLA`)
+"""
+immutable UTMZfromLLA{Datum,Order} <: AbstractTransformation{UTMZ, LLA}
+    tm::TransverseMercator{Order}
     datum::Datum
 end
+UTMZfromLLA(datum) = UTMZfromLLA(TransverseMercator(datum), datum)
 Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
 
 
 function transform(trans::UTMZfromLLA, lla::LLA)
     (zone, hemisphere) = utm_zone(lla)
+    zone::Int64
+    hemisphere::Bool
     if zone == 0
         # Do polar steriographic projection
         k0 = 0.994
-        (x,y,gamma,k) = polarst_fwd(hemisphere, k0, PolarStereographic(trans.datum), lla.lat, lla.lon)
+        (x,y,γ,k) = polarst_fwd(hemisphere, k0, trans.tm, lla.lat, lla.lon)
+        x = x + 2e6
+        y = y + 2e6
 
         return UTMZ(x, y, lla.alt, 0, hemisphere)
     else
-        lat_ref = 0.0
-        lon_ref = utm_meridian(zone)
-        (x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
+        lon_ref = Float64(utm_meridian(zone))
         k0 = 0.9996 # Horizontal scaling factor
-        x = 5e5 + k0*x # Convention has 500km offset for easting
-        y = (hemisphere ? 0.0 : 1e7) + k0*y # Northing offset for southern hemisphere
+        #(x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
+        (x,y,γ,k) = transverse_mercator_forward(lon_ref, lla.lat, lla.lon, k0, trans.tm)
+        x = 5e5 + x # Convention has 500km offset for easting
+        y = (hemisphere ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
         # also, k = k * k0
         return UTMZ(x, y, lla.alt, zone, hemisphere) # Note: scaling not applied to vertical dimension
     end
 end
 
-Base.inv(trans::LLAfromUTMZ) = UTMZfromLLA(trans.datum)
-Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.datum)
+Base.inv(trans::LLAfromUTMZ) = UTMZfromLLA(trans.tm, trans.datum)
+Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.tm, trans.datum)
 
 ###################
 ## ECEF <-> UTMZ ##
