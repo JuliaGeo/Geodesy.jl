@@ -1,6 +1,6 @@
 @testset "Transverse Mercator projection and inverse" begin
 
-    # File has 5000 entries of lon between ±60°, lat between ±90° (with UTM scaling 0.9996)
+    # File has 5000 entries of lon between ±50°, lat between ±90° (with UTM scaling 0.9996)
     # Adapted from Charles Karney's test data (http://zenodo.org/record/32470#.VzF-Krp97CI)
     f = open("TMcoords_lite.bin") # Binary file, Float64: lat, lon, x, y, γ, k
     tmdat = read(f, Float64, (5000, 6))
@@ -24,9 +24,4 @@
 
         @test (lat2, lon2, γ2, k2) ≈ (lat, lon, γ, k)
     end
-
-    #@test Geodesy.transverse_mercator_forward(3.0, 1.0, 1.0, 1.0, Geodesy.TransverseMercator(wgs84)) ≈ (-222650.79679758303,110642.22941557941,-0.03491928038359307,1.0006134677755945)
-
-    #@test Geodesy.transverse_mercator_reverse(3.0, -222650.79679758303, 110642.22941557941, 1.0, Geodesy.TransverseMercator(wgs84)) ≈ (1.0,1.0,-0.03491928038359307,1.0006134677755945)
-
 end

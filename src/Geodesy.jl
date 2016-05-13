@@ -34,8 +34,9 @@ export
     # transformation methods
     transform, transform, transform_deriv_params, compose, ∘,
     ECEFfromLLA, LLAfromECEF, ENUfromECEF, ECEFfromENU, ENUfromLLA, LLAfromENU,
-    UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM,
-    UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ,
+    UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM, ENUfromUTM, UTMfromENU,
+    UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU,
+    UTMZfromUTM, UTMfromUTMZ,
 
     # UTM helpers
     utm_zone

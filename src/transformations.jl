@@ -376,7 +376,7 @@ immutable UTMfromLLA{Datum,Order} <: AbstractTransformation{UTM, LLA}
     tm::TransverseMercator{Order}
     datum::Datum
 end
-UTMfromLLA(zone::UInt8, h, d) = UTMfromLLA(UInt8(zone), h, TransverseMercator(d), d)
+UTMfromLLA(zone::UInt8, h, d) = UTMfromLLA(zone, h, TransverseMercator(d), d)
 UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 
@@ -501,6 +501,44 @@ Base.inv(trans::LLAfromUTMZ) = UTMZfromLLA(trans.tm, trans.datum)
 Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.tm, trans.datum)
 
 ###################
+## UTM <-> UTMZ ##
+###################
+
+immutable UTMZfromUTM{Datum} <: AbstractTransformation{UTMZ, UTM}
+    zone::Int
+    hemisphere::Bool
+    datum::Datum
+end
+UTMZfromUTM(zone::UInt8, h, d) = UTMZfromUTM(zone, h, TransverseMercator(d), d)
+UTMZfromUTM(zone::Integer, h, d) = UTMZfromUTM(UInt8(zone), h, d)
+Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
+#Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")))")
+
+immutable UTMfromUTMZ{Datum} <: AbstractTransformation{UTM, UTMZ}
+    zone::Int
+    hemisphere::Bool
+    datum::Datum
+end
+UTMfromUTMZ(zone::UInt8, h, d) = UTMfromUTMZ(zone, h, TransverseMercator(d), d)
+UTMfromUTMZ(zone::Integer, h, d) = UTMfromUTMZ(UInt8(zone), h, d)
+Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
+#Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")))")
+
+transform(trans::UTMZfromUTM, utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.hemisphere)
+function transform(trans::UTMfromUTMZ, utm::UTMZ)
+    if trans.zone == utm.zone && trans.hemisphere == utm.hemisphere
+        UTM(utm.x, utm.y, utm.z)
+    else
+        # Should this be an error or an automatic transformation to the correct zone?
+        #error("Incorrect UTM zone")
+        transform(UTMfromLLA(trans.zone, trans.hemisphere, trans.datum), transform(LLAfromUTMZ(datum), utm))
+    end
+end
+
+Base.inv(trans::UTMfromUTMZ) = UTMZfromUTM(trans.zone, trans.hemisphere, trans.datum)
+Base.inv(trans::UTMZfromUTM) = UTMfromUTMZ(trans.zone, trans.hemisphere, trans.datum)
+
+###################
 ## ECEF <-> UTMZ ##
 ###################
 
@@ -511,9 +549,21 @@ ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)
 ## ENU <-> UTMZ ##
 ##################
 
-ENUfromECEF(origin::UTMZ, datum) = ENUfromECEF(transform(ECEFfromUTMZ(datum),origin), origin.lat, origin.lon)
-ECEFfromENU(origin::UTMZ, datum) = ECEFfromENU(transform(ECEFfromUTMZ(datum),origin), origin.lat, origin.lon)
+ENUfromECEF(origin::UTMZ, datum) = ENUfromECEF(transform(LLAfromUTMZ(datum), origin), datum)
+ECEFfromENU(origin::UTMZ, datum) = ECEFfromENU(transform(LLAfromUTMZ(datum), origin), datum)
 
 ENUfromUTMZ(origin, datum)  = ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)
-
 UTMZfromENU(origin, datum)  = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)
+
+#################
+## ENU <-> UTM ##
+#################
+ENUfromECEF(origin::UTM, zone::Integer, hemisphere::Bool, datum) = ENUfromECEF(transform(LLAfromUTM(zone, hemisphere, datum), origin), datum)
+ECEFfromENU(origin::UTM, zone::Integer, hemisphere::Bool, datum) = ECEFfromENU(transform(LLAfromUTM(zone, hemisphere, datum), origin), datum)
+
+# Assume origin and utm point share the same zone and hemisphere
+UTMfromENU(origin::UTM, zone::Integer, hemisphere::Bool, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromENU(UTMZ(origin, zone, hemisphere), datum)
+ENUfromUTM(origin::UTM, zone::Integer, hemisphere::Bool, datum) = ENUfromLLA(UTMZ(origin, zone, hemisphere), datum) ∘ LLAfromUTM(zone, hemisphere, datum)
+
+UTMfromENU(origin, zone::Integer, hemisphere::Bool, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromENU(origin, datum)
+ENUfromUTM(origin, zone::Integer, hemisphere::Bool, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTM(zone, hemisphere, datum)
