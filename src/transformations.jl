@@ -67,7 +67,7 @@ function transform(trans::LLAfromECEF, ecef::ECEF)
 
     if (trans.e4a == 0)
         # Treat the spherical case.  Dealing with underflow in the general case
-        # with _e2 = 0 is difficult.  Origin maps to north poll, same as the
+        # with _e2 = 0 is difficult.  Origin maps to north pole, same as the
         # ellipsoidal case below
         if h == 0
             sphi = 1.0
