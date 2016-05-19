@@ -106,7 +106,7 @@ immutable UTMZ{T}
     zone::UInt8
     hemisphere::Bool # true = north, false = south
 end
-UTMZ(x, y, zone::Integer, hemisphere::Bool) = UTMZ(x, y, 0.0, UInt8(zone), hemisphere)
+UTMZ{T}(x::T, y::T, zone::Integer, hemisphere::Bool) = UTMZ(x, y, 0.0, UInt8(zone), hemisphere)
 UTMZ(x, y, z, zone::Integer, hemisphere::Bool) = UTMZ(x, y, z, UInt8(zone), hemisphere)
 UTMZ(utm::UTM, zone::Integer, hemisphere::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), hemisphere)
 UTM(utmz::UTMZ) = UTM(utmz.x, utmz.y, utmz.z)

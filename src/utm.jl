@@ -28,13 +28,11 @@ function utm_zone{T}(lat::T, lon::T)
 
     # and check for weird ones
     zone = fld((ilon + 186), 6)
-    if ((band == 7) && (zone == 31) && (ilon >= 3))
+    if ((band == 7) && (zone == 31) && (ilon >= 3)) # Norway
         zone = 32
-    elseif ((band == 9) && (ilon >= 0) && (ilon < 42))
+    elseif ((band == 9) && (ilon >= 0) && (ilon < 42)) # Svalbard
         zone = 2 * fld((ilon + 183), 12) + 1
     end
-
-    # TODO: Svalbard (31X-37X)
 
     return (zone, lat >= 0)
 end

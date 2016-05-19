@@ -1,37 +1,22 @@
-@testset "Points and distances" begin
-    # Construction
+@testset "Point constructors" begin
+    # Constructors
+    lla = LLA(1., 1., 0.)
+    @test LLA(1., 1.) == lla
+    @test LLA(lat = 1., lon = 1., alt = 0.) == lla
 
-    x, y = (rand(2) - .5) * 10_000
+    latlon = LatLon(1., 1.)
+    @test LatLon(lat = 1., lon = 1.) == latlon
+    @test LatLon(ECEF(lla, wgs84), wgs84) ≈ latlon
+    @test LatLon(lla) == latlon
 
-    @test ENU(x, y) == ENU(x, y, 0.0)
+    @test LLA(latlon) == lla
 
-    @test LLA(x, y) == LLA(x, y, 0.0)
+    utm = UTM(10., 10., 0.)
+    @test UTM(10., 10.) == utm
 
-    ECEF(x, y, 0.0)
+    utmz = UTMZ(10., 10., 0., 1, true)
+    @test UTMZ(10., 10., 1, true) == utmz
+    @test UTMZ(utm, 1, true) == utmz
 
-    # Distance
-
-    @test distance(ENU(1, 1, 1), ENU(2, 2, 2)) == sqrt(3)
-
-    @test distance(ECEF(1, 1, 1), ECEF(3, 3, 3)) == sqrt(12)
-
-    randLLA() = LLA((rand() - .5) * 180,
-                    (rand() - .5) * 360,
-                    (rand() - .5) * 18_000)
-
-    for _ = 1:1_000
-        lla = randLLA()
-        lla2 = randLLA()
-
-        enu = ENU(lla, lla, wgs84)
-        enu2 = ENU(lla2, lla, wgs84)
-
-        ecef = ECEF(lla, wgs84)
-        ecef2 = ECEF(lla2, wgs84)
-
-        #@test_throws MethodError distance(lla, lla2)
-        @test distance(lla, lla2, wgs84) ≈ distance(ecef, ecef2)
-        @test distance(enu, enu2) ≈ distance(ecef, ecef2)
-    end
-
+    @test UTM(utmz) == utm
 end # @testset

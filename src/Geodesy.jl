@@ -5,7 +5,7 @@ using FixedSizeArrays
 using Compat
 
 import CoordinateTransformations.transform,
-       CoordinateTransformations.transform,
+       CoordinateTransformations.transform_deriv,
        CoordinateTransformations.transform_deriv_params,
        CoordinateTransformations.compose,
        CoordinateTransformations.∘
@@ -20,7 +20,7 @@ export
     UTMZ,
 
     # Other types
-    Ellipsoid,
+    Ellipsoid, ellipsoid,
 
     # Constants
     WGS84, wgs84,

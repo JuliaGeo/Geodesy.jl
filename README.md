@@ -36,9 +36,9 @@ where `ECEFfromLLA` is a type inheriting from *CoordinateTransformations*'
 coordinate types.)
 
 Often, points are measured or required in a *local* frame, such as the north-east-up
-coordinates with respect to a given origin. The `ENU` type represents this
-coordinate system and let's us do that simply to or from any globally referenced
-points.
+coordinates with respect to a given origin. The `ENU` type represents points in this
+coordinate system and we may transform between ENU and globally referenced
+coordinates using `ENUfromLLA`, etc.
 ```julia
 origin_lla = LLA(-27.468937, 153.023628, 0.0) # City Hall, Brisbane, Australia
 point_lla = LLA(-27.465933, 153.025900, 0.0)  # Central Station, Brisbane, Australia
@@ -212,7 +212,7 @@ zone.
 
 The `ECEFfromENU` and `ENUfromECEF` transformations define the transformation
 around a specific origin. Both the origin coordinates as an `ECEF` as well as
-it's corresponding latitude and longitude are stored in the transformation for
+its corresponding latitude and longitude are stored in the transformation for
 maximal efficiency when performing multiple `transform`s. The transformation can
 be inverted with `inv` to perform the reverse transformation with respect to the
 same origin.

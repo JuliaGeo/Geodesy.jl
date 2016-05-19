@@ -6,9 +6,9 @@ immutable LLAfromECEF{Datum} <: AbstractTransformation{LLA, ECEF}
     a::Float64      # major axis
     f::Float64      # flattening
     e2::Float64     # Eccentricity squared
-    e2m::Float64    # 1 - e2m
-    e2a::Float64    # |e2m|
-    e4a::Float64    # e2m^2
+    e2m::Float64    # 1 - e2
+    e2a::Float64    # |e2|
+    e4a::Float64    # e2^2
 
     datum::Datum
 
@@ -157,23 +157,6 @@ function transform(trans::LLAfromECEF, ecef::ECEF)
     return LLA(lat, lon, h)
 end
 
-#=
-# Old code - series expansion approximation.
-function transform(trans::LLAfromECEF, ecef::ECEF)
-    x, y, z = ecef.x, ecef.y, ecef.z
-    d = ellipsoid(trans.datum)
-
-    p = hypot(x, y)
-    θ = atan2(z*d.a, p*d.b)
-    λ = atan2(y, x)
-    ϕ = atan2(z + d.e′² * d.b * sin(θ)^3, p - d.e²*d.a*cos(θ)^3)
-
-    N = d.a / sqrt(1 - d.e² * sin(ϕ)^2)  # Radius of curvature (meters)
-    h = p / cos(ϕ) - N
-
-    return LLA(rad2deg(ϕ), rad2deg(λ), h)
-end
-=#
 
 """
     ECEFfromLLA(datum)
@@ -240,6 +223,7 @@ function ENUfromECEF(origin::ECEF, datum)
     ENUfromECEF(origin, origin_lla.lat, origin_lla.lon)
 end
 Base.show(io::IO, trans::ENUfromECEF) = print(io, "ENUfromECEF($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
+Base.isapprox(t1::ENUfromECEF, t2::ENUfromECEF; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
 
 function transform(trans::ENUfromECEF, ecef::ECEF)
@@ -284,7 +268,7 @@ function ECEFfromENU(origin::ECEF, datum)
     ECEFfromENU(origin, origin_lla.lat, origin_lla.lon)
 end
 Base.show(io::IO, trans::ECEFfromENU) = print(io, "ECEFfromENU($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
-
+Base.isapprox(t1::ECEFfromENU, t2::ECEFfromENU; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
 function transform(trans::ECEFfromENU, enu::ENU)
     ϕdeg, λdeg = trans.lat, trans.lon
@@ -307,6 +291,9 @@ function transform(trans::ECEFfromENU, enu::ENU)
 
     return ECEF(X,Y,Z)
 end
+
+Base.inv(trans::ECEFfromENU) = ENUfromECEF(trans.origin, trans.lat, trans.lon)
+Base.inv(trans::ENUfromECEF) = ECEFfromENU(trans.origin, trans.lat, trans.lon)
 
 #################
 ## LLA <-> ENU ##
@@ -447,7 +434,7 @@ function transform(trans::LLAfromUTMZ, utm::UTMZ)
         lon_ref = Float64(utm_meridian(utm.zone))
         k0 = 0.9996 # Horizontal scaling factor
         x = (utm.x - 5e5) # Convention has 500km offset for easting
-        y = (utm.y - (utm.hemisphere ? k0 : 1e7)) # Northing offset for southern hemisphere
+        y = (utm.y - (utm.hemisphere ? 0.0 : 1e7)) # Northing offset for southern hemisphere
         #(lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
         (lat,lon,γ,k) = transverse_mercator_reverse(lon_ref, x, y, k0, trans.tm)
         return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
@@ -509,8 +496,7 @@ immutable UTMZfromUTM{Datum} <: AbstractTransformation{UTMZ, UTM}
     hemisphere::Bool
     datum::Datum
 end
-UTMZfromUTM(zone::UInt8, h, d) = UTMZfromUTM(zone, h, TransverseMercator(d), d)
-UTMZfromUTM(zone::Integer, h, d) = UTMZfromUTM(UInt8(zone), h, d)
+UTMZfromUTM{D}(zone::Integer, h, d::D) = UTMZfromUTM{D}(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")))")
 
@@ -519,8 +505,7 @@ immutable UTMfromUTMZ{Datum} <: AbstractTransformation{UTM, UTMZ}
     hemisphere::Bool
     datum::Datum
 end
-UTMfromUTMZ(zone::UInt8, h, d) = UTMfromUTMZ(zone, h, TransverseMercator(d), d)
-UTMfromUTMZ(zone::Integer, h, d) = UTMfromUTMZ(UInt8(zone), h, d)
+UTMfromUTMZ{D}(zone::Integer, h, d::D) = UTMfromUTMZ{D}(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")))")
 
@@ -531,7 +516,7 @@ function transform(trans::UTMfromUTMZ, utm::UTMZ)
     else
         # Should this be an error or an automatic transformation to the correct zone?
         #error("Incorrect UTM zone")
-        transform(UTMfromLLA(trans.zone, trans.hemisphere, trans.datum), transform(LLAfromUTMZ(datum), utm))
+        transform(UTMfromLLA(trans.zone, trans.hemisphere, trans.datum), transform(LLAfromUTMZ(trans.datum), utm))
     end
 end
 
