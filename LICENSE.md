@@ -1,6 +1,6 @@
 The Geodesy.jl package is licensed under the MIT "Expat" License:
 
-> Copyright (c) 2014-2015: Ted Steiner, Sean Garborg, Yeesian Ng.
+> Copyright (c) 2014-2016: Ted Steiner, Sean Garborg, Yeesian Ng, Andy Ferris, Andrew Smith
 >
 > Permission is hereby granted, free of charge, to any person obtaining
 > a copy of this software and associated documentation files (the

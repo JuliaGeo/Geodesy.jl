@@ -1,44 +1,22 @@
-using Geodesy
-using Base.Test
+@testset "Point constructors" begin
+    # Constructors
+    lla = LLA(1., 1., 0.)
+    @test LLA(1., 1.) == lla
+    @test LLA(lat = 1., lon = 1., alt = 0.) == lla
 
-# Construction
+    latlon = LatLon(1., 1.)
+    @test LatLon(lat = 1., lon = 1.) == latlon
+    @test LatLon(ECEF(lla, wgs84), wgs84) ≈ latlon
+    @test LatLon(lla) == latlon
 
-x, y = (rand(2) - .5) * 10_000
+    @test LLA(latlon) == lla
 
-@test ENU(x, y) == ENU(x, y, 0.0)
+    utm = UTM(10., 10., 0.)
+    @test UTM(10., 10.) == utm
 
-@test LLA(x, y) == LLA(x, y, 0.0)
+    utmz = UTMZ(10., 10., 0., 1, true)
+    @test UTMZ(10., 10., 1, true) == utmz
+    @test UTMZ(utm, 1, true) == utmz
 
-ECEF(x, y, 0.0)
-
-# get* methods
-
-lla = LLA(y, x, rand())
-@test LLA(getY(lla), getX(lla), getZ(lla)) == lla
-
-enu = ENU(x, y, rand())
-@test ENU(getX(enu), getY(enu), getZ(enu)) == enu
-
-# Distance
-
-@test distance(ENU(1, 1, 1), ENU(2, 2, 2)) == sqrt(3)
-
-@test distance(ECEF(1, 1, 1), ECEF(3, 3, 3)) == sqrt(12)
-
-randLLA() = LLA((rand() - .5) * 180,
-                (rand() - .5) * 360,
-                (rand() - .5) * 18_000)
-
-for _ = 1:1_000
-    lla = randLLA()
-    lla2 = randLLA()
-
-    enu = ENU(lla, lla)
-    enu2 = ENU(lla2, lla)
-
-    ecef = ECEF(lla)
-    ecef2 = ECEF(lla2)
-
-    @test_throws MethodError distance(lla, lla2)
-    @test_approx_eq distance(enu, enu2) distance(ecef, ecef2)
-end
+    @test UTM(utmz) == utm
+end # @testset
