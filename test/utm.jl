@@ -17,6 +17,11 @@
     @test Geodesy.utm_zone(60.0, 2.9) == (31, true)
     @test Geodesy.utm_zone(60.0, 3.1) == (32, true)
 
+    # From types
+    @test Geodesy.utm_zone(LatLon(1.0, 1.0)) == (31, true)
+    @test Geodesy.utm_zone(LLA(1.0, 1.0)) == (31, true)
+    @test Geodesy.utm_zone(ECEF(LLA(1.0, 1.0), wgs84), wgs84) == (31, true)
+
     # central meridians
     @test Geodesy.utm_meridian(31) == 3
     @test_throws Exception Geodesy.utm_meridian(0)

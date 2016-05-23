@@ -104,11 +104,11 @@ immutable UTMZ{T}
     y::T
     z::T
     zone::UInt8
-    hemisphere::Bool # true = north, false = south
+    isnorth::Bool # which hemisphere
 end
-UTMZ{T}(x::T, y::T, zone::Integer, hemisphere::Bool) = UTMZ(x, y, 0.0, UInt8(zone), hemisphere)
-UTMZ(x, y, z, zone::Integer, hemisphere::Bool) = UTMZ(x, y, z, UInt8(zone), hemisphere)
-UTMZ(utm::UTM, zone::Integer, hemisphere::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), hemisphere)
+UTMZ{T}(x::T, y::T, zone::Integer, isnorth::Bool) = UTMZ(x, y, 0.0, UInt8(zone), isnorth)
+UTMZ(x, y, z, zone::Integer, isnorth::Bool) = UTMZ(x, y, z, UInt8(zone), isnorth)
+UTMZ(utm::UTM, zone::Integer, isnorth::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), isnorth)
 UTM(utmz::UTMZ) = UTM(utmz.x, utmz.y, utmz.z)
-Base.isapprox(utm1::UTMZ, utm2::UTMZ; atol = 1e-6, kwargs...) = (utm1.zone == utm2.zone) & (utm1.hemisphere == utm2.hemisphere) & isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
-Base.show(io::IO, utm::UTMZ) = print(io, "UTMZ($(utm.x), $(utm.y), $(utm.z), zone=$(utm.zone == 0 ? "polar" : Int(utm.zone)) ($(utm.hemisphere ? "north" : "south")))")
+Base.isapprox(utm1::UTMZ, utm2::UTMZ; atol = 1e-6, kwargs...) = (utm1.zone == utm2.zone) & (utm1.isnorth == utm2.isnorth) & isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
+Base.show(io::IO, utm::UTMZ) = print(io, "UTMZ($(utm.x), $(utm.y), $(utm.z), zone=$(utm.zone == 0 ? "polar" : Int(utm.zone)) ($(utm.isnorth ? "north" : "south")))")

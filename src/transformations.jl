@@ -206,6 +206,7 @@ compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? Iden
 
 """
     ENUfromECEF(origin, datum)
+    ENUfromECEF(origin::UTM, zone, isnorth, datum)
     ENUfromECEF(origin::ECEF, lat, lon)
 
 Construct a `AbstractTransformation` object to convert from global `ECEF` coordinates
@@ -251,6 +252,7 @@ end
 
 """
     ECEFfromENU(origin, datum)
+    ECEFfromENU(origin::UTM, zone, isnorth, datum)
     ECEFfromENU(origin::ECEF, lat, lon)
 
 Construct a `AbstractTransformation` object to convert from local `ENU` coordinates
@@ -299,8 +301,18 @@ Base.inv(trans::ENUfromECEF) = ECEFfromENU(trans.origin, trans.lat, trans.lon)
 ## LLA <-> ENU ##
 #################
 
+"""
+    ENUfromLLA(origin, datum)
+
+Creates composite transformation `ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)`.
+"""
 ENUfromLLA(origin, datum) = ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)
 
+"""
+    LLAfromENU(origin, datum)
+
+Creates composite transformation `LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)`.
+"""
 LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)
 
 #################
@@ -308,24 +320,24 @@ LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)
 #################
 
 """
-    LLAfromUTM(zone, northern_hemisphere::Bool, datum)
+    LLAfromUTM(zone, isnorth::Bool, datum)
 
 Construct a `AbstractTransformation` object to convert from `UTM` coordinates in
-the specified zone and hemisphere to global `LLA` coordinates. Pre-caches
-ellipsoidal parameters for efficiency and performs Charles Karney's accurate
-6th-order series expansion algorithm.
+the specified zone and hemisphere (`isnorth = true` or `false`) to global `LLA`
+coordinates. Pre-caches ellipsoidal parameters for efficiency and performs
+Charles Karney's accurate 6th-order series expansion algorithm.
 
 (See also `LLAfromUTMZ`)
 """
 immutable LLAfromUTM{Datum,Order} <: AbstractTransformation{LLA, UTM}
     zone::UInt8
-    hemisphere::Bool # true = north, false = south
+    isnorth::Bool # hemisphere
     tm::TransverseMercator{Order}
     datum::Datum
 end
 LLAfromUTM(zone::UInt8, h, d) = LLAfromUTM(UInt8(zone), h, TransverseMercator(d), d)
 LLAfromUTM(zone::Integer, h, d) = LLAfromUTM(UInt8(zone), h, d)
-Base.show(io::IO, trans::LLAfromUTM) = print(io, "LLAfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
+Base.show(io::IO, trans::LLAfromUTM) = print(io, "LLAfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 
 function transform(trans::LLAfromUTM, utm::UTM)
     if trans.zone == 0
@@ -333,14 +345,14 @@ function transform(trans::LLAfromUTM, utm::UTM)
         k0 = 0.994
         x = (utm.x - 2e6)
         y = (utm.y - 2e6)
-        (lat,lon,γ,k) = polarst_inv(trans.hemisphere, k0, trans.tm, x, y)
+        (lat,lon,γ,k) = polarst_inv(trans.isnorth, k0, trans.tm, x, y)
 
         return LLA(lat, lon, utm.z)
     else
         lon_ref = Float64(utm_meridian(trans.zone))
         k0 = 0.9996 # Horizontal scaling factor
         x = (utm.x - 5e5) # Convention has 500km offset for easting
-        y = (utm.y - (trans.hemisphere ? 0.0 : 1e7)) # Northing offset for southern hemisphere
+        y = (utm.y - (trans.isnorth ? 0.0 : 1e7)) # Northing offset for southern hemisphere
         #(lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
         (lat,lon,γ,k) = transverse_mercator_reverse(lon_ref, x, y, k0, trans.tm)
         return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
@@ -348,10 +360,10 @@ function transform(trans::LLAfromUTM, utm::UTM)
 end
 
 """
-    UTMfromLLA(zone, northern_hemisphere::Bool, datum)
+    UTMfromLLA(zone, isnorth::Bool, datum)
 
 Construct a `AbstractTransformation` object to convert from global `LLA` coordinates
-to `UTM` coordinates in the specified zone and hemisphere. Pre-caches
+to `UTM` coordinates in the specified zone and hemisphere (`isnorth = true` or `false`). Pre-caches
 ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 6th-order series expansion algorithm.
 
@@ -359,19 +371,19 @@ ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 """
 immutable UTMfromLLA{Datum,Order} <: AbstractTransformation{UTM, LLA}
     zone::UInt8
-    hemisphere::Bool # true = north, false = south
+    isnorth::Bool # true = north, false = south
     tm::TransverseMercator{Order}
     datum::Datum
 end
 UTMfromLLA(zone::UInt8, h, d) = UTMfromLLA(zone, h, TransverseMercator(d), d)
 UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
-Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
+Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 
 function transform(trans::UTMfromLLA, lla::LLA)
     if trans.zone == 0
         # Do polar steriographic projection
         k0 = 0.994
-        (x,y,γ,k) = polarst_fwd(trans.hemisphere, k0, trans.tm, lla.lat, lla.lon)
+        (x,y,γ,k) = polarst_fwd(trans.isnorth, k0, trans.tm, lla.lat, lla.lon)
         x = x + 2e6
         y = y + 2e6
 
@@ -382,22 +394,33 @@ function transform(trans::UTMfromLLA, lla::LLA)
         #(x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
         (x,y,γ,k) = transverse_mercator_forward(lon_ref, lla.lat, lla.lon, k0, trans.tm)
         x = 5e5 + x # Convention has 500km offset for easting
-        y = (trans.hemisphere ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
+        y = (trans.isnorth ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
         # also, k = k * k0
         return UTM(x, y, lla.alt) # Note: scaling not applied to vertical dimension
     end
 end
 
-Base.inv(trans::LLAfromUTM) = UTMfromLLA(trans.zone, trans.hemisphere, trans.tm, trans.datum)
-Base.inv(trans::UTMfromLLA) = LLAfromUTM(trans.zone, trans.hemisphere, trans.tm, trans.datum)
+Base.inv(trans::LLAfromUTM) = UTMfromLLA(trans.zone, trans.isnorth, trans.tm, trans.datum)
+Base.inv(trans::UTMfromLLA) = LLAfromUTM(trans.zone, trans.isnorth, trans.tm, trans.datum)
 
 
 ##################
 ## ECEF <-> UTM ##
 ##################
 
-UTMfromECEF(zone, hemisphere, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromECEF(datum)
-ECEFfromUTM(zone, hemisphere, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, hemisphere, datum)
+"""
+    UTMfromECEF(zone, isnorth, datum)
+
+Creates composite transformation `UTMfromLLA(zone, isnorth, datum) ∘ LLAfromECEF(datum)`.
+"""
+UTMfromECEF(zone, isnorth, datum) = UTMfromLLA(zone, isnorth, datum) ∘ LLAfromECEF(datum)
+
+"""
+    ECEFfromUTM(zone, isnorth, datum)
+
+Creates composite transformation `ECEFfromLLA(datum) ∘ LLAfromUTM(zone, isnorth, datum)`.
+"""
+ECEFfromUTM(zone, isnorth, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, isnorth, datum)
 
 ##################
 ## LLA <-> UTMZ ##
@@ -427,14 +450,14 @@ function transform(trans::LLAfromUTMZ, utm::UTMZ)
         k0 = 0.994
         x = (utm.x - 2e6)
         y = (utm.y - 2e6)
-        (lat,lon,γ,k) = polarst_inv(utm.hemisphere, k0, trans.tm, x, y)
+        (lat,lon,γ,k) = polarst_inv(utm.isnorth, k0, trans.tm, x, y)
 
         return LLA(lat, lon, utm.z)
     else
         lon_ref = Float64(utm_meridian(utm.zone))
         k0 = 0.9996 # Horizontal scaling factor
         x = (utm.x - 5e5) # Convention has 500km offset for easting
-        y = (utm.y - (utm.hemisphere ? 0.0 : 1e7)) # Northing offset for southern hemisphere
+        y = (utm.y - (utm.isnorth ? 0.0 : 1e7)) # Northing offset for southern hemisphere
         #(lat,lon,k,γ) = transverse_mercator_inv(lat_ref, lon_ref, x, y, ellipsoid(trans.datum))
         (lat,lon,γ,k) = transverse_mercator_reverse(lon_ref, x, y, k0, trans.tm)
         return LLA(lat, lon, utm.z) # Note: scaling not applied to vertical dimension
@@ -442,7 +465,7 @@ function transform(trans::LLAfromUTMZ, utm::UTMZ)
 end
 
 """
-    UTMZfromLLA(zone, northern_hemisphere::Bool, datum)
+    UTMZfromLLA(datum)
 
 Construct a `AbstractTransformation` object to convert from global `LLA` coordinates
 to global `UTMZ` coordinates. The zone and hemisphere is automatically calculated
@@ -461,26 +484,26 @@ Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
 
 
 function transform(trans::UTMZfromLLA, lla::LLA)
-    (zone, hemisphere) = utm_zone(lla)
+    (zone, isnorth) = utm_zone(lla)
     zone::Int64
-    hemisphere::Bool
+    isnorth::Bool
     if zone == 0
         # Do polar steriographic projection
         k0 = 0.994
-        (x,y,γ,k) = polarst_fwd(hemisphere, k0, trans.tm, lla.lat, lla.lon)
+        (x,y,γ,k) = polarst_fwd(isnorth, k0, trans.tm, lla.lat, lla.lon)
         x = x + 2e6
         y = y + 2e6
 
-        return UTMZ(x, y, lla.alt, 0, hemisphere)
+        return UTMZ(x, y, lla.alt, 0, isnorth)
     else
         lon_ref = Float64(utm_meridian(zone))
         k0 = 0.9996 # Horizontal scaling factor
         #(x,y,k,γ) = transverse_mercator(lat_ref, lon_ref, lla.lat, lla.lon, ellipsoid(trans.datum))
         (x,y,γ,k) = transverse_mercator_forward(lon_ref, lla.lat, lla.lon, k0, trans.tm)
         x = 5e5 + x # Convention has 500km offset for easting
-        y = (hemisphere ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
+        y = (isnorth ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
         # also, k = k * k0
-        return UTMZ(x, y, lla.alt, zone, hemisphere) # Note: scaling not applied to vertical dimension
+        return UTMZ(x, y, lla.alt, zone, isnorth) # Note: scaling not applied to vertical dimension
     end
 end
 
@@ -491,43 +514,65 @@ Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.tm, trans.datum)
 ## UTM <-> UTMZ ##
 ###################
 
+"""
+    UTMZfromUTM(zone, isnorth, datum)
+
+Transformation to append the UTM/UPS zone and hemisphere to a raw `UTM` data point.
+"""
 immutable UTMZfromUTM{Datum} <: AbstractTransformation{UTMZ, UTM}
     zone::Int
-    hemisphere::Bool
+    isnorth::Bool
     datum::Datum
 end
 UTMZfromUTM{D}(zone::Integer, h, d::D) = UTMZfromUTM{D}(UInt8(zone), h, d)
-Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
-#Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")))")
+Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
+#Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
+"""
+    UTMfromUTMZ(zone, isnorth, datum)
+
+Transformation to remove the zone and hemisphere from `UTMZ` data point, and
+automatically convert the data to the specified zone if necessary.
+"""
 immutable UTMfromUTMZ{Datum} <: AbstractTransformation{UTM, UTMZ}
     zone::Int
-    hemisphere::Bool
+    isnorth::Bool
     datum::Datum
 end
 UTMfromUTMZ{D}(zone::Integer, h, d::D) = UTMfromUTMZ{D}(UInt8(zone), h, d)
-Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")), $(trans.datum))")
-#Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.hemisphere ? "north" : "south")))")
+Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
+#Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
-transform(trans::UTMZfromUTM, utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.hemisphere)
+transform(trans::UTMZfromUTM, utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth)
 function transform(trans::UTMfromUTMZ, utm::UTMZ)
-    if trans.zone == utm.zone && trans.hemisphere == utm.hemisphere
+    if trans.zone == utm.zone && trans.isnorth == utm.isnorth
         UTM(utm.x, utm.y, utm.z)
     else
         # Should this be an error or an automatic transformation to the correct zone?
         #error("Incorrect UTM zone")
-        transform(UTMfromLLA(trans.zone, trans.hemisphere, trans.datum), transform(LLAfromUTMZ(trans.datum), utm))
+        transform(UTMfromLLA(trans.zone, trans.isnorth, trans.datum), transform(LLAfromUTMZ(trans.datum), utm))
     end
 end
 
-Base.inv(trans::UTMfromUTMZ) = UTMZfromUTM(trans.zone, trans.hemisphere, trans.datum)
-Base.inv(trans::UTMZfromUTM) = UTMfromUTMZ(trans.zone, trans.hemisphere, trans.datum)
+Base.inv(trans::UTMfromUTMZ) = UTMZfromUTM(trans.zone, trans.isnorth, trans.datum)
+Base.inv(trans::UTMZfromUTM) = UTMfromUTMZ(trans.zone, trans.isnorth, trans.datum)
 
 ###################
 ## ECEF <-> UTMZ ##
 ###################
 
+"""
+    UTMZfromECEF(datum)
+
+Creates composite transformation `UTMZfromLLA(datum) ∘ LLAfromECEF(datum)`.
+"""
 UTMZfromECEF(datum) = UTMZfromLLA(datum) ∘ LLAfromECEF(datum)
+
+"""
+    ECEFfromUTMZ(datum)
+
+Creates composite transformation `ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)`.
+"""
 ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)
 
 ##################
@@ -537,18 +582,42 @@ ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)
 ENUfromECEF(origin::UTMZ, datum) = ENUfromECEF(transform(LLAfromUTMZ(datum), origin), datum)
 ECEFfromENU(origin::UTMZ, datum) = ECEFfromENU(transform(LLAfromUTMZ(datum), origin), datum)
 
-ENUfromUTMZ(origin, datum)  = ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)
-UTMZfromENU(origin, datum)  = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)
+"""
+    ENUfromUTMZ(origin, datum)
+
+Creates composite transformation `ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)`.
+"""
+ENUfromUTMZ(origin, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)
+
+"""
+    UTMZfromENU(origin, datum)
+
+Creates composite transformation `UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)`.
+"""
+UTMZfromENU(origin, datum) = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)
 
 #################
 ## ENU <-> UTM ##
 #################
-ENUfromECEF(origin::UTM, zone::Integer, hemisphere::Bool, datum) = ENUfromECEF(transform(LLAfromUTM(zone, hemisphere, datum), origin), datum)
-ECEFfromENU(origin::UTM, zone::Integer, hemisphere::Bool, datum) = ECEFfromENU(transform(LLAfromUTM(zone, hemisphere, datum), origin), datum)
+ENUfromECEF(origin::UTM, zone::Integer, isnorth::Bool, datum) = ENUfromECEF(transform(LLAfromUTM(zone, isnorth, datum), origin), datum)
+ECEFfromENU(origin::UTM, zone::Integer, isnorth::Bool, datum) = ECEFfromENU(transform(LLAfromUTM(zone, isnorth, datum), origin), datum)
 
 # Assume origin and utm point share the same zone and hemisphere
-UTMfromENU(origin::UTM, zone::Integer, hemisphere::Bool, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromENU(UTMZ(origin, zone, hemisphere), datum)
-ENUfromUTM(origin::UTM, zone::Integer, hemisphere::Bool, datum) = ENUfromLLA(UTMZ(origin, zone, hemisphere), datum) ∘ LLAfromUTM(zone, hemisphere, datum)
+UTMfromENU(origin::UTM, zone::Integer, isnorth::Bool, datum) = UTMfromLLA(zone, isnorth, datum) ∘ LLAfromENU(UTMZ(origin, zone, isnorth), datum)
+ENUfromUTM(origin::UTM, zone::Integer, isnorth::Bool, datum) = ENUfromLLA(UTMZ(origin, zone, isnorth), datum) ∘ LLAfromUTM(zone, isnorth, datum)
 
-UTMfromENU(origin, zone::Integer, hemisphere::Bool, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromENU(origin, datum)
-ENUfromUTM(origin, zone::Integer, hemisphere::Bool, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTM(zone, hemisphere, datum)
+"""
+    UTMfromENU(origin, zone, isnorth, datum)
+
+Creates composite transformation `UTMfromLLA(zone, isnorth, datum) ∘ LLAfromENU(origin, datum)`.
+If `origin` is a `UTM` point, then it is assumed it is in the given specified zone and hemisphere.
+"""
+UTMfromENU(origin, zone::Integer, isnorth::Bool, datum) = UTMfromLLA(zone, isnorth, datum) ∘ LLAfromENU(origin, datum)
+
+"""
+    ENUfromUTM(origin, zone, isnorth, datum)
+
+Creates composite transformation `UTMfromLLA(zone, isnorth, datum) ∘ LLAfromENU(origin, datum)`.
+If `origin` is a `UTM` point, then it is assumed it is in the given specified zone and hemisphere.
+"""
+ENUfromUTM(origin, zone::Integer, isnorth::Bool, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTM(zone, isnorth, datum)

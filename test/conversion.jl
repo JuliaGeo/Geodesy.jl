@@ -57,7 +57,7 @@
         @test LLA(lla, wgs84) == lla
         @test ENU(enu, wgs84) == enu
         @test UTM(utm, wgs84) == utm
-        @test ECEF(ecef, wgs84) == ecef
+        @test UTMZ(utmz, wgs84) == utmz
     end
 
     @testset "Random distance tests" begin
@@ -95,16 +95,18 @@
 
             @test distance(utmz1, utmz2) ≈ d
 
-            if utmz1.zone == utmz2.zone && utmz1.hemisphere == utmz2.hemisphere
+            if utmz1.zone == utmz2.zone && utmz1.isnorth == utmz2.isnorth
                 number_of_utm_distance_tests += 1
 
                 utm1 = UTM(utmz1)
                 utm2 = UTM(utmz2)
 
                 zone = utmz1.zone
-                hemisphere = utmz1.hemisphere
+                isnorth = utmz1.isnorth
 
-                @test distance(utm1, utm2, zone, hemisphere) ≈ d
+                @test distance(utm1,  utm2,  zone, isnorth) ≈ d
+                @test distance(utm1,  ecef2, zone, isnorth) ≈ d
+                @test distance(ecef1, utm2,  zone, isnorth) ≈ d
             end
 
             enu000 = ENU(0.0, 0.0, 0.0)

@@ -19,16 +19,16 @@ distance(a::UTMZ, b, datum = wgs84) = distance(transform(ECEFfromUTMZ(datum), a)
 distance(a::ECEF, b::UTMZ, datum = wgs84) = distance(a, transform(ECEFfromUTMZ(datum), b), datum)
 
 """
-    distance(utm1, utm2, zone, hemisphere, [datum = wgs84])
-    distance(a, utm2, zone, hemisphere, [datum = wgs84])
-    distance(utm1, b, zone, hemisphere, [datum = wgs84])
+    distance(utm1, utm2, zone, isnorth, [datum = wgs84])
+    distance(a, utm2, zone, isnorth, [datum = wgs84])
+    distance(utm1, b, zone, isnorth, [datum = wgs84])
 
-If one or both points are UTM, we need the zone (and particularly the hemisphere)
-to determine the Cartesian distance.
+If one or both points are UTM, we need the zone (and particularly the hemisphere,
+isnorth = true/false) to determine the Cartesian distance.
 """
-distance(a::UTM, b::UTM, zone::Integer, hemisphere::Bool, datum = wgs84) = distance(transform(ECEFfromUTM(zone, hemisphere, datum), a), transform(ECEFfromUTM(zone, hemisphere, datum), b), datum)
-distance(a, b::UTM, zone::Integer, hemisphere::Bool, datum = wgs84) = distance(a, transform(ECEFfromUTM(zone, hemisphere, datum), b), datum)
-distance(a::UTM, b, zone::Integer, hemisphere::Bool, datum = wgs84) = distance(transform(ECEFfromUTM(zone, hemisphere, datum), a), b, datum)
+distance(a::UTM, b::UTM, zone::Integer, isnorth::Bool, datum = wgs84) = distance(transform(ECEFfromUTM(zone, isnorth, datum), a), transform(ECEFfromUTM(zone, isnorth, datum), b), datum)
+distance(a, b::UTM, zone::Integer, isnorth::Bool, datum = wgs84) = distance(a, transform(ECEFfromUTM(zone, isnorth, datum), b), datum)
+distance(a::UTM, b, zone::Integer, isnorth::Bool, datum = wgs84) = distance(transform(ECEFfromUTM(zone, isnorth, datum), a), b, datum)
 
 
 # Also add geodesic distances here
