@@ -212,6 +212,11 @@ compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? Iden
 Construct a `AbstractTransformation` object to convert from global `ECEF` coordinates
 to local `ENU` coordinates centered at the `origin`. This object pre-caches both the
 ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
+
+Note: the derivatives calculated through `transform_deriv_params()` involve the
+approximation that the latitude and longitude of the origin remains
+approximately constant (and therefore the rotation to east-north-up coordinates
+is fixed).
 """
 immutable ENUfromECEF{T} <: AbstractTransformation{ENU, ECEF}
     origin::ECEF{T}
@@ -243,12 +248,27 @@ function transform(trans::ENUfromECEF, ecef::ECEF)
     #       cosλ*cosϕ  sinλ*cosϕ sinϕ]
     #
     # east, north, up = R * [∂x, ∂y, ∂z]
-    east  = ∂x * -sinλ      + ∂y * cosλ       + ∂z * 0.0
+    east  = ∂x * -sinλ      + ∂y * cosλ      #+ ∂z * 0.0
     north = ∂x * -cosλ*sinϕ + ∂y * -sinλ*sinϕ + ∂z * cosϕ
     up    = ∂x * cosλ*cosϕ  + ∂y * sinλ*cosϕ  + ∂z * sinϕ
 
     return ENU(east, north, up)
 end
+
+function transform_deriv{T1,T2}(trans::ENUfromECEF{T1}, ::ECEF{T2})
+    ϕdeg, λdeg = trans.lat, trans.lon
+
+    # Compute rotation matrix
+    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    zero(promote_type(T1,T2))
+
+    return @fsa [-sinλ        cosλ         z    ;
+                 -cosλ*sinϕ   -sinλ*sinϕ   cosϕ ;
+                 cosλ*cosϕ    sinλ*cosϕ    sinϕ ]
+end
+
+
 
 """
     ECEFfromENU(origin, datum)
@@ -283,15 +303,28 @@ function transform(trans::ECEFfromENU, enu::ENU)
     #        cosλ -sinλ*sinϕ sinλ*cosϕ
     #         0.0       cosϕ      sinϕ]
     # Δx, Δy, Δz = Rᵀ * [east, north, up]
-    Δx = -sinλ * enu.e + -cosλ*sinϕ * enu.n + cosλ*cosϕ * enu.u
-    Δy =  cosλ * enu.e + -sinλ*sinϕ * enu.n + sinλ*cosϕ * enu.u
-    Δz =   0.0 * enu.e +       cosϕ * enu.n +      sinϕ * enu.u
+    Δx = -sinλ * enu.e +  -cosλ*sinϕ * enu.n + cosλ*cosϕ * enu.u
+    Δy =  cosλ * enu.e +  -sinλ*sinϕ * enu.n + sinλ*cosϕ * enu.u
+    Δz = #=0.0 * enu.e +=# cosϕ * enu.n +      sinϕ * enu.u
 
     X = trans.origin.x + Δx
     Y = trans.origin.y + Δy
     Z = trans.origin.z + Δz
 
     return ECEF(X,Y,Z)
+end
+
+function transform_deriv(trans::ECEFfromENU, ::ECEF)
+    ϕdeg, λdeg = trans.lat, trans.lon
+
+    # Compute rotation matrix
+    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    z = zero(promote_type(T1,T2))
+
+    return @fsa [-sinλ  -cosλ*sinϕ   cosλ*cosϕ ;
+                  cosλ  -sinλ*sinϕ   sinλ*cosϕ ;
+                  z      cosϕ        sinϕ      ]
 end
 
 Base.inv(trans::ECEFfromENU) = ENUfromECEF(trans.origin, trans.lat, trans.lon)
