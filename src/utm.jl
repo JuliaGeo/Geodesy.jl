@@ -40,7 +40,7 @@ end
 
 utm_zone(ll::LatLon) = utm_zone(ll.lat, ll.lon)
 utm_zone(lla::LLA) = utm_zone(lla.lat, lla.lon)
-utm_zone(ecef::ECEF, datum) = utm_zone(transform(LLAfromECEF(datum), ecef))
+utm_zone(ecef::ECEF, datum) = utm_zone(LLAfromECEF(datum)(ecef))
 
 """
     utm_meridian(zone)
