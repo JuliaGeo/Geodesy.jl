@@ -4,8 +4,7 @@ using CoordinateTransformations
 using FixedSizeArrays
 using Compat
 
-import CoordinateTransformations.transform,
-       CoordinateTransformations.transform_deriv,
+import CoordinateTransformations.transform_deriv,
        CoordinateTransformations.transform_deriv_params,
        CoordinateTransformations.compose,
        CoordinateTransformations.∘
@@ -32,7 +31,7 @@ export
     distance,
 
     # transformation methods
-    transform, transform, transform_deriv_params, compose, ∘,
+    transform_deriv, transform_deriv_params, compose, ∘,
     ECEFfromLLA, LLAfromECEF, ENUfromECEF, ECEFfromENU, ENUfromLLA, LLAfromENU,
     UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM, ENUfromUTM, UTMfromENU,
     UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU,

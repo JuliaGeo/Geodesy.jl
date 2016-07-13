@@ -29,10 +29,10 @@ Here we have used the WGS-84 ellipsoid to calculate the transformation, but othe
 datums such as `osgb36`, `nad27` and `grs80` are provided. All transformations
 use the *CoordinateTransformations*' interface, and the above is short for
 ```julia
-x_ecef = transform(ECEFfromLLA(wgs84), x_lla)
+x_ecef = ECEFfromLLA(wgs84)(x_lla)
 ```
 where `ECEFfromLLA` is a type inheriting from *CoordinateTransformations*'
-`AbstractTransformation{ECEF,LLA}`. (Similar names `XfromY` exist for each of the
+`Transformation`. (Similar names `XfromY` exist for each of the
 coordinate types.)
 
 Often, points are measured or required in a *local* frame, such as the north-east-up
@@ -45,7 +45,7 @@ point_lla = LLA(-27.465933, 153.025900, 0.0)  # Central Station, Brisbane, Austr
 
 # Define the transformation and execute it
 trans = ENUfromLLA(origin_lla, wgs84)
-point_enu = transform(trans, point_lla)
+point_enu = trans(point_lla)
 
 # Equivalently
 point_enu = ENU(point_enu, point_origin, wgs84)
@@ -66,7 +66,7 @@ be more effective to define the transformation explicitly and use the lighter
 ```julia
 points_lla::Vector{LLA{Float64}}
 utm_from_lla = UTMfromLLA(56, false, wgs84) # Zone 56-South
-points_utm = map(lla -> transform(utm_from_lla, lla), points_lla) # A new vector of UTM coordinates
+points_utm = map(utm_from_lla, points_lla) # A new vector of UTM coordinates
 ```
 
 *Geodesy* becomes particularly powerful when you chain together transformations.
@@ -86,7 +86,7 @@ This transformation can then be composed with rotations and translations in
 *CoordinateTransformations* (or your own custom-defined `AbstractTransformation`
 to define further reference frames. For example, in this way, a point measured
 by a scanner on a moving vehicle at a particular time may be globally
-georeferenced with a single call to `transform()`!
+georeferenced with a single call to the `Transformation`!
 
 Finally, the Cartesian distance between world points can be calculated via
 automatic transformation to a Cartesian frame:
@@ -165,7 +165,7 @@ to refer to pre-computed data `Ellipsoid`s and `TransverseMercator`s.
 *Geodesy* provides two interfaces changing coordinate systems.
 
 "Transformations" are based on *CoordinateTransformations* interface for defining
-`AbstractTransformation`s and allow the user to apply them with `transform()`,
+`AbstractTransformation`s and allow the user to apply them by calling them,
 invert them with `inv()` and compose them with `compose()` or `∘`. The transformations
 cache any possible pre-calculations for efficiency when the same transformation
 is applied to many points.

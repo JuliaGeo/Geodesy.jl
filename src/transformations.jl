@@ -2,7 +2,7 @@
 ## LLA <-> ECEF ##
 ##################
 
-immutable LLAfromECEF{Datum} <: AbstractTransformation{LLA, ECEF}
+immutable LLAfromECEF{Datum} <: Transformation
     a::Float64      # major axis
     f::Float64      # flattening
     e2::Float64     # Eccentricity squared
@@ -27,7 +27,7 @@ Base.show(io::IO, trans::LLAfromECEF) = print(io, "LLAfromECEF($(trans.datum))")
 """
     LLAfromECEF(datum)
 
-Construct a `AbstractTransformation` object to convert from ECEF coordinates
+Construct a `Transformation` object to convert from ECEF coordinates
 to LLA coordinates. Pre-caches ellipsoidal parameters for efficiency.
 """
 function LLAfromECEF{Datum}(datum::Datum)
@@ -45,7 +45,7 @@ function LLAfromECEF{Datum}(datum::Datum)
 end
 
 
-function transform(trans::LLAfromECEF, ecef::ECEF)
+@compat function (trans::LLAfromECEF)(ecef::ECEF)
     # Ported to Julia by Andy Ferris, 2016 and re-released under MIT license.
     #/**
     # * \file Geocentric.cpp
@@ -161,10 +161,10 @@ end
 """
     ECEFfromLLA(datum)
 
-Construct a `AbstractTransformation` object to convert from LLA coordinates
+Construct a `Transformation` object to convert from LLA coordinates
 to ECEF coordinates.
 """
-immutable ECEFfromLLA{Datum} <: AbstractTransformation{ECEF, LLA}
+immutable ECEFfromLLA{Datum} <: Transformation
     a::Float64   # Ellipsoidal major axis
     e²::Float64  # Ellipsoidal square-eccentricity = 1 - b^2/a^2
 
@@ -178,7 +178,7 @@ function ECEFfromLLA{Datum}(datum::Datum)
 end
 
 
-function transform(trans::ECEFfromLLA, lla::LLA)
+@compat function (trans::ECEFfromLLA)(lla::LLA)
     ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
 
     sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
@@ -209,25 +209,25 @@ compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? Iden
     ENUfromECEF(origin::UTM, zone, isnorth, datum)
     ENUfromECEF(origin::ECEF, lat, lon)
 
-Construct a `AbstractTransformation` object to convert from global `ECEF` coordinates
+Construct a `Transformation` object to convert from global `ECEF` coordinates
 to local `ENU` coordinates centered at the `origin`. This object pre-caches both the
 ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
 """
-immutable ENUfromECEF{T} <: AbstractTransformation{ENU, ECEF}
+immutable ENUfromECEF{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
 end
-ENUfromECEF(origin::LLA, datum) = ENUfromECEF(transform(ECEFfromLLA(datum),origin), origin.lat, origin.lon)
+ENUfromECEF(origin::LLA, datum) = ENUfromECEF(ECEFfromLLA(datum)(origin), origin.lat, origin.lon)
 function ENUfromECEF(origin::ECEF, datum)
-    origin_lla = transform(LLAfromECEF(datum), origin)
+    origin_lla = LLAfromECEF(datum)(origin)
     ENUfromECEF(origin, origin_lla.lat, origin_lla.lon)
 end
 Base.show(io::IO, trans::ENUfromECEF) = print(io, "ENUfromECEF($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ENUfromECEF, t2::ENUfromECEF; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
 
-function transform(trans::ENUfromECEF, ecef::ECEF)
+@compat function (trans::ENUfromECEF)(ecef::ECEF)
     ϕdeg, λdeg = trans.lat, trans.lon
 
     ∂x = ecef.x - trans.origin.x
@@ -255,24 +255,24 @@ end
     ECEFfromENU(origin::UTM, zone, isnorth, datum)
     ECEFfromENU(origin::ECEF, lat, lon)
 
-Construct a `AbstractTransformation` object to convert from local `ENU` coordinates
+Construct a `Transformation` object to convert from local `ENU` coordinates
 centred at `origin` to global `ECEF` coodinates. This object pre-caches both the
 ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
 """
-immutable ECEFfromENU{T} <: AbstractTransformation{ECEF, ENU}
+immutable ECEFfromENU{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
 end
-ECEFfromENU(origin::LLA, datum) = ECEFfromENU(transform(ECEFfromLLA(datum),origin), origin.lat, origin.lon)
+ECEFfromENU(origin::LLA, datum) = ECEFfromENU(ECEFfromLLA(datum)(origin), origin.lat, origin.lon)
 function ECEFfromENU(origin::ECEF, datum)
-    origin_lla = transform(LLAfromECEF(datum), origin)
+    origin_lla = LLAfromECEF(datum)(origin)
     ECEFfromENU(origin, origin_lla.lat, origin_lla.lon)
 end
 Base.show(io::IO, trans::ECEFfromENU) = print(io, "ECEFfromENU($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ECEFfromENU, t2::ECEFfromENU; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
-function transform(trans::ECEFfromENU, enu::ENU)
+@compat function (trans::ECEFfromENU)(enu::ENU)
     ϕdeg, λdeg = trans.lat, trans.lon
 
     # Compute rotation matrix
@@ -322,14 +322,14 @@ LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)
 """
     LLAfromUTM(zone, isnorth::Bool, datum)
 
-Construct a `AbstractTransformation` object to convert from `UTM` coordinates in
+Construct a `Transformation` object to convert from `UTM` coordinates in
 the specified zone and hemisphere (`isnorth = true` or `false`) to global `LLA`
 coordinates. Pre-caches ellipsoidal parameters for efficiency and performs
 Charles Karney's accurate 6th-order series expansion algorithm.
 
 (See also `LLAfromUTMZ`)
 """
-immutable LLAfromUTM{Datum,Order} <: AbstractTransformation{LLA, UTM}
+immutable LLAfromUTM{Datum,Order} <: Transformation
     zone::UInt8
     isnorth::Bool # hemisphere
     tm::TransverseMercator{Order}
@@ -339,7 +339,7 @@ LLAfromUTM(zone::UInt8, h, d) = LLAfromUTM(UInt8(zone), h, TransverseMercator(d)
 LLAfromUTM(zone::Integer, h, d) = LLAfromUTM(UInt8(zone), h, d)
 Base.show(io::IO, trans::LLAfromUTM) = print(io, "LLAfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 
-function transform(trans::LLAfromUTM, utm::UTM)
+@compat function (trans::LLAfromUTM)(utm::UTM)
     if trans.zone == 0
         # Do inverse steriographic projection
         k0 = 0.994
@@ -362,14 +362,14 @@ end
 """
     UTMfromLLA(zone, isnorth::Bool, datum)
 
-Construct a `AbstractTransformation` object to convert from global `LLA` coordinates
+Construct a `Transformation` object to convert from global `LLA` coordinates
 to `UTM` coordinates in the specified zone and hemisphere (`isnorth = true` or `false`). Pre-caches
 ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 6th-order series expansion algorithm.
 
 (See also `UTMZfromLLA`)
 """
-immutable UTMfromLLA{Datum,Order} <: AbstractTransformation{UTM, LLA}
+immutable UTMfromLLA{Datum,Order} <: Transformation
     zone::UInt8
     isnorth::Bool # true = north, false = south
     tm::TransverseMercator{Order}
@@ -379,7 +379,7 @@ UTMfromLLA(zone::UInt8, h, d) = UTMfromLLA(zone, h, TransverseMercator(d), d)
 UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 
-function transform(trans::UTMfromLLA, lla::LLA)
+@compat function (trans::UTMfromLLA)(lla::LLA)
     if trans.zone == 0
         # Do polar steriographic projection
         k0 = 0.994
@@ -429,14 +429,14 @@ ECEFfromUTM(zone, isnorth, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, isno
 """
     LLAfromUTMZ(datum)
 
-Construct a `AbstractTransformation` object to convert from global `UTMZ`
+Construct a `Transformation` object to convert from global `UTMZ`
 coordinates to global `LLA` coordinates. Pre-caches
 ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 6th-order series expansion algorithm.
 
 (See also `LLAfromUTM`)
 """
-immutable LLAfromUTMZ{Datum,Order} <: AbstractTransformation{LLA, UTMZ}
+immutable LLAfromUTMZ{Datum,Order} <: Transformation
     tm::TransverseMercator{Order}
     datum::Datum
 end
@@ -444,7 +444,7 @@ LLAfromUTMZ(datum) = LLAfromUTMZ(TransverseMercator(datum), datum)
 Base.show(io::IO, trans::LLAfromUTMZ) = print(io, "LLAfromUTMZ($(trans.datum))")
 
 
-function transform(trans::LLAfromUTMZ, utm::UTMZ)
+@compat function (trans::LLAfromUTMZ)(utm::UTMZ)
     if utm.zone == 0
         # Do inverse steriographic projection
         k0 = 0.994
@@ -467,7 +467,7 @@ end
 """
     UTMZfromLLA(datum)
 
-Construct a `AbstractTransformation` object to convert from global `LLA` coordinates
+Construct a `Transformation` object to convert from global `LLA` coordinates
 to global `UTMZ` coordinates. The zone and hemisphere is automatically calculated
 following the standard definitions (including exceptions in Norway). Pre-caches
 ellipsoidal parameters for efficiency and performs Charles Karney's accurate
@@ -475,7 +475,7 @@ ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 
 (See also `UTMfromLLA`)
 """
-immutable UTMZfromLLA{Datum,Order} <: AbstractTransformation{UTMZ, LLA}
+immutable UTMZfromLLA{Datum,Order} <: Transformation
     tm::TransverseMercator{Order}
     datum::Datum
 end
@@ -483,7 +483,7 @@ UTMZfromLLA(datum) = UTMZfromLLA(TransverseMercator(datum), datum)
 Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
 
 
-function transform(trans::UTMZfromLLA, lla::LLA)
+@compat function (trans::UTMZfromLLA)(lla::LLA)
     (zone, isnorth) = utm_zone(lla)
     zone::Int64
     isnorth::Bool
@@ -519,7 +519,7 @@ Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.tm, trans.datum)
 
 Transformation to append the UTM/UPS zone and hemisphere to a raw `UTM` data point.
 """
-immutable UTMZfromUTM{Datum} <: AbstractTransformation{UTMZ, UTM}
+immutable UTMZfromUTM{Datum} <: Transformation
     zone::Int
     isnorth::Bool
     datum::Datum
@@ -534,7 +534,7 @@ Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone
 Transformation to remove the zone and hemisphere from `UTMZ` data point, and
 automatically convert the data to the specified zone if necessary.
 """
-immutable UTMfromUTMZ{Datum} <: AbstractTransformation{UTM, UTMZ}
+immutable UTMfromUTMZ{Datum} <: Transformation
     zone::Int
     isnorth::Bool
     datum::Datum
@@ -543,14 +543,14 @@ UTMfromUTMZ{D}(zone::Integer, h, d::D) = UTMfromUTMZ{D}(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
-transform(trans::UTMZfromUTM, utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth)
-function transform(trans::UTMfromUTMZ, utm::UTMZ)
+@compat (trans::UTMZfromUTM)(utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth)
+@compat function (trans::UTMfromUTMZ)(utm::UTMZ)
     if trans.zone == utm.zone && trans.isnorth == utm.isnorth
         UTM(utm.x, utm.y, utm.z)
     else
         # Should this be an error or an automatic transformation to the correct zone?
         #error("Incorrect UTM zone")
-        transform(UTMfromLLA(trans.zone, trans.isnorth, trans.datum), transform(LLAfromUTMZ(trans.datum), utm))
+        UTMfromLLA(trans.zone, trans.isnorth, trans.datum)(LLAfromUTMZ(trans.datum)(utm))
     end
 end
 
@@ -579,8 +579,8 @@ ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)
 ## ENU <-> UTMZ ##
 ##################
 
-ENUfromECEF(origin::UTMZ, datum) = ENUfromECEF(transform(LLAfromUTMZ(datum), origin), datum)
-ECEFfromENU(origin::UTMZ, datum) = ECEFfromENU(transform(LLAfromUTMZ(datum), origin), datum)
+ENUfromECEF(origin::UTMZ, datum) = ENUfromECEF(LLAfromUTMZ(datum)(origin), datum)
+ECEFfromENU(origin::UTMZ, datum) = ECEFfromENU(LLAfromUTMZ(datum)(origin), datum)
 
 """
     ENUfromUTMZ(origin, datum)
@@ -599,8 +599,8 @@ UTMZfromENU(origin, datum) = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)
 #################
 ## ENU <-> UTM ##
 #################
-ENUfromECEF(origin::UTM, zone::Integer, isnorth::Bool, datum) = ENUfromECEF(transform(LLAfromUTM(zone, isnorth, datum), origin), datum)
-ECEFfromENU(origin::UTM, zone::Integer, isnorth::Bool, datum) = ECEFfromENU(transform(LLAfromUTM(zone, isnorth, datum), origin), datum)
+ENUfromECEF(origin::UTM, zone::Integer, isnorth::Bool, datum) = ENUfromECEF(LLAfromUTM(zone, isnorth, datum)(origin), datum)
+ECEFfromENU(origin::UTM, zone::Integer, isnorth::Bool, datum) = ECEFfromENU(LLAfromUTM(zone, isnorth, datum)(origin), datum)
 
 # Assume origin and utm point share the same zone and hemisphere
 UTMfromENU(origin::UTM, zone::Integer, isnorth::Bool, datum) = UTMfromLLA(zone, isnorth, datum) ∘ LLAfromENU(UTMZ(origin, zone, isnorth), datum)

@@ -6,57 +6,57 @@
     ecef_lla = ECEFfromLLA(wgs84)
     lla_ecef = LLAfromECEF(wgs84)
 
-    ecef = transform(ecef_lla, lla)
-    ecef2 = transform(ecef_lla, lla2)
+    ecef = ecef_lla(lla)
+    ecef2 = ecef_lla(lla2)
 
     @test ecef ≈ ECEF(-654007.2768949205,5.794061748224952e6,-2.5796231395720555e6)
-    @test lla ≈ transform(lla_ecef, ecef)
+    @test lla ≈ lla_ecef(ecef)
 
     lla_utm = LLAfromUTM(utm_zone(lla)..., wgs84)
     utm_lla = UTMfromLLA(utm_zone(lla)..., wgs84)
 
-    utm = transform(utm_lla, lla)
-    utm2 = transform(utm_lla, lla2)
+    utm = utm_lla(lla)
+    utm2 = utm_lla(lla2)
 
     @test utm ≈ UTM(239579.67583179142,7.342551466042985e6,1374.7804632852078)
-    @test lla ≈ transform(lla_utm, utm)
+    @test lla ≈ lla_utm(utm)
     # Test also the poles
-    @test transform(UTMfromLLA(0,true,wgs84), LLA(89.0, 89.0, 89.0)) ≈ UTM(2.111009610242531e6, 1.9980623200455606e6, 89.0)
-    @test transform(LLAfromUTM(0,true,wgs84), UTM(2.111009610242531e6, 1.9980623200455606e6, 89.0)) ≈ LLA(89.0, 89.0, 89.0)
+    @test UTMfromLLA(0,true,wgs84)(LLA(89.0, 89.0, 89.0)) ≈ UTM(2.111009610242531e6, 1.9980623200455606e6, 89.0)
+    @test LLAfromUTM(0,true,wgs84)(UTM(2.111009610242531e6, 1.9980623200455606e6, 89.0)) ≈ LLA(89.0, 89.0, 89.0)
 
     lla_utmz = LLAfromUTMZ(wgs84)
     utmz_lla = UTMZfromLLA(wgs84)
 
-    utmz = transform(utmz_lla, lla)
-    utmz2 = transform(utmz_lla, lla2)
+    utmz = utmz_lla(lla)
+    utmz2 = utmz_lla(lla2)
     # Test also the poles go to UPS
-    @test transform(utmz_lla, LLA(89.0, 89.0, 89.0)) ≈ UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true)
-    @test transform(lla_utmz, UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true)) ≈ LLA(89.0, 89.0, 89.0)
+    @test utmz_lla(LLA(89.0, 89.0, 89.0)) ≈ UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true)
+    @test lla_utmz(UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true)) ≈ LLA(89.0, 89.0, 89.0)
 
     @test utmz ≈ UTMZ(239579.67583179142,7.342551466042985e6,1374.7804632852078, UInt8(47), false)
-    @test lla ≈ transform(lla_utmz, utmz)
+    @test lla ≈ lla_utmz(utmz)
 
     utmz_utm = UTMZfromUTM(47, false, wgs84)
     utm_utmz = UTMfromUTMZ(47, false, wgs84)
 
-    @test utmz == transform(utmz_utm, utm)
-    @test utm == transform(utm_utmz, utmz)
+    @test utmz == utmz_utm(utm)
+    @test utm == utm_utmz(utmz)
     # Sometimes this has to do something non-trivial - make sure it does
     utm_utmz2 = UTMfromUTMZ(46, false, wgs84)
-    @test transform(utm_utmz2, utmz) ≈ UTM(850009.7418418773, 7.340641097689279e6, 1374.7804632852078)
+    @test utm_utmz2(utmz) ≈ UTM(850009.7418418773, 7.340641097689279e6, 1374.7804632852078)
 
     # ENU coordinates
     enu_ecef = ENUfromECEF(lla2, wgs84)
     ecef_enu = ECEFfromENU(lla2, wgs84)
 
-    enu = transform(enu_ecef, ecef)
+    enu = enu_ecef(ecef)
 
     @test enu_ecef ≈ ENUfromECEF(ecef2, wgs84) # (Can supply origin an any format)
     @test enu_ecef ≈ ENUfromECEF(utm2, 47, false, wgs84)
     @test enu_ecef ≈ ENUfromECEF(utmz2, wgs84)
 
     @test enu ≈ ENU(-6103.186938282723, 10222.54767562731, -295.55857190545794)
-    @test transform(ecef_enu, ENU(-6103.186938282723, 10222.54767562731, -295.55857190545794)) ≈ ecef
+    @test ecef_enu(ENU(-6103.186938282723, 10222.54767562731, -295.55857190545794)) ≈ ecef
 
 
     # Inverses
