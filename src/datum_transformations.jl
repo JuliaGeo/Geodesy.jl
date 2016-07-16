@@ -1,17 +1,20 @@
 # Functions to compute transformations between known datums
 
 """
-    GDA94_from_ITRF(ITRF_realization, epoch)
+    GDA94_from_ITRF(ITRF_year, epoch)
 
-Compute ITRF to GDA94 datum shift using parameters from [1].  The year of the
-desired ITRF realization should be given by `ITRF_realization`.  `epoch` is the
-Date (or DateTime) of interest at which the input `ECEF` coordinates were
-measured in ITRF.
+Return a `Transformation` converting ECEF points from ITRF to GDA94.  Datum
+shift parameters are taken from [1], supporting `ITRF_year` 2008, 2005, 2000,
+1997, 1996.  `epoch` is the `Date` (or `DateTime`) of interest at which the
+input `ECEF` coordinates were measured in ITRF.
 
 [1] J. Dawson and A. Woods, "ITRF to GDA94 coordinate transforms",
-    Journal of Applied Geodesy, 4, p. 189 (2010)
+    Journal of Applied Geodesy, 4, p. 189 (2010).
+
+TODO: We don't yet support `epoch` varying per input point, but there should be
+a `Transformation` object for this at some stage.
 """
-function GDA94_from_ITRF(ITRF_realization, epoch)
+function GDA94_from_ITRF(ITRF_year, epoch)
     # ITRF transformation parameters from
     # J. Dawson and A. Woods, "ITRF to GDA94 coordinate transforms",
     # Journal of Applied Geodesy, 4, p. 189 (2010):
@@ -34,10 +37,10 @@ function GDA94_from_ITRF(ITRF_realization, epoch)
     )
     reference_epoch = DateTime(1994,1,1)
 
-    if !haskey(table, ITRF_realization)
-        throw(ErrorException("No ITRF to GDA94 parameters for ITRF realization $ITRF_realization"))
+    if !haskey(table, ITRF_year)
+        throw(ErrorException("No ITRF to GDA94 parameters for ITRF year $ITRF_year"))
     end
-    params, rates = table[ITRF_realization]
+    params, rates = table[ITRF_year]
 
     # Fractional years since reference epoch.  Seems a bit unnecessarily cumbersome!
     millisecs_per_year = 365.25 * Dates.value(Dates.Millisecond(Dates.Day(1)))
@@ -54,4 +57,13 @@ function GDA94_from_ITRF(ITRF_realization, epoch)
 
     AffineTransformation(M, Vec(Tx,Ty,Tz))
 end
+
+
+"""
+    ITRF_from_GDA94(ITRF_year, epoch)
+
+The inverse of `GDA94_from_ITRF()`: Return a `Transformation` converting ECEF
+points from ITRF to GDA94.
+"""
+ITRF_from_GDA94(ITRF_year, epoch) = inv(GDA94_from_ITRF(ITRF_year, epoch))
 

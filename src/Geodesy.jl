@@ -37,6 +37,9 @@ export
     UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU,
     UTMZfromUTM, UTMfromUTMZ,
 
+    # Datum transformations
+    GDA94_from_ITRF, ITRF_from_GDA94,
+
     # UTM helpers
     utm_zone
 
@@ -48,5 +51,6 @@ include("transformations.jl")
 include("conversion.jl")
 include("distances.jl")
 include("utm.jl")
+include("datum_transformations.jl")
 
 end # module Geodesy
