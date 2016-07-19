@@ -1,7 +1,8 @@
 # Geodesy
 
-[![Build Status](https://travis-ci.org/JuliaGeo/Geodesy.jl.svg?branch=master)](https://travis-ci.org/JuliaGeo/Geodesy.jl)
-[![Coverage Status](http://img.shields.io/coveralls/JuliaGeo/Geodesy.jl.svg)](https://coveralls.io/r/JuliaGeo/Geodesy.jl)
+| **Package Evaluator**                                           | **Build Status**                                                                                |
+|:---------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![0.4 package tests](http://pkg.julialang.org/badges/Geodesy_0.4.svg)](http://pkg.julialang.org/?pkg=Geodesy) [![0.5 package tests](http://pkg.julialang.org/badges/Geodesy_0.5.svg)](http://pkg.julialang.org/?pkg=Geodesy) | [![master build](https://travis-ci.org/JuliaGeo/Geodesy.jl.svg?branch=master)](https://travis-ci.org/JuliaGeo/Geodesy.jl) [![master coverage](http://img.shields.io/coveralls/JuliaGeo/Geodesy.jl.svg)](https://coveralls.io/r/JuliaGeo/Geodesy.jl) |
 
 **Geodesy** is a Julia package for working with points in various world and
 local coordinate systems. The primary feature of *Geodesy* is to define and
@@ -96,6 +97,66 @@ y_lla = LLA(-27.465933, 153.025900, 0.0) # Central Station, Brisbane, Australia
 distance(x_lla, y_lla)                   # 401.54 meters
 ```
 (assuming the `wgs84` datum, which can be configured in `distance(x, y, datum)`).
+
+
+### Basic Terminology
+
+The jargon of geodesy can be confusing - this section describes some terminology
+and concepts which are relevant to *Geodesy.jl*.
+
+#### Coordinate Reference Systems and Spatial Reference Identifiers
+
+A position on the Earth can be given by some numerical coordinate values, but
+those don't mean much without more information.  The extra information is called
+the *Coordinate Reference System* or **CRS** (also know as a *Spatial Reference
+System* or SRS).  A CRS tells you two main things:
+
+* The measurement procedure: which real world objects were used to
+  define the frame of reference or *datum* of the measurement?
+* The *coordinate system*: how do coordinate numerical values relate to the
+  reference frame defined by the datum?
+
+The full specification of a CRS can be complex, so a short label called a
+*Spatial Reference IDentifier* or **SRID** is usually used instead.  For
+example, [EPSG:4326](http://epsg.io/4326) is one way to refer to the 2D WGS84
+latitude and longitude you'd get from a mobile phone GPS device.  An SRID
+is of the form `AUTHORITY:CODE`, where the code is a number and the authority is
+the name of an organization maintaining a list of codes and associated CRS
+information.  There are services where you can look up a CRS, for example,
+<http://epsg.io> is a convenient interface to the SRIDs maintained by the
+*European Petroleum Survey Group* authority.  Likewise,
+<http://spatialreference.org> is an open registry to which anyone can
+contribute.
+
+#### Datums
+
+Historically a survey datum was a peg in the ground:
+
+
+#### Coordinate systems
+
+Common coordinate
+  systems used in geodesy include Cartesian Earth-Centred, Ellipsoidal, and
+  local Cartesian frames such as Easth-North-Up.  Many different map projections
+  are also commonly encountered.
+
+
+
+
+![A pair of datums](docs/datums.svg)
+
+
+
+Coordinate system
+
+An extremely clear and almost jargon free discussion of some of the central
+points of confusion can be had by reading the ICSM's
+[Fundamentals of Mapping](http://www.icsm.gov.au/mapping/index.html) website,
+particularly the sections on datum.
+
+
+An excellent resource is the ICSM Fundamentals of Mapping http://www.icsm.gov.au/mapping/index.html
+
 
 ### Coordinate types
 
