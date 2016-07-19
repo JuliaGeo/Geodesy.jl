@@ -3,10 +3,10 @@
 """
     GDA94_from_ITRF(ITRF_year, epoch)
 
-Return a `Transformation` converting ECEF points from ITRF to GDA94.  Datum
-shift parameters are taken from [1], supporting `ITRF_year` 2008, 2005, 2000,
-1997, 1996.  `epoch` is the `Date` (or `DateTime`) of interest at which the
-input `ECEF` coordinates were measured in ITRF.
+Return a `Transformation` converting ECEF points from a given ITRF to GDA94.
+Datum shift parameters are taken from [1], supporting `ITRF_year` 2008, 2005,
+2000, 1997, 1996.  `epoch` is the `Date` (or `DateTime`) of interest at which
+the input `ECEF` coordinates to the transformation were measured in ITRF.
 
 [1] J. Dawson and A. Woods, "ITRF to GDA94 coordinate transforms",
     Journal of Applied Geodesy, 4, p. 189 (2010).
@@ -67,3 +67,15 @@ points from ITRF to GDA94.
 """
 ITRF_from_GDA94(ITRF_year, epoch) = inv(GDA94_from_ITRF(ITRF_year, epoch))
 
+
+# Generate GDA94 to/from ITRF transformations for all supported ITRF realizations
+for year in [2008, 2005, 2000, 1997, 1996]
+    fwdname = Symbol("GDA94_from_ITRF$(year)")
+    invname = Symbol("ITRF$(year)_from_GDA94")
+    eval(quote
+        @doc $("Compute ITRF$year from GDA94 ECEF coordinates.  See GDA94_from_ITRF") ->
+        $fwdname(epoch) = GDA94_from_ITRF($year, epoch)
+        @doc $("Compute GDA94 from ITRF$year ECEF coordinates.  See ITRF_from_GDA94") ->
+        $invname(epoch) = inv($fwdname(epoch))
+    end)
+end

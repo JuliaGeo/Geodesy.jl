@@ -18,10 +18,22 @@ using CoordinateTransformations
         T = ITRF_from_GDA94(2005, epoch) ∘ GDA94_from_ITRF(2005, epoch)
         @test transformation_matrix(T) ≈ eye(3)
         @test isapprox(translation_vector(T), zeros(3), atol=10*eps())
-
-        @test_throws ErrorException ITRF_from_GDA94(10000, epoch)
     end
 
+    @testset "ITRS realizations" begin
+        x_GDA94 = ECEF(-4052051.7615, 4212836.1945, -2545106.0145)
+        epoch = Date(2010,6,16)
+
+        # All available ITRS realizations
+        @test GDA94_from_ITRF2008(epoch)(x_GDA94) == GDA94_from_ITRF(2008, epoch)(x_GDA94)
+        @test GDA94_from_ITRF2005(epoch)(x_GDA94) == GDA94_from_ITRF(2005, epoch)(x_GDA94)
+        @test GDA94_from_ITRF2000(epoch)(x_GDA94) == GDA94_from_ITRF(2000, epoch)(x_GDA94)
+        @test GDA94_from_ITRF1997(epoch)(x_GDA94) == GDA94_from_ITRF(1997, epoch)(x_GDA94)
+        @test GDA94_from_ITRF1996(epoch)(x_GDA94) == GDA94_from_ITRF(1996, epoch)(x_GDA94)
+
+        # Nonexistent realization
+        @test_throws Exception ITRF_from_GDA94(10000, epoch)
+    end
 
     @testset "GDA94 from ITRF" begin
         # The following test data was obtained by submitting a GPS processing

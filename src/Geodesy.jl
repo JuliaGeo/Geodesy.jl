@@ -39,6 +39,8 @@ export
 
     # Datum transformations
     GDA94_from_ITRF, ITRF_from_GDA94,
+    GDA94_from_ITRF2008, GDA94_from_ITRF2005, GDA94_from_ITRF2000, GDA94_from_ITRF1997, GDA94_from_ITRF1996,
+    ITRF2008_from_GDA94, ITRF2005_from_GDA94, ITRF2000_from_GDA94, ITRF1997_from_GDA94, ITRF1996_from_GDA94,
 
     # UTM helpers
     utm_zone
