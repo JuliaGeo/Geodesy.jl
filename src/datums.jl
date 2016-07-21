@@ -11,9 +11,47 @@ immutable NAD27; end
 const nad27 = NAD27()
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
 
+# FIXME: This is not a datum!!
 immutable GRS80; end
 const grs80 = GRS80()
 Base.show(io::IO, ::GRS80) = print(io,"grs80")
+
+"""
+    GDA94
+
+The Geocentric Datum of Australia, 1994
+"""
+immutable GDA94; end
+
+
+"""
+    ITRF{Year}([epoch])
+
+Construct an object representing an International Terrestrial Reference Frame.
+`Year` is the year of the realization (see below).  An optional `epoch`
+parameter defines the time of interest (typically this will be a date at which
+coordinates were measured, using, eg a GPS device).  Without the epoch
+parameter, the resulting `ITRF{Year}` object represents the full dynamic datum.
+
+ITRF versions are the standard high accuarcy terrestrial reference frames for
+worldwide use.  There are versions of ITRF computed every several years.
+(Jargon: These are known as *realizations* of the International Terrestrial
+Reference System (ITRS) which defines the procedure for creating the reference
+frame (ie, the measurement techniques and computations?))
+"""
+immutable ITRF{Year, EpochT}
+    epoch::EpochT
+
+    # TODO: Check for valid Year using inner constructor?  What about future
+    # realizations?
+end
+
+@compat (::Type{ITRF{Year}}){Year}() = ITRF{Year,Void}(nothing)
+@compat (::Type{ITRF{Year}}){Year}(epoch) = ITRF{Year,typeof(epoch)}(epoch)
+
+Base.show{Y}(io::IO, ::ITRF{Y,Void}) = print(io,"ITRF{$Y}")
+Base.show(io::IO, itrf::ITRF) = print(io,"ITRF{$Y}($(itrf.epoch))")
+
 
 """
 An ellipsoidal representation of the earth, for converting between LLA and

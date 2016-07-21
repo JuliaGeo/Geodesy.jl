@@ -2,7 +2,6 @@ using CoordinateTransformations
 
 @testset "Datum transforms" begin
 
-
 @testset "GDA94 from ITRF" begin
     # Tests for ITRF -> GDA94 conversion.  Unfortunately there doesn't seem to be a
     # public testset for this.
@@ -11,11 +10,11 @@ using CoordinateTransformations
         # Basic worked example from Dawson and Woods
         x_ITRF  = ECEF(-4052052.3678, 4212836.0411, -2545105.1089)
         x_GDA94 = ECEF(-4052051.7615, 4212836.1945, -2545106.0145)
-        @test norm(x_GDA94 - GDA94_from_ITRF(2005, Date(2010,6,16))(x_ITRF)) < 2e-4
+        @test norm(x_GDA94 - Geodesy.GDA94_from_ITRF_Dawson2010(2005, Date(2010,6,16))(x_ITRF)) < 2e-4
 
         # Test inverse
         epoch = Date(2010,6,16)
-        T = ITRF_from_GDA94(2005, epoch) ∘ GDA94_from_ITRF(2005, epoch)
+        T = datum_shift_ECEF(ITRF{2008}(epoch), GDA94) ∘ datum_shift_ECEF(GDA94, ITRF{2008}(epoch))
         @test transformation_matrix(T) ≈ eye(3)
         @test isapprox(translation_vector(T), zeros(3), atol=10*eps())
     end
@@ -24,15 +23,12 @@ using CoordinateTransformations
         x_GDA94 = ECEF(-4052051.7615, 4212836.1945, -2545106.0145)
         epoch = Date(2010,6,16)
 
-        # All available ITRS realizations
-        @test GDA94_from_ITRF2008(epoch)(x_GDA94) == GDA94_from_ITRF(2008, epoch)(x_GDA94)
-        @test GDA94_from_ITRF2005(epoch)(x_GDA94) == GDA94_from_ITRF(2005, epoch)(x_GDA94)
-        @test GDA94_from_ITRF2000(epoch)(x_GDA94) == GDA94_from_ITRF(2000, epoch)(x_GDA94)
-        @test GDA94_from_ITRF1997(epoch)(x_GDA94) == GDA94_from_ITRF(1997, epoch)(x_GDA94)
-        @test GDA94_from_ITRF1996(epoch)(x_GDA94) == GDA94_from_ITRF(1996, epoch)(x_GDA94)
+        # Test dispatch
+        @test datum_shift_ECEF(GDA94(), ITRF{2008}(epoch))(x_GDA94) == Geodesy.GDA94_from_ITRF_Dawson2010(2008, epoch)(x_GDA94)
+        @test datum_shift_ECEF(GDA94(), ITRF{1996}(epoch))(x_GDA94) == Geodesy.GDA94_from_ITRF_Dawson2010(1996, epoch)(x_GDA94)
 
-        # Nonexistent realization
-        @test_throws Exception ITRF_from_GDA94(10000, epoch)
+        # Nonexistent ITRF realization
+        @test_throws Exception datum_shift_ECEF(ITRF{10000}(epoch), GDA94())
     end
 
     @testset "GDA94 from ITRF" begin
@@ -62,7 +58,7 @@ using CoordinateTransformations
         ]
 
         # Cartesian, ITRF2008
-        ITRF_epoch = Date(2012,05,08)
+        ITRF_instance = ITRF{2008}(Date(2012,05,08))
         stations_ITRF2008 = [
             # Station X (m)         Y (m)       Z (m)
             #=BDST=# ECEF(-5021921.133, 2559339.665, -2975289.754),
@@ -82,7 +78,7 @@ using CoordinateTransformations
             #=WARW=# ECEF(-4967999.373, 2638152.635, -2997612.749),
         ]
 
-        to_GDA = GDA94_from_ITRF(2008, ITRF_epoch)
+        to_GDA = datum_shift_ECEF(GDA94(), ITRF_instance)
         # Need a nonzero tolerance which is expected, but it should be half
         # this size if (1) GA correctly rounded the coordinates (2) we used
         # exactly the same time computation and (3) list of transformation
