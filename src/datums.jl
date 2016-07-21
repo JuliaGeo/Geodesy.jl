@@ -1,25 +1,33 @@
 # Built-in geodetic datums (singletons types and instances)
+
+# FIXME: WGS84 should probably have the realization in the type parameters.
+# Though this may confuse people who just want to use "WGS84" naively...
 immutable WGS84; end
 const wgs84 = WGS84()
 Base.show(io::IO, ::WGS84) = print(io,"wgs84")
 
+"""
+`OSGB36` - Datum for Ordinance Survey of Great Britian, 1936
+"""
 immutable OSGB36; end
 const osgb36 = OSGB36()
 Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
 
+"""
+`NAD27` - North American Datum of 1927
+"""
 immutable NAD27; end
 const nad27 = NAD27()
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
 
-# FIXME: This is not a datum!!
+# FIXME: Remove - this is not a datum!
 immutable GRS80; end
 const grs80 = GRS80()
 Base.show(io::IO, ::GRS80) = print(io,"grs80")
+Base.deprecate(:grs80)
 
 """
-    GDA94
-
-The Geocentric Datum of Australia, 1994
+`GDA94` - Geocentric Datum of Australia, 1994
 """
 immutable GDA94; end
 
@@ -27,17 +35,17 @@ immutable GDA94; end
 """
     ITRF{Year}([epoch])
 
-Construct an object representing an International Terrestrial Reference Frame.
-`Year` is the year of the realization (see below).  An optional `epoch`
-parameter defines the time of interest (typically this will be a date at which
+Construct an object representing the International Terrestrial Reference Frame
+in the given `Year` of realization.  ITRF is the standard high accuarcy
+terrestrial reference frame for worldwide use.  An optional `epoch` parameter
+defines the time of interest (typically this will be a date at which
 coordinates were measured, using, eg a GPS device).  Without the epoch
-parameter, the resulting `ITRF{Year}` object represents the full dynamic datum.
+parameter, the resulting `ITRF{Year}` object represents a full dynamic datum.
 
-ITRF versions are the standard high accuarcy terrestrial reference frames for
-worldwide use.  There are versions of ITRF computed every several years.
-(Jargon: These are known as *realizations* of the International Terrestrial
-Reference System (ITRS) which defines the procedure for creating the reference
-frame (ie, the measurement techniques and computations?))
+A *realization* is created every several years by computing the position of a
+large set of ground control stations from satellite and celestial measurements.
+See <http://itrf.ensg.ign.fr/general.php> and
+<http://itrf.ensg.ign.fr/trs_trf.php> for technical details.
 """
 immutable ITRF{Year, EpochT}
     epoch::EpochT
@@ -99,5 +107,8 @@ const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628
 @inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = osgb36_el
 @inline ellipsoid(::Union{NAD27,Type{NAD27}})   = nad27_el
 @inline ellipsoid(::Union{GRS80,Type{GRS80}})   = grs80_el
+@inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80_el
+@inline ellipsoid(::ITRF)                       = grs80_el
+@inline ellipsoid{D<:ITRF}(::Type{D})           = grs80_el
 @inline ellispoid(x::Ellipsoid) = x
 ellipsoid(x) = error("No ellipsoid defined for datum $x")
