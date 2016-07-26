@@ -36,22 +36,48 @@ immutable GDA94; end
     ITRF{Year}([epoch])
 
 Construct an object representing the International Terrestrial Reference Frame
-in the given `Year` of realization.  ITRF is the standard high accuarcy
+for the given `Year` of realization.  ITRF is the standard high accuarcy
 terrestrial reference frame for worldwide use.  An optional `epoch` parameter
-defines the time of interest (typically this will be a date at which
-coordinates were measured, using, eg a GPS device).  Without the epoch
-parameter, the resulting `ITRF{Year}` object represents a full dynamic datum.
+defines the time of interest - typically a date at which coordinates were
+measured, using, eg a GPS device.  Without the `epoch` parameter, the resulting
+`ITRF{Year}` object represents the full dynamic datum.
 
-A *realization* is created every several years by computing the position of a
-large set of ground control stations from satellite and celestial measurements.
-See <http://itrf.ensg.ign.fr/general.php> and
-<http://itrf.ensg.ign.fr/trs_trf.php> for technical details.
+A *realization* is created every few years by computing the position of a large
+set of ground control stations from satellite and celestial measurements.  The
+`Year` parameter represents the last year from which data was used in the
+frame processing regression problem.  A full list of realizations is available
+at http://itrf.ensg.ign.fr/ITRF_solutions; as of 2016-07 this included
+ITRF2014 ITRF2008 ITRF2005 ITRF2000 ITRF1997 ITRF1996 ITRF1994 ITRF1993
+ITRF1992.
+
+See http://itrf.ensg.ign.fr/general.php for a technical overview.  Useful
+technical papers:
+
+1. "ITRF2008: an improved solution of the international terrestrial reference
+    frame", Altamimi et al., J. Geodesy (2011) 85: 457,
+    http://dx.doi.org/10.1007/s00190-011-0444-4
+3. "IGS08: the IGS realization of ITRF2008", Rebischung et al., GPS Solutions
+    (2012) 16: 483, http://dx.doi.org/10.1007/s10291-011-0248-2,
+    ftp://igs.org/pub/resource/pubs/IGS08_The_IGS_Realization_of_ITRF2008.pdf
+2. "The IGS contribution to ITRF2014", Rebischung et al., J. Geodesy (2016) 90:
+    611, http://dx.doi.org/10.1007/s00190-016-0897-6
 """
 immutable ITRF{Year, EpochT}
     epoch::EpochT
 
-    # TODO: Check for valid Year using inner constructor?  What about future
-    # realizations?
+    function ITRF(epoch::EpochT)
+        check_itrf_year(new(epoch))
+    end
+end
+
+@generated function check_itrf_year{Y}(itrf::ITRF{Y})
+    if Y < 100
+        :(throw(ErrorException("Two digit year $Y for ITRF found - this library expects a full four-digit year.")))
+    elseif Y <= 2016 && Y ∉ [2014, 2008, 2005, 2000, 1997, 1996, 1994, 1993, 1992]
+        :(throw(ErrorException("No ITRF realization exists for year $Y")))
+    else
+        :(itrf)
+    end
 end
 
 @compat (::Type{ITRF{Year}}){Year}() = ITRF{Year,Void}(nothing)
