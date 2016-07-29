@@ -1,35 +1,67 @@
-# Built-in geodetic datums (singletons types and instances)
+#------------------------------------------------------------------------------
+# Worldwide geodetic datums
 
-# FIXME: WGS84 should probably have the realization in the type parameters.
-# Though this may confuse people who just want to use "WGS84" naively...
-immutable WGS84; end
+const valid_WGS84_frame_weeks = [0, 730,  873, 1150, 1674, 1762]
+const WGS84_frames_last_updated = 1907
+
+"""
+    WGS84()
+
+Construct an object representing the World Geodetic System of 1984, as a dynamic
+datum - see below for gory details about specific WGS84 frames).
+
+If you're getting positions from a consumer GPS device, you're probably going to
+have WGS84 by default because it's the datum in which GPS satellites
+broadcast their position ("broadcast ephemerides").  Note however that many
+devices can also provide position in a national datum, so you should check your
+device settings to be sure.
+
+As a special case for low accuracy work (less than a meter or so), `WGS84` will
+assume that coordinates supplied without a capture time are in the *latest*
+frame realization known to Geodesy.jl, WGS84 (G$(valid_WGS84_frame_weeks[end])).
+Note that this may not be correct if you're processing historical data, or
+Geodesy.jl itself is out of date.  For higher accuracy, you should supply a date
+of capture - either with each coordinate, or explicitly using the `GpsWeek`
+parameter to the WGS84 type:
+
+    WGS84{GpsWeek}()
+
+Construct an object representing the static WGS84 datum computed using data
+gathered prior to the given `GpsWeek`.  WGS84 is maintained and updated by the
+US National Geospatial-Intelligence-Agency (NGA) at irregular intervals to align
+with the ITRF to within 0.1m (see [1]); if you care about accuracy at that
+level, you probably want to be solving for position in a different datum, for
+example, ITRF.  As of 2016, `GpsWeek` should be one out of
+$valid_WGS84_frame_weeks.
+
+Note that the dates of implementation of these frames as broadcast by the
+satellites are not the same as the associated GPS week - see Ref. [1], table
+2.1.  (TODO: Perhaps Geodesy should have a table to figure out which frame to
+use at a given date?  Does anybody care?)
+
+1. "World Geodetic System 1984", NGA standard NGA.STND.0036_1.0.0_WGS84, 2014-07-08,
+   http://earth-info.nga.mil/GandG/publications/NGA_STND_0036_1_0_0_WGS84/NGA.STND.0036_1.0.0_WGS84.pdf
+"""
+immutable WGS84{GpsWeek}
+    WGS84() = check_wgs84_params(new())
+end
+
+WGS84() = WGS84{Void}()
+
+check_wgs84_params(wgs84::WGS84{Void}) = wgs84
+
+@generated function check_wgs84_params{GpsWeek}(wgs84::WGS84{GpsWeek})
+    if GpsWeek <= WGS84_frames_last_updated && GpsWeek ∉ valid_WGS84_frame_weeks
+        :(throw(ErrorException("No WGS84 realization exists for week $GpsWeek")))
+    else
+        :(wgs84)
+    end
+end
+
 const wgs84 = WGS84()
-Base.show(io::IO, ::WGS84) = print(io,"wgs84")
 
-"""
-`OSGB36` - Datum for Ordinance Survey of Great Britian, 1936
-"""
-immutable OSGB36; end
-const osgb36 = OSGB36()
-Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
-
-"""
-`NAD27` - North American Datum of 1927
-"""
-immutable NAD27; end
-const nad27 = NAD27()
-Base.show(io::IO, ::NAD27) = print(io,"nad27")
-
-# FIXME: Remove - this is not a datum!
-immutable GRS80; end
-const grs80 = GRS80()
-Base.show(io::IO, ::GRS80) = print(io,"grs80")
-Base.deprecate(:grs80)
-
-"""
-`GDA94` - Geocentric Datum of Australia, 1994
-"""
-immutable GDA94; end
+Base.show(io::IO, ::WGS84{Void}) = print(io,"WGS84")
+Base.show{W}(io::IO, ::WGS84{W}) = print(io,"WGS84 (G$W)")
 
 
 """
@@ -88,6 +120,38 @@ end
 Base.show{Y}(io::IO, ::ITRF{Y,Void}) = print(io,"ITRF{$Y}")
 Base.show(io::IO, itrf::ITRF) = print(io,"ITRF{$Y}($(itrf.epoch))")
 
+#------------------------------------------------------------------------------
+# National geodetic datums
+"""
+`OSGB36` - Datum for Ordinance Survey of Great Britian, 1936
+"""
+immutable OSGB36; end
+const osgb36 = OSGB36()
+Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
+
+"""
+`NAD27` - North American Datum of 1927
+"""
+immutable NAD27; end
+const nad27 = NAD27()
+Base.show(io::IO, ::NAD27) = print(io,"nad27")
+
+"""
+`GDA94` - Geocentric Datum of Australia, 1994
+"""
+immutable GDA94; end
+
+
+#-------------------------------------------------------------------------------
+# FIXME: Remove - this is not a datum!
+immutable GRS80; end
+const grs80 = GRS80()
+Base.show(io::IO, ::GRS80) = print(io,"grs80")
+Base.deprecate(:grs80)
+
+
+#-------------------------------------------------------------------------------
+# Ellipsoids
 
 """
 An ellipsoidal representation of the earth, for converting between LLA and
@@ -128,12 +192,16 @@ end
 # Global ellipsoidal reference surface
 const wgs84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
 const osgb36_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
-const nad27_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
-const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366")
+const clarke1866_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
+const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366") #NB: not the definition - f_inv is derived.
 
-@inline ellipsoid(::Union{WGS84,Type{WGS84}})   = wgs84_el
+# TODO: Also deprecate other incorrectly named ellipsoids
+Base.@deprecate_binding nad27_el clarke1866_el
+
+@inline ellipsoid{GpsWeek}(::WGS84{GpsWeek})    = wgs84_el
+@inline ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_el
 @inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = osgb36_el
-@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = nad27_el
+@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866_el
 @inline ellipsoid(::Union{GRS80,Type{GRS80}})   = grs80_el
 @inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80_el
 @inline ellipsoid(::ITRF)                       = grs80_el
