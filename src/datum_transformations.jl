@@ -4,30 +4,37 @@
     datum_shift_ECEF(dest_datum, source_datum)
 
 Return a transformation object which transforms ECEF points from `source_datum`
-to `dest_datum`, provided there's a well-accepted transformation available.
+to `dest_datum`.  The function should attempt to supply the current publicly
+accepted best estimate.
 
-Note that any computed datum shift is inherently prone to measurement error,
-with different physical measurements resulting in different transformations.
-This is in contrast to coordinate system transformations which are precisely
-mathematically defined.  Because of this, `datum_shift_ECEF`
+Note that the best known version of a datum transformation will inherently
+improve with time (see below), so we *cannot simultaneously* guarentee that:
 
-Suppose you've got two points with different datums.  These were measured with
-respect to different physical reference frames.
+1. We return the best publicly accepted version of a datum shift.
+2. We return the same thing in future versions of Geodesy.jl.
 
-Examples of measurement systems:
-* Datum 1: Measure the angles to the top of the church steeple and the big
-  fence post on the hill.  Knowing the distance between those accuratly, your
-  *relative* position may be calculated using triangulation.
-* Datum 2: Measure the time and phase of GPS satellite signals .. FIXME
+This function will attempt to satisfy condition 1. rather than 2.; if you want a
+stable version of a transformation you should use one of the lower level
+functions, for example, `GDA94_from_ITRF_Dawson2010()`.
 
 
-This means that the transformation parameters between datums
-are measured quantities relating two different physical measurement procedures.
-As such, different organizations will not agree on the exact way to transform
-between datums if they have a different set of observations with which to fit
-the transformation.
+### Important note about accuracy
 
-FIXME DOCS!
+If you care about accuracy, you should *always* store long term archival data in
+the source datum where possible, along with metadata defining the full datum and
+coordinate system in use.  The time to do a datum shift is when you want to
+compare information from two different datums.
+
+Why all this bother about inaccuracy? The errors are twofold: First, the
+parameters of a datum shift come from a physical measurement process. Typically
+this involves measuring the coordinates of some physical locations in *both*
+datums, and a physical measurement procedure is always subject to some inaccuracy.
+Second, these **tie points** are used to infer a compact representation of the
+datum shift, with as few numerical parameters as possible. A small number of
+parameters will result in an overly smooth representation; this modelling error
+is a second source of inaccuarcy.  Both these errors can be reduced if you
+choose to measure more tie points or improve the complexity of the numerical
+model at a future date.
 """
 datum_shift_ECEF(dest_datum, source_datum) = error("No datum shift implemented for $dest_datum from $source_datum")
 
