@@ -16,7 +16,7 @@ broadcast their position ("broadcast ephemerides").  Note however that many
 devices can also provide position in a national datum, so you should check your
 device settings to be sure.
 
-As a special case for low accuracy work (less than a meter or so), `WGS84` will
+As a special case for low accuracy work (worse than a meter or so), `WGS84` will
 assume that coordinates supplied without a capture time are in the *latest*
 frame realization known to Geodesy.jl, WGS84 (G$(valid_WGS84_frame_weeks[end])).
 Note that this may not be correct if you're processing historical data, or
@@ -196,13 +196,16 @@ const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628
 Base.@deprecate_binding nad27_el clarke1866_el
 Base.@deprecate_binding osgb36_el airy1830_el
 
-@inline ellipsoid{GpsWeek}(::WGS84{GpsWeek})    = wgs84_el
+@inline ellipsoid(::Type{WGS84}) = wgs84_el
+@inline ellipsoid(::WGS84)    = wgs84_el
 @inline ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_el
+
 @inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830_el
 @inline ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866_el
 @inline ellipsoid(::Union{GRS80,Type{GRS80}})   = grs80_el
 @inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80_el
+
 @inline ellipsoid(::ITRF)                       = grs80_el
 @inline ellipsoid{D<:ITRF}(::Type{D})           = grs80_el
-@inline ellispoid(x::Ellipsoid) = x
+
 ellipsoid(x) = error("No ellipsoid defined for datum $x")

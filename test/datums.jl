@@ -1,20 +1,19 @@
 @testset "Datums and ellipsoids" begin
     # Check the ellipsoids
-    @test ellipsoid(wgs84) == Geodesy.wgs84_el
-    @test ellipsoid(grs80) == Geodesy.grs80_el
-    @test ellipsoid(nad27) == Geodesy.nad27_el
-    @test ellipsoid(osgb36) == Geodesy.osgb36_el
+    @test ellipsoid(WGS84) == Geodesy.wgs84_el
+    @test ellipsoid(NAD27) == Geodesy.clarke1866_el
+    @test ellipsoid(OSGB36) == Geodesy.airy1830_el
+    @test ellipsoid(GDA94) == Geodesy.grs80_el
 
     # Check transverse-Mercator pre-calculations
-    @test Geodesy.TransverseMercator(wgs84) == Geodesy.wgs84_tm
-    @test Geodesy.TransverseMercator(grs80) == Geodesy.grs80_tm
-    @test Geodesy.TransverseMercator(nad27) == Geodesy.nad27_tm
-    @test Geodesy.TransverseMercator(osgb36) == Geodesy.osgb36_tm
+    @test Geodesy.TransverseMercator(WGS84) == Geodesy.wgs84_tm
+    @test Geodesy.TransverseMercator(NAD27) == Geodesy.clarke1866_tm
+    @test Geodesy.TransverseMercator(OSGB36) == Geodesy.airy1830_tm
+    @test Geodesy.TransverseMercator(GDA94) == Geodesy.grs80_tm
 
     # The LLAfromECEF aren't pre-cached, as yet. Probably should just create a
     # large ellispoid thingie for all of them to share...
     @test (LLAfromECEF(wgs84); true)
-    @test (LLAfromECEF(grs80); true)
     @test (LLAfromECEF(nad27); true)
     @test (LLAfromECEF(osgb36); true)
 end

@@ -381,15 +381,15 @@ function TransverseMercator{MaxPow}(a::Float64, f::Float64, ::Type{Val{MaxPow}})
     return TransverseMercator{MaxPow}(a,f,e2,es,e2m,c,n,a1,b1,alp,bet)
 end
 
-const wgs84_tm = TransverseMercator(ellipsoid(wgs84))
-const osgb36_tm = TransverseMercator(ellipsoid(osgb36))
-const nad27_tm = TransverseMercator(ellipsoid(nad27))
-const grs80_tm = TransverseMercator(ellipsoid(grs80))
+const wgs84_tm = TransverseMercator(wgs84_el)
+const airy1830_tm = TransverseMercator(airy1830_el)
+const clarke1866_tm = TransverseMercator(clarke1866_el)
+const grs80_tm = TransverseMercator(grs80_el)
 
 TransverseMercator(::WGS84) = wgs84_tm
-TransverseMercator(::OSGB36) = osgb36_tm
-TransverseMercator(::NAD27) = nad27_tm
-TransverseMercator(::GRS80) = grs80_tm
+TransverseMercator(::OSGB36) = airy1830_tm
+TransverseMercator(::NAD27) = clarke1866_tm
+TransverseMercator(::GDA94) = grs80_tm
 
 # // Engsager and Poder (2007) use trigonometric series to convert between phi
 # // and phip.  Here are the series...
