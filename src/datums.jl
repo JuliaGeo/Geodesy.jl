@@ -187,20 +187,18 @@ function _ellipsoid_af(a::BigFloat, f_inv::BigFloat)
     _ellipsoid_ab(a, b)
 end
 
-### World Geodetic Coordinate System of 1984 (WGS 84)
-# Standardized coordinate system for Earth
-# Global ellipsoidal reference surface
 const wgs84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
-const osgb36_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
+const airy1830_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
 const clarke1866_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
 const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366") #NB: not the definition - f_inv is derived.
 
 # TODO: Also deprecate other incorrectly named ellipsoids
 Base.@deprecate_binding nad27_el clarke1866_el
+Base.@deprecate_binding osgb36_el airy1830_el
 
 @inline ellipsoid{GpsWeek}(::WGS84{GpsWeek})    = wgs84_el
 @inline ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_el
-@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = osgb36_el
+@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830_el
 @inline ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866_el
 @inline ellipsoid(::Union{GRS80,Type{GRS80}})   = grs80_el
 @inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80_el
