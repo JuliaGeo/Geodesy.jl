@@ -183,13 +183,14 @@ convention, consistency and measurement.
 
 For example, the **International Terrestrial Reference System** (**ITRS**) is a
 reference system which co-rotates with the Earth so that the average velocity of
-the crust is zero.  Roughly speaking, the *defining* conventions for the ITRS are:
+the crust is zero.  Roughly speaking, the *defining conventions* for the ITRS are:
 
-* The origin is at the centre of mass of the Earth (it is *geocentric*)
-* The z-axis is the axis of rotation of the Earth
-* The scale is set to 1 SI meter
+* Space is modeled as a three dimensional Euclidian affine space.
+* The origin is at the centre of mass of the Earth (it is *geocentric*).
+* The z-axis is the axis of rotation of the Earth.
+* The scale is set to 1 SI meter.
 * The x-axis is orthogonal to the z-axis and aligns with the international
-  reference meridian through Greenwich,
+  reference meridian through Greenwich.
 * The y-axis is set to the cross product of the z and x axes forming a right
   handed coordinate frame.
 * Various rates of change of the above must also be specified, for example, the
@@ -199,14 +200,12 @@ The precise conventions are defined in chapter 4 of the
 [IERS conventions](https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html)
 published by the International Earth Rotation and Reference Service (IERS).
 These conventions define an ideal reference *system*, but they're useless
-without physical measurements to get coordinates for a set of real world datum
-objects.
-
-The process of measuring and computing coordinates for datum objects is called
-*realizing* the reference system and the result is called a *reference frame*.
-For example, the **International Terrestrial Reference Frame of 2014**
-(**ITRF2014**) realizes the ITRS conventions using raw measurement data gathered
-prior to 2014.
+without physical measurements which give coordinates for a set of real world
+datum objects.  The process of measuring and computing coordinates for datum
+objects is called *realizing* the reference system and the result is called a
+*reference frame*.  For example, the **International Terrestrial Reference Frame
+of 2014** (**ITRF2014**) realizes the ITRS conventions using raw measurement
+data gathered in the 25 years prior to 2014.
 
 To measure and compute coordinates, several space geodesy techniques are used to
 gather raw measurement data; currently the IERS includes
@@ -214,15 +213,15 @@ gather raw measurement data; currently the IERS includes
 [SLR (satellite laser ranging)](https://en.wikipedia.org/wiki/Satellite_laser_ranging),
 [GPS (global positioning system)](https://en.wikipedia.org/wiki/Global_Positioning_System) and
 [DORIS (gosh these acronyms are tiring)](https://en.wikipedia.org/wiki/DORIS_(geodesy)).
-The raw data is not in the form of position, but must be condensed down in a
-large scale regression problem, ideally by requiring physical and statistical
-consistency of all measurements by tieing measurements with physical models.
+The raw data is not in the form of positions, but must be condensed down in a
+large scale fitting problem, ideally by requiring physical and statistical
+consistency of all measurements, tieing measurements at different sites together
+with physical models.
 
 
 ### Coordinate systems
 
-After all the confusion about datums, coordinate systems should be relatively
-simple! 
+After all the subtlety above, coordinate systems should be relatively simple!
 
 Common coordinate
   systems used in geodesy include Cartesian Earth-Centred, Ellipsoidal, and
