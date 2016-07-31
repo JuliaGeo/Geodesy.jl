@@ -102,8 +102,8 @@ distance(x_lla, y_lla)                   # 401.54 meters
 ## Basic Terminology
 
 This section describes some terminology and concepts which are relevant to
-*Geodesy.jl*, attempting to avoid Geodesy-specific jargon where possible.  For a
-longer less technical discussion with more historical context, ICSM's
+*Geodesy.jl*, attempting to define Geodesy-specific jargon where possible.  For
+a longer less technical discussion with more historical context, ICSM's
 [Fundamentals of Mapping page](http://www.icsm.gov.au/mapping/index.html)
 is highly recommended.
 
@@ -279,20 +279,26 @@ unspecified origin.
 ### Datums
 
 Geodesy comes with several in-built geodetic (i.e. ellipsoidal) datums.
+Worldwide datums include
 
-* `wgs84`
-* `osgb36`
-* `nad27`
-* `grs80`
+* `WGS84` - standard GPS datum for moderate precision work (representing both
+  the latest frame realization, or if time is supplied a discontinuous dynamic
+  datum where time looks up the frame implementation date in the broadcast
+  ephemerides.)
+* `WGS84{GpsWeek}` - specific realizations of the WGS84 frame.
+* `ITRF{Year}` - Realizations of the International Terrestrial Reference System
+  for high precision surveying.
 
-These are instances of Julia singleton types (`WGS84`, etc) and are used to
-overload internal methods for getting the elliptical parameters (as a `Geodesy.Ellipsoid`)
-and pre-cached calculations for transverse-Mercator and polar-stereographic
-projections (as a `Geodesy.TransverseMercator`).
+National datums include
 
-To define your own ellipsoidal datum, it would be most efficient to define your own
-singleton types and add methods to `Geodesy.ellipsoid` and `Geodesy.TransverseMercator`
-to refer to pre-computed data `Ellipsoid`s and `TransverseMercator`s.
+* `OSGB36` - Ordnance Survey of Great Britian of 1936.
+* `NAD27` - North American Datum of 1927.
+* `GDA94` - Geocentric Datum of Australia, 1994.
+
+The ellipsoid for a datum may be obtained with the `ellipsoid()` function.
+Datums may also be passed to transverse-Mercator and polar-stereographic
+projections in which case the associated ellipsoid will be used to form the
+transformation.
 
 ### Transformations and conversions
 
