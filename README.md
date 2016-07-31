@@ -13,7 +13,7 @@ Transformations are accurate and efficient and implemented in native Julia code
 [C++ library](http://geographiclib.sourceforge.net/)), and some common geodetic
 datums are provided for convenience.
 
-### Quick start
+## Quick start
 
 Lets define a 3D point by it's latitude, longitude and altitude (LLA):
 ```julia
@@ -99,17 +99,20 @@ distance(x_lla, y_lla)                   # 401.54 meters
 (assuming the `wgs84` datum, which can be configured in `distance(x, y, datum)`).
 
 
-### Basic Terminology
+## Basic Terminology
 
-The jargon of geodesy can be confusing - this section describes some terminology
-and concepts which are relevant to *Geodesy.jl*.
+This section describes some terminology and concepts which are relevant to
+*Geodesy.jl*, attempting to avoid Geodesy-specific jargon where possible.  For a
+longer less technical discussion with more historical context, ICSM's
+[Fundamentals of Mapping page](http://www.icsm.gov.au/mapping/index.html)
+is highly recommended.
 
-#### Coordinate Reference Systems and Spatial Reference Identifiers
+### Coordinate Reference Systems and Spatial Reference Identifiers
 
 A position on the Earth can be given by some numerical coordinate values, but
 those don't mean much without more information.  The extra information is called
-the *Coordinate Reference System* or **CRS** (also know as a *Spatial Reference
-System* or SRS).  A CRS tells you two main things:
+the **Coordinate Reference System** or **CRS** (also know as a *Spatial
+Reference System* or SRS).  A CRS tells you two main things:
 
 * The measurement procedure: which real world objects were used to
   define the frame of reference or *datum* of the measurement?
@@ -117,23 +120,109 @@ System* or SRS).  A CRS tells you two main things:
   reference frame defined by the datum?
 
 The full specification of a CRS can be complex, so a short label called a
-*Spatial Reference IDentifier* or **SRID** is usually used instead.  For
+**Spatial Reference IDentifier** or **SRID** is usually used instead.  For
 example, [EPSG:4326](http://epsg.io/4326) is one way to refer to the 2D WGS84
 latitude and longitude you'd get from a mobile phone GPS device.  An SRID
 is of the form `AUTHORITY:CODE`, where the code is a number and the authority is
-the name of an organization maintaining a list of codes and associated CRS
+the name of an organization maintaining a list of codes with associated CRS
 information.  There are services where you can look up a CRS, for example,
 <http://epsg.io> is a convenient interface to the SRIDs maintained by the
-*European Petroleum Survey Group* authority.  Likewise,
+*European Petroleum Survey Group* (EPSG) authority.  Likewise,
 <http://spatialreference.org> is an open registry to which anyone can
 contribute.
 
-#### Datums
+When maintaining a spatial database, it's typical to define an internal list of
+SRIDs (effectively making your organization the authority), and a mapping from
+these to CRS information.  A link back to a definitive SRID from an external
+authority should also be included where possible.
 
-Historically a survey datum was a peg in the ground:
+### Datums
+
+In spatial measurement and positioning, a **datum** is a set of reference
+objects and assigned coordinates *relative to which* other objects may be
+positioned.  For example, in traditional surveying a datum might comprise a
+pair of pegs in the ground, separated by a carefully measured distance.  When
+surveying the position of an unknown but nearby point, the angle back to the
+original datum objects can be measured using a theodolite.  After this, the
+relative position of the new point can be computed using simple triangulation.
+Repeating this trick with any of the now three known points, an entire
+triangulation network of surveyed objects can be extended outward.  Any point
+surveyed relative to the network is said to be measured *in the datum* of the
+original objects.  Datums are often named with an acronym, for example OSGB36 is
+the Ordnance Survey of Great Britian, 1936.
+
+In the era of satellite geodesy, putting coordinates on an object is done
+by timing signals from a satellite constellation (eg, the GPS satellites) and
+computing position relative to those satellites.  Where is the datum here? At
+first glance the situation seems quite different from the traditional setup
+described above.  However, the satellite positions as a function of time
+(*ephemerides*, in the jargon) must themselves be defined relative to some
+frame. This is done by continuously observing the satellites from a set of
+highly stable ground stations equipped with GPS recievers. It is the full set of
+these ground stations and their assigned coordinates which form the datum.
+
+Let's inspect the flow of positional information in both cases:
+* For traditional surveying,
+  ```
+  datum object positions -> triangulation network -> newly surveyed point
+  ```
+* For satellite geodesy,
+  ```
+  datum object positions -> satellite ephemerides -> newly surveyed point
+  ```
+
+We see that the basic nature of a datum is precisely the same regardless of
+whether we're doing a traditional survey or using a GPS reciever.
+
+### Terrestrial reference systems and frames
+
+Coordinates for new points are measured by transferring coordinates from the
+datum objects by various means, as described above.  However, how do we decide
+on coordinates for the datum objects themselves?  This is purely a matter of
+convention, consistency and measurement.
+
+For example, the **International Terrestrial Reference System** (**ITRS**) is a
+reference system which co-rotates with the Earth so that the average velocity of
+the crust is zero.  Roughly speaking, the *defining* conventions for the ITRS are:
+
+* The origin is at the centre of mass of the Earth (it is *geocentric*)
+* The z-axis is the axis of rotation of the Earth
+* The scale is set to 1 SI meter
+* The x-axis is orthogonal to the z-axis and aligns with the international
+  reference meridian through Greenwich,
+* The y-axis is set to the cross product of the z and x axes forming a right
+  handed coordinate frame.
+* Various rates of change of the above must also be specified, for example, the
+  scale should stay constant in time.
+
+The precise conventions are defined in chapter 4 of the
+[IERS conventions](https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html)
+published by the International Earth Rotation and Reference Service (IERS).
+These conventions define an ideal reference *system*, but they're useless
+without physical measurements to get coordinates for a set of real world datum
+objects.
+
+The process of measuring and computing coordinates for datum objects is called
+*realizing* the reference system and the result is called a *reference frame*.
+For example, the **International Terrestrial Reference Frame of 2014**
+(**ITRF2014**) realizes the ITRS conventions using raw measurement data gathered
+prior to 2014.
+
+To measure and compute coordinates, several space geodesy techniques are used to
+gather raw measurement data; currently the IERS includes
+[VLBI (very long baseline interferometry)](https://en.wikipedia.org/wiki/Very-long-baseline_interferometry) of distant astronomical radio sources,
+[SLR (satellite laser ranging)](https://en.wikipedia.org/wiki/Satellite_laser_ranging),
+[GPS (global positioning system)](https://en.wikipedia.org/wiki/Global_Positioning_System) and
+[DORIS (gosh these acronyms are tiring)](https://en.wikipedia.org/wiki/DORIS_(geodesy)).
+The raw data is not in the form of position, but must be condensed down in a
+large scale regression problem, ideally by requiring physical and statistical
+consistency of all measurements by tieing measurements with physical models.
 
 
-#### Coordinate systems
+### Coordinate systems
+
+After all the confusion about datums, coordinate systems should be relatively
+simple! 
 
 Common coordinate
   systems used in geodesy include Cartesian Earth-Centred, Ellipsoidal, and
@@ -141,22 +230,7 @@ Common coordinate
   are also commonly encountered.
 
 
-
-
-![A pair of datums](docs/datums.svg)
-
-
-
-Coordinate system
-
-An extremely clear and almost jargon free discussion of some of the central
-points of confusion can be had by reading the ICSM's
-[Fundamentals of Mapping](http://www.icsm.gov.au/mapping/index.html) website,
-particularly the sections on datum.
-
-
-An excellent resource is the ICSM Fundamentals of Mapping http://www.icsm.gov.au/mapping/index.html
-
+## The API
 
 ### Coordinate types
 
