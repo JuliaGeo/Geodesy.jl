@@ -1,3 +1,14 @@
+"""
+Abstract type for geodetic datums
+
+A datum is a set of reference objects and assigned coordinates, relative to
+which other objects may be positioned.  We model these in code with subtypes of
+`Datum`.  Each geodetic datum has an associated ellipsoid model of the Earth
+which is required when transforming between coordinate systems.  The ellipsoid
+can be accessed with the `ellipsoid()` function.
+"""
+abstract Datum
+
 #------------------------------------------------------------------------------
 # Worldwide geodetic datums
 
@@ -42,7 +53,7 @@ use at a given date?  Does anybody care?)
 1. "World Geodetic System 1984", NGA standard NGA.STND.0036_1.0.0_WGS84, 2014-07-08,
    http://earth-info.nga.mil/GandG/publications/NGA_STND_0036_1_0_0_WGS84/NGA.STND.0036_1.0.0_WGS84.pdf
 """
-immutable WGS84{GpsWeek}
+immutable WGS84{GpsWeek} <: Datum
     WGS84() = check_wgs84_params(new())
 end
 
@@ -57,8 +68,6 @@ check_wgs84_params(wgs84::WGS84{Void}) = wgs84
         :(wgs84)
     end
 end
-
-const wgs84 = WGS84()
 
 Base.show(io::IO, ::WGS84{Void}) = print(io,"WGS84")
 Base.show{W}(io::IO, ::WGS84{W}) = print(io,"WGS84 (G$W)")
@@ -95,7 +104,7 @@ technical papers:
 * "The IGS contribution to ITRF2014", Rebischung et al., J. Geodesy (2016) 90:
    611, http://dx.doi.org/10.1007/s00190-016-0897-6
 """
-immutable ITRF{Year, EpochT}
+immutable ITRF{Year, EpochT} <: Datum
     epoch::EpochT
 
     function ITRF(epoch::EpochT)
@@ -125,30 +134,38 @@ Base.show(io::IO, itrf::ITRF) = print(io,"ITRF{$Y}($(itrf.epoch))")
 """
 `OSGB36` - Datum for Ordinance Survey of Great Britian, 1936
 """
-immutable OSGB36; end
-const osgb36 = OSGB36()
+immutable OSGB36 <: Datum; end
 Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
 
 """
 `NAD27` - North American Datum of 1927
 """
-immutable NAD27; end
-const nad27 = NAD27()
+immutable NAD27 <: Datum; end
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
 
 """
 `GDA94` - Geocentric Datum of Australia, 1994
 """
-immutable GDA94; end
+immutable GDA94 <: Datum; end
 
 
 #-------------------------------------------------------------------------------
-# FIXME: Remove - this is not a datum!
-immutable GRS80; end
-const grs80 = GRS80()
+# FIXME: Remove - this is not a datum!!
+immutable GRS80 <: Datum; end
 Base.show(io::IO, ::GRS80) = print(io,"grs80")
+
+const wgs84 = WGS84()
+const osgb36 = OSGB36()
+const grs80 = GRS80()
+const nad27 = NAD27()
+
 Base.deprecate(:grs80)
 
+# TODO: Figure out how to deprecate these - will we be using types or instances
+# for passing datums around.
+#Base.deprecate(:wgs84)
+#Base.deprecate(:osgb36)
+#Base.deprecate(:nad27)
 
 #-------------------------------------------------------------------------------
 # Ellipsoids
