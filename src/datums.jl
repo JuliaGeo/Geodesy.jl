@@ -77,7 +77,7 @@ Base.show{W}(io::IO, ::WGS84{W}) = print(io,"WGS84 (G$W)")
     ITRF{Year}([epoch])
 
 Construct an object representing the International Terrestrial Reference Frame
-for the given `Year` of realization.  ITRF is the standard high accuarcy
+for the given `Year` of realization.  ITRF is the standard high accuracy
 terrestrial reference frame for worldwide use.  An optional `epoch` parameter
 defines the time of interest - typically a date at which coordinates were
 measured, using, eg a GPS device.  Without the `epoch` parameter, the resulting
@@ -132,7 +132,7 @@ Base.show(io::IO, itrf::ITRF) = print(io,"ITRF{$Y}($(itrf.epoch))")
 #------------------------------------------------------------------------------
 # National geodetic datums
 """
-`OSGB36` - Datum for Ordinance Survey of Great Britian, 1936
+`OSGB36` - Datum for Ordinance Survey of Great Britain, 1936
 """
 immutable OSGB36 <: Datum; end
 Base.show(io::IO, ::OSGB36) = print(io,"osbg84")

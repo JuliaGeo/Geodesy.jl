@@ -8,7 +8,7 @@ to `dest_datum`.  The function should attempt to supply the current publicly
 accepted best estimate.
 
 Note that the best known version of a datum transformation will inherently
-improve with time (see below), so we *cannot simultaneously* guarentee that:
+improve with time (see below), so we *cannot simultaneously* guarantee that:
 
 1. We return the best publicly accepted version of a datum shift.
 2. We return the same thing in future versions of Geodesy.jl.
@@ -32,7 +32,7 @@ datums, and a physical measurement procedure is always subject to some inaccurac
 Second, these **tie points** are used to infer a compact representation of the
 datum shift, with as few numerical parameters as possible. A small number of
 parameters will result in an overly smooth representation; this modelling error
-is a second source of inaccuarcy.  Both these errors can be reduced if you
+is a second source of inaccuracy.  Both these errors can be reduced if you
 choose to measure more tie points or improve the complexity of the numerical
 model at a future date.
 """

@@ -149,7 +149,7 @@ Repeating this trick with any of the now three known points, an entire
 triangulation network of surveyed objects can be extended outward.  Any point
 surveyed relative to the network is said to be measured *in the datum* of the
 original objects.  Datums are often named with an acronym, for example OSGB36 is
-the Ordnance Survey of Great Britian, 1936.
+the Ordnance Survey of Great Britain, 1936.
 
 In the era of satellite geodesy, putting coordinates on an object is done
 by timing signals from a satellite constellation (eg, the GPS satellites) and
@@ -158,7 +158,7 @@ first glance the situation seems quite different from the traditional setup
 described above.  However, the satellite positions as a function of time
 (*ephemerides*, in the jargon) must themselves be defined relative to some
 frame. This is done by continuously observing the satellites from a set of
-highly stable ground stations equipped with GPS recievers. It is the full set of
+highly stable ground stations equipped with GPS receivers. It is the full set of
 these ground stations and their assigned coordinates which form the datum.
 
 Let's inspect the flow of positional information in both cases:
@@ -172,7 +172,7 @@ Let's inspect the flow of positional information in both cases:
   ```
 
 We see that the basic nature of a datum is precisely the same regardless of
-whether we're doing a traditional survey or using a GPS reciever.
+whether we're doing a traditional survey or using a GPS receiver.
 
 ### Terrestrial reference systems and frames
 
@@ -185,8 +185,8 @@ For example, the **International Terrestrial Reference System** (**ITRS**) is a
 reference system which co-rotates with the Earth so that the average velocity of
 the crust is zero.  Roughly speaking, the *defining conventions* for the ITRS are:
 
-* Space is modeled as a three dimensional Euclidian affine space.
-* The origin is at the centre of mass of the Earth (it is *geocentric*).
+* Space is modeled as a three dimensional Euclidean affine space.
+* The origin is at the center of mass of the Earth (it is *geocentric*).
 * The z-axis is the axis of rotation of the Earth.
 * The scale is set to 1 SI meter.
 * The x-axis is orthogonal to the z-axis and aligns with the international
@@ -215,7 +215,7 @@ gather raw measurement data; currently the IERS includes
 [DORIS (gosh these acronyms are tiring)](https://en.wikipedia.org/wiki/DORIS_(geodesy)).
 The raw data is not in the form of positions, but must be condensed down in a
 large scale fitting problem, ideally by requiring physical and statistical
-consistency of all measurements, tieing measurements at different sites together
+consistency of all measurements, tying measurements at different sites together
 with physical models.
 
 
@@ -224,8 +224,8 @@ with physical models.
 After all the subtlety above, coordinate systems should be relatively simple!
 
 Common coordinate
-  systems used in geodesy include Cartesian Earth-Centred, Ellipsoidal, and
-  local Cartesian frames such as Easth-North-Up.  Many different map projections
+  systems used in geodesy include Cartesian Earth-Centered, Ellipsoidal, and
+  local Cartesian frames such as East-North-Up.  Many different map projections
   are also commonly encountered.
 
 
@@ -291,7 +291,7 @@ Worldwide datums include
 
 National datums include
 
-* `OSGB36` - Ordnance Survey of Great Britian of 1936.
+* `OSGB36` - Ordnance Survey of Great Britain of 1936.
 * `NAD27` - North American Datum of 1927.
 * `GDA94` - Geocentric Datum of Australia, 1994.
 
