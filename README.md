@@ -101,9 +101,9 @@ distance(x_lla, y_lla)                   # 401.54 meters
 
 ## Basic Terminology
 
-This section describes some terminology and concepts which are relevant to
+This section describes some terminology and concepts that are relevant to
 *Geodesy.jl*, attempting to define Geodesy-specific jargon where possible.  For
-a longer less technical discussion with more historical context, ICSM's
+a longer, less technical discussion with more historical context, ICSM's
 [Fundamentals of Mapping page](http://www.icsm.gov.au/mapping/index.html)
 is highly recommended.
 
@@ -111,7 +111,7 @@ is highly recommended.
 
 A position on the Earth can be given by some numerical coordinate values, but
 those don't mean much without more information.  The extra information is called
-the **Coordinate Reference System** or **CRS** (also know as a *Spatial
+the **Coordinate Reference System** or **CRS** (also known as a *Spatial
 Reference System* or SRS).  A CRS tells you two main things:
 
 * The measurement procedure: which real world objects were used to
@@ -151,7 +151,7 @@ surveyed relative to the network is said to be measured *in the datum* of the
 original objects.  Datums are often named with an acronym, for example OSGB36 is
 the Ordnance Survey of Great Britain, 1936.
 
-In the era of satellite geodesy, putting coordinates on an object is done
+In the era of satellite geodesy, coordinates are determined for an object
 by timing signals from a satellite constellation (eg, the GPS satellites) and
 computing position relative to those satellites.  Where is the datum here? At
 first glance the situation seems quite different from the traditional setup
@@ -177,21 +177,22 @@ whether we're doing a traditional survey or using a GPS receiver.
 ### Terrestrial reference systems and frames
 
 Coordinates for new points are measured by transferring coordinates from the
-datum objects by various means, as described above.  However, how do we decide
+datum objects, as described above.  However, how do we decide
 on coordinates for the datum objects themselves?  This is purely a matter of
 convention, consistency and measurement.
 
 For example, the **International Terrestrial Reference System** (**ITRS**) is a
-reference system which co-rotates with the Earth so that the average velocity of
-the crust is zero.  Roughly speaking, the *defining conventions* for the ITRS are:
+reference system that rotates with the Earth so that the average velocity of
+the crust is zero. That is, in this reference system the only crust movement is
+geophysical.  Roughly speaking, the *defining conventions* for the ITRS are:
 
-* Space is modeled as a three dimensional Euclidean affine space.
+* Space is modeled as a three-dimensional Euclidean affine space.
 * The origin is at the center of mass of the Earth (it is *geocentric*).
 * The z-axis is the axis of rotation of the Earth.
 * The scale is set to 1 SI meter.
 * The x-axis is orthogonal to the z-axis and aligns with the international
   reference meridian through Greenwich.
-* The y-axis is set to the cross product of the z and x axes forming a right
+* The y-axis is set to the cross product of the z and x axes, forming a right
   handed coordinate frame.
 * Various rates of change of the above must also be specified, for example, the
   scale should stay constant in time.
@@ -200,7 +201,7 @@ The precise conventions are defined in chapter 4 of the
 [IERS conventions](https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html)
 published by the International Earth Rotation and Reference Service (IERS).
 These conventions define an ideal reference *system*, but they're useless
-without physical measurements which give coordinates for a set of real world
+without physical measurements that give coordinates for a set of real world
 datum objects.  The process of measuring and computing coordinates for datum
 objects is called *realizing* the reference system and the result is called a
 *reference frame*.  For example, the **International Terrestrial Reference Frame
@@ -221,12 +222,15 @@ with physical models.
 
 ### Coordinate systems
 
-After all the subtlety above, coordinate systems should be relatively simple!
+TODO: After all the subtlety above, coordinate systems should be relatively simple!
 
-Common coordinate
-  systems used in geodesy include Cartesian Earth-Centered, Ellipsoidal, and
-  local Cartesian frames such as East-North-Up.  Many different map projections
-  are also commonly encountered.
+* Talk about the distinction between datum and coordinate system
+* Discuss the primary coordinate systems, ECEF, LLA, ENU
+* Talk about ellipsoids, and mention geodetic latitude, as this can be surprising.
+
+Common coordinate systems used in geodesy include Cartesian Earth-Centered,
+Ellipsoidal, and local Cartesian frames such as East-North-Up.  Many different
+map projections are also commonly encountered.
 
 
 ## The API
