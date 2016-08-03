@@ -174,6 +174,7 @@ Let's inspect the flow of positional information in both cases:
 We see that the basic nature of a datum is precisely the same regardless of
 whether we're doing a traditional survey or using a GPS receiver.
 
+
 ### Terrestrial reference systems and frames
 
 Coordinates for new points are measured by transferring coordinates from the
@@ -222,41 +223,63 @@ with physical models.
 
 ### Coordinate systems
 
-In geometry, a [**coordinate system**](https://en.wikipedia.org/wiki/Coordinate_system)
-is a system which uses one or more numbers, or **coordinates** to uniquely
-determine the position of a point on a manifold such as Euclidean space.  You
-typically have multiple useful coordinate systems for the same manifold. For
-example, in geodesy a point is commonly referred to using
+In geometry, a **coordinate system**
+[is a system](https://en.wikipedia.org/wiki/Coordinate_system)
+which uses one or more numbers, or **coordinates** to uniquely
+determine the position of a point on a mathematical space such as Euclidean
+space.  For example, in geodesy a point is commonly referred to using geodetic
+latitude, longitude and height relative to a given reference ellipsoid; this is
+called a **geodetic coordinate system**.
+
+An [**ellipsoid**](https://en.wikipedia.org/wiki/Ellipsoid) is chosen because
+it's a reasonable model for the shape of the Earth and its gravitational field
+without being overly complex; it has only a few parameters, and a simple
+mathematical form.  The term [**spheroid**](https://en.wikipedia.org/wiki/Spheroid)
+is also used because the ellipsoids in use today are rotationally symmetric
+around the pole. Note that there's several ways to define
+[latitude](https://en.wikipedia.org/wiki/Latitude) on an ellipsoid. The most
+natural for geodesy is geodetic latitude, used by default because it's
+*physically accessible* in any location as a good approximation to the angle
+between the gravity vector and the equatorial plane.  (This latitude is not an
+angle measured at the centre of the ellipsoid, which may be surprising if you're
+used to spherical coordinates!)
+
+There are usually several useful coordinate systems for the same space.  As well
+as the geodetic coordinates mentioned above, it's common to see
 
 * The x,y,z components in an Earth-Centred Cartesian coordinate system rotating
   with the Earth.  This is conventionally called an
-  **Earth-Centred Earth-Fixed** (**ECEF**) coordinate system.
-* Geodetic latitude, longitude and height relative to a given reference
-  ellipsoid.  These are conventionally called a **geodetic coordinate system**.
-  Note there are several ways to define latitude, and the default of
-  [geodetic latitude](https://en.wikipedia.org/wiki/Latitude) may be surprising
-  to people used to spherical coordinates.  (Using geodetic latitude is
-  conventional because it relates directly to the normal of the ellipsoid, which
-  is *physically accessible* in any location as a good approximation to the
-  direction of gravity.)
-* The east,north and up (ENU) components of a Cartesian coordinate frame, pinned
-  to a particular point on the ellipsoid
+  **Earth-Centred Earth-Fixed** (**ECEF**) coordinate system. This is a natural
+  coordinate system in which to define coordinates for the datum objects
+  defining a terrestrial reference frame.
+* The east,north and up **ENU** components of a Cartesian coordinate frame at a
+  particular point on the ellipsoid.  This coordinate system is useful as a
+  local frame for navigation.
+* Easting,northing and vertical components of a **projected coordinate system** or
+  [**map projection**](http://www.icsm.gov.au/mapping/about_projections.html).
+  There's an entire zoo of these, designed to represent the curved surface of an
+  ellipsoid with a flat map.
 
+Different coordinates systems provide different coordinates for the same point,
+so it's obviously important to specify exactly which coordinate system you're
+using.  In particular, you should specify which ellipsoid parameters are in
+use if you deal with latitude and longitude, as in principle you could have more
+than one ellipsoid.  This is a point of confusion, because a datum in geodesy
+also comes with a reference ellipsoid as a very strong matter of convention
+(thus being called a **geodetic datum**).
 
+With its conventional ellipsoid, a geodetic datum also defines a conventional
+geodetic coordinate system, thus bringing together concepts which are
+interconnected but conceptually distinct.  To emphasize:
 
-This is quite distinct from a datum, which is an association of coordinates to
-particular physical objects, acting to *define* a reference frame.
-
-
-TODO: After all the subtlety above, coordinate systems should be relatively simple!
-
-* Talk about the distinction between datum and coordinate system
-* Discuss the primary coordinate systems, ECEF, LLA, ENU
-* Talk about ellipsoids, and mention geodetic latitude, as this can be surprising.
-
-Common coordinate systems used in geodesy include Cartesian Earth-Centered,
-Ellipsoidal, and local Cartesian frames such as East-North-Up.  Many different
-map projections are also commonly encountered.
+* A coordinate system is a mathematical abstraction allowing us to manipulate
+  *geometric* quantities using numeric and algebraic techniques.  By itself,
+  mathematical geometry is pure abstraction without a connection to the physical
+  world.
+* A datum is a set of physical objects with associated coordinates, thereby
+  *defining* a reference frame in a way which is physically accessible.  A datum
+  is the bridge which connects physical reality to the abstract ideal of
+  mathematical geometry, via the algebraic mechanism of a coordinate system.
 
 
 ## The API
