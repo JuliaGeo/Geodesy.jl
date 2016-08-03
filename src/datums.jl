@@ -162,7 +162,7 @@ const nad27 = NAD27()
 Base.deprecate(:grs80)
 
 # TODO: Figure out how to deprecate these - will we be using types or instances
-# for passing datums around.
+# for passing datums around?
 #Base.deprecate(:wgs84)
 #Base.deprecate(:osgb36)
 #Base.deprecate(:nad27)
@@ -209,7 +209,6 @@ const airy1830_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
 const clarke1866_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
 const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366") #NB: not the definition - f_inv is derived.
 
-# TODO: Also deprecate other incorrectly named ellipsoids
 Base.@deprecate_binding nad27_el clarke1866_el
 Base.@deprecate_binding osgb36_el airy1830_el
 
