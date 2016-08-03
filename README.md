@@ -222,6 +222,32 @@ with physical models.
 
 ### Coordinate systems
 
+In geometry, a [**coordinate system**](https://en.wikipedia.org/wiki/Coordinate_system)
+is a system which uses one or more numbers, or **coordinates** to uniquely
+determine the position of a point on a manifold such as Euclidean space.  You
+typically have multiple useful coordinate systems for the same manifold. For
+example, in geodesy a point is commonly referred to using
+
+* The x,y,z components in an Earth-Centred Cartesian coordinate system rotating
+  with the Earth.  This is conventionally called an
+  **Earth-Centred Earth-Fixed** (**ECEF**) coordinate system.
+* Geodetic latitude, longitude and height relative to a given reference
+  ellipsoid.  These are conventionally called a **geodetic coordinate system**.
+  Note there are several ways to define latitude, and the default of
+  [geodetic latitude](https://en.wikipedia.org/wiki/Latitude) may be surprising
+  to people used to spherical coordinates.  (Using geodetic latitude is
+  conventional because it relates directly to the normal of the ellipsoid, which
+  is *physically accessible* in any location as a good approximation to the
+  direction of gravity.)
+* The east,north and up (ENU) components of a Cartesian coordinate frame, pinned
+  to a particular point on the ellipsoid
+
+
+
+This is quite distinct from a datum, which is an association of coordinates to
+particular physical objects, acting to *define* a reference frame.
+
+
 TODO: After all the subtlety above, coordinate systems should be relatively simple!
 
 * Talk about the distinction between datum and coordinate system
