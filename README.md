@@ -329,10 +329,9 @@ The `ENU` type is a local Cartesian coordinate that encodes a point's distance
 towards east `e`, towards north `n` and upwards `u` with respect to an
 unspecified origin.
 
-### Datums
+### Geodetic Datums
 
-Geodesy comes with several in-built geodetic (i.e. ellipsoidal) datums.
-Worldwide datums include
+Geodesy comes with several in-built geodetic datums.  Worldwide datums include
 
 * `WGS84` - standard GPS datum for moderate precision work (representing both
   the latest frame realization, or if time is supplied a discontinuous dynamic
@@ -352,6 +351,14 @@ The ellipsoid for a datum may be obtained with the `ellipsoid()` function.
 Datums may also be passed to transverse-Mercator and polar-stereographic
 projections in which case the associated ellipsoid will be used to form the
 transformation.
+
+Geodesy defines several standard datum instances for convenience:
+
+```
+```
+
+Datums without extra parameters (everything except `ITRF` and `WGS84{Week}`)
+come with a standard instance 
 
 ### Transformations and conversions
 

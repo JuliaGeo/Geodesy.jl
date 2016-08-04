@@ -127,7 +127,7 @@ end
 @compat (::Type{ITRF{Year}}){Year}(epoch) = ITRF{Year,typeof(epoch)}(epoch)
 
 Base.show{Y}(io::IO, ::ITRF{Y,Void}) = print(io,"ITRF{$Y}")
-Base.show(io::IO, itrf::ITRF) = print(io,"ITRF{$Y}($(itrf.epoch))")
+Base.show{Y}(io::IO, itrf::ITRF{Y}) = print(io,"ITRF{$Y}($(itrf.epoch))")
 
 #------------------------------------------------------------------------------
 # National geodetic datums
@@ -150,16 +150,10 @@ immutable GDA94 <: Datum; end
 
 
 #-------------------------------------------------------------------------------
-# FIXME: Remove - this is not a datum!!
-immutable GRS80 <: Datum; end
-Base.show(io::IO, ::GRS80) = print(io,"grs80")
-
 const wgs84 = WGS84()
 const osgb36 = OSGB36()
-const grs80 = GRS80()
 const nad27 = NAD27()
-
-Base.deprecate(:grs80)
+const gda94 = GDA94()
 
 # TODO: Figure out how to deprecate these - will we be using types or instances
 # for passing datums around?
@@ -179,49 +173,46 @@ immutable Ellipsoid
     b::Float64        # Semi-minor axis
     e²::Float64       # Eccentricity squared
     e′²::Float64      # Second eccentricity squared
+    name::Symbol
 end
 
-function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="")
+function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="", name=:Unknown)
     if isempty(a) || isempty(b) == isempty(f_inv)
         throw(ArgumentError("Specify parameter 'a' and either 'b' or 'f_inv'"))
     end
     if isempty(b)
-        _ellipsoid_af(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,f_inv)))
+        _ellipsoid_af(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,f_inv)), name)
     else
-        _ellipsoid_ab(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,b)))
+        _ellipsoid_ab(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,b)), name)
     end
 end
 
-function _ellipsoid_ab(a::BigFloat, b::BigFloat)
+function _ellipsoid_ab(a::BigFloat, b::BigFloat, name)
     e² = (a^2 - b^2) / a^2
     e′² = (a^2 - b^2) / b^2
 
-    Ellipsoid(a, b, e², e′²)
+    Ellipsoid(a, b, e², e′², name)
 end
-function _ellipsoid_af(a::BigFloat, f_inv::BigFloat)
+function _ellipsoid_af(a::BigFloat, f_inv::BigFloat, name)
     b = a * (1 - inv(f_inv))
 
-    _ellipsoid_ab(a, b)
+    _ellipsoid_ab(a, b, name)
 end
 
-const wgs84_el  = Ellipsoid(a = "6378137.0", f_inv = "298.257223563")
-const airy1830_el = Ellipsoid(a = "6377563.396", b = "6356256.909")
-const clarke1866_el  = Ellipsoid(a = "6378206.4",   b = "6356583.8")
-const grs80_el  = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366") #NB: not the definition - f_inv is derived.
+const wgs84_ellipsoid   = Ellipsoid(a = "6378137.0", f_inv = "298.257223563", name=:wgs84_ellipsoid)
+const airy1830   = Ellipsoid(a = "6377563.396", b = "6356256.909", name=:airy1830)
+const clarke1866 = Ellipsoid(a = "6378206.4",   b = "6356583.8", name=:clarke1866)
+const grs80   = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366", name=:grs80) #NB: not the definition - f_inv is derived.
 
-Base.@deprecate_binding nad27_el clarke1866_el
-Base.@deprecate_binding osgb36_el airy1830_el
+@inline ellipsoid(::Type{WGS84}) = wgs84_ellipsoid
+@inline ellipsoid(::WGS84)       = wgs84_ellipsoid
+@inline ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_ellipsoid
 
-@inline ellipsoid(::Type{WGS84}) = wgs84_el
-@inline ellipsoid(::WGS84)    = wgs84_el
-@inline ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_el
+@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
+@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866
+@inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
 
-@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830_el
-@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866_el
-@inline ellipsoid(::Union{GRS80,Type{GRS80}})   = grs80_el
-@inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80_el
-
-@inline ellipsoid(::ITRF)                       = grs80_el
-@inline ellipsoid{D<:ITRF}(::Type{D})           = grs80_el
+@inline ellipsoid(::ITRF)                       = grs80
+@inline ellipsoid{D<:ITRF}(::Type{D})           = grs80
 
 ellipsoid(x) = error("No ellipsoid defined for datum $x")

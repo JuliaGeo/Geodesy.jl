@@ -164,17 +164,18 @@ end
 Construct a `Transformation` object to convert from LLA coordinates
 to ECEF coordinates.
 """
-immutable ECEFfromLLA{Datum} <: Transformation
-    a::Float64   # Ellipsoidal major axis
-    e²::Float64  # Ellipsoidal square-eccentricity = 1 - b^2/a^2
-
-    datum::Datum
+immutable ECEFfromLLA <: Transformation
+    ellipsoid::Ellipsoid
 end
-Base.show(io::IO, trans::ECEFfromLLA) = print(io, "ECEFfromLLA($(trans.datum))")
+Base.show(io::IO, trans::ECEFfromLLA) = print(io, "ECEFfromLLA($(trans.ellipsoid))")
 
-function ECEFfromLLA{Datum}(datum::Datum)
+function ECEFfromLLA(datum::DatumOrEllipsoid)
     el = ellipsoid(datum)
-    return ECEFfromLLA{Datum}(el.a, el.e², datum)
+    return ECEFfromLLA(el.a, el.e², el)
+end
+
+function ECEFfromLLA(el::Ellipsoid)
+    return ECEFfromLLA(el.a, el.e², el)
 end
 
 
@@ -197,8 +198,7 @@ Base.inv(trans::LLAfromECEF) = ECEFfromLLA(trans.datum)
 Base.inv(trans::ECEFfromLLA) = LLAfromECEF(trans.datum)
 
 # It's not clear if this is worthwhile or not... (return is not type-certain)
-compose(trans1::ECEFfromLLA, trans2::LLAfromECEF) = t1.datum === t2.datum ? IdentityTransform{ECEF}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
-compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? IdentityTransform{LLA}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
+#compose(trans1::ECEFfromLLA, trans2::LLAfromECEF) = t1.datum === t2.datum ? IdentityTransform{ECEF}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2) #compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? IdentityTransform{LLA}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
 
 ##################
 ## ECEF <-> ENU ##

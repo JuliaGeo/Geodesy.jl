@@ -28,6 +28,9 @@ export
     OSGB36, osgb36,
     NAD27, nad27,
     GRS80, grs80,
+    GDA94, gda94,
+
+    wgs84_ellipsoid, airy1830, clarke1866, grs80,
 
     # Methods
     distance,

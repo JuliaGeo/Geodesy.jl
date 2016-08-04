@@ -381,10 +381,10 @@ function TransverseMercator{MaxPow}(a::Float64, f::Float64, ::Type{Val{MaxPow}})
     return TransverseMercator{MaxPow}(a,f,e2,es,e2m,c,n,a1,b1,alp,bet)
 end
 
-const wgs84_tm = TransverseMercator(wgs84_el)
-const airy1830_tm = TransverseMercator(airy1830_el)
-const clarke1866_tm = TransverseMercator(clarke1866_el)
-const grs80_tm = TransverseMercator(grs80_el)
+const wgs84_tm = TransverseMercator(wgs84_ellipsoid)
+const airy1830_tm = TransverseMercator(airy1830)
+const clarke1866_tm = TransverseMercator(clarke1866)
+const grs80_tm = TransverseMercator(grs80)
 
 TransverseMercator(::WGS84) = wgs84_tm
 TransverseMercator(::OSGB36) = airy1830_tm
