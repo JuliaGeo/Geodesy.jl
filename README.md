@@ -331,7 +331,11 @@ unspecified origin.
 
 ### Geodetic Datums
 
-Geodesy comes with several in-built geodetic datums.  Worldwide datums include
+Geodetic datums are modelled as subtypes of the abstract type `Datum`.  The
+associated ellipsoid may be obtained by calling the `ellipsoid()` function, for
+example, `ellipsoid(NAD83())`.
+
+There are several pre-defined datums.  Worldwide datums include
 
 * `WGS84` - standard GPS datum for moderate precision work (representing both
   the latest frame realization, or if time is supplied a discontinuous dynamic
@@ -344,21 +348,15 @@ Geodesy comes with several in-built geodetic datums.  Worldwide datums include
 National datums include
 
 * `OSGB36` - Ordnance Survey of Great Britain of 1936.
-* `NAD27` - North American Datum of 1927.
+* `NAD27`, `NAD83` - North American Datums of 1927 and 1983, respectively
 * `GDA94` - Geocentric Datum of Australia, 1994.
 
-The ellipsoid for a datum may be obtained with the `ellipsoid()` function.
-Datums may also be passed to transverse-Mercator and polar-stereographic
-projections in which case the associated ellipsoid will be used to form the
-transformation.
-
-Geodesy defines several standard datum instances for convenience:
-
-```
-```
-
-Datums without extra parameters (everything except `ITRF` and `WGS84{Week}`)
-come with a standard instance 
+Datums may also be passed to coordinate transformation constructors such as
+transverse-Mercator and polar-stereographic projections in which case the
+associated ellipsoid will be extracted to form the transformation.  For datums
+without extra parameters (everything except `ITRF` and `WGS84{Week}`) there is a
+standard instance defined to reduce the amount of brackets you have to type.
+For example, `LLAfromECEF(NAD83())` and `LLAfromECEF(nad83)` are equivalent.
 
 ### Transformations and conversions
 
