@@ -1,9 +1,9 @@
 @testset "Datums and ellipsoids" begin
     # Check the ellipsoids
-    @test ellipsoid(WGS84) == Geodesy.wgs84_el
-    @test ellipsoid(NAD27) == Geodesy.clarke1866_el
-    @test ellipsoid(OSGB36) == Geodesy.airy1830_el
-    @test ellipsoid(GDA94) == Geodesy.grs80_el
+    @test ellipsoid(WGS84) == wgs84_ellipsoid
+    @test ellipsoid(NAD27) == clarke1866
+    @test ellipsoid(OSGB36) == airy1830
+    @test ellipsoid(GDA94) == grs80
 
     # Check transverse-Mercator pre-calculations
     @test Geodesy.TransverseMercator(WGS84) == Geodesy.wgs84_tm

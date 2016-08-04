@@ -72,6 +72,10 @@ end
 Base.show(io::IO, ::WGS84{Void}) = print(io,"WGS84")
 Base.show{W}(io::IO, ::WGS84{W}) = print(io,"WGS84 (G$W)")
 
+ellipsoid(::Type{WGS84}) = wgs84_ellipsoid
+ellipsoid(::WGS84)       = wgs84_ellipsoid
+ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_ellipsoid
+
 
 """
     ITRF{Year}([epoch])
@@ -129,6 +133,10 @@ end
 Base.show{Y}(io::IO, ::ITRF{Y,Void}) = print(io,"ITRF{$Y}")
 Base.show{Y}(io::IO, itrf::ITRF{Y}) = print(io,"ITRF{$Y}($(itrf.epoch))")
 
+ellipsoid(::ITRF)             = grs80
+ellipsoid{D<:ITRF}(::Type{D}) = grs80
+
+
 #------------------------------------------------------------------------------
 # National geodetic datums
 """
@@ -136,83 +144,28 @@ Base.show{Y}(io::IO, itrf::ITRF{Y}) = print(io,"ITRF{$Y}($(itrf.epoch))")
 """
 immutable OSGB36 <: Datum; end
 Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
+ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
+
 
 """
 `NAD27` - North American Datum of 1927
 """
 immutable NAD27 <: Datum; end
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
+ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866
+
 
 """
 `GDA94` - Geocentric Datum of Australia, 1994
 """
 immutable GDA94 <: Datum; end
+ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
 
 
 #-------------------------------------------------------------------------------
+# Datum instances
 const wgs84 = WGS84()
 const osgb36 = OSGB36()
 const nad27 = NAD27()
 const gda94 = GDA94()
 
-# TODO: Figure out how to deprecate these - will we be using types or instances
-# for passing datums around?
-#Base.deprecate(:wgs84)
-#Base.deprecate(:osgb36)
-#Base.deprecate(:nad27)
-
-#-------------------------------------------------------------------------------
-# Ellipsoids
-
-"""
-An ellipsoidal representation of the earth, for converting between LLA and
-other co-ordinate systems such as ECEF.
-"""
-immutable Ellipsoid
-    a::Float64        # Semi-major axis
-    b::Float64        # Semi-minor axis
-    e²::Float64       # Eccentricity squared
-    e′²::Float64      # Second eccentricity squared
-    name::Symbol
-end
-
-function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="", name=:Unknown)
-    if isempty(a) || isempty(b) == isempty(f_inv)
-        throw(ArgumentError("Specify parameter 'a' and either 'b' or 'f_inv'"))
-    end
-    if isempty(b)
-        _ellipsoid_af(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,f_inv)), name)
-    else
-        _ellipsoid_ab(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,b)), name)
-    end
-end
-
-function _ellipsoid_ab(a::BigFloat, b::BigFloat, name)
-    e² = (a^2 - b^2) / a^2
-    e′² = (a^2 - b^2) / b^2
-
-    Ellipsoid(a, b, e², e′², name)
-end
-function _ellipsoid_af(a::BigFloat, f_inv::BigFloat, name)
-    b = a * (1 - inv(f_inv))
-
-    _ellipsoid_ab(a, b, name)
-end
-
-const wgs84_ellipsoid   = Ellipsoid(a = "6378137.0", f_inv = "298.257223563", name=:wgs84_ellipsoid)
-const airy1830   = Ellipsoid(a = "6377563.396", b = "6356256.909", name=:airy1830)
-const clarke1866 = Ellipsoid(a = "6378206.4",   b = "6356583.8", name=:clarke1866)
-const grs80   = Ellipsoid(a = "6378137.0", f_inv = "298.2572221008827112431628366", name=:grs80) #NB: not the definition - f_inv is derived.
-
-@inline ellipsoid(::Type{WGS84}) = wgs84_ellipsoid
-@inline ellipsoid(::WGS84)       = wgs84_ellipsoid
-@inline ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_ellipsoid
-
-@inline ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
-@inline ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866
-@inline ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
-
-@inline ellipsoid(::ITRF)                       = grs80
-@inline ellipsoid{D<:ITRF}(::Type{D})           = grs80
-
-ellipsoid(x) = error("No ellipsoid defined for datum $x")

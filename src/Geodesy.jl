@@ -23,14 +23,15 @@ export
     # Other types
     Ellipsoid, ellipsoid,
 
-    # Constants
+    # Ellipsoids
+    wgs84_ellipsoid, airy1830, clarke1866, grs80,
+
+    # Datums
     WGS84, wgs84,
     OSGB36, osgb36,
     NAD27, nad27,
     GRS80, grs80,
     GDA94, gda94,
-
-    wgs84_ellipsoid, airy1830, clarke1866, grs80,
 
     # Methods
     distance,
@@ -50,6 +51,7 @@ export
     utm_zone
 
 include("points.jl")
+include("ellipsoids.jl")
 include("datums.jl")
 include("transverse_mercator.jl")
 include("polar_stereographic.jl")
