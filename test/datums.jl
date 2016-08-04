@@ -2,6 +2,7 @@
     # Check the ellipsoids
     @test ellipsoid(WGS84) == wgs84_ellipsoid
     @test ellipsoid(NAD27) == clarke1866
+    @test ellipsoid(NAD83) == grs80
     @test ellipsoid(OSGB36) == airy1830
     @test ellipsoid(GDA94) == grs80
 
@@ -15,5 +16,7 @@
     # large ellispoid thingie for all of them to share...
     @test (LLAfromECEF(wgs84); true)
     @test (LLAfromECEF(nad27); true)
+    @test (LLAfromECEF(nad83); true)
     @test (LLAfromECEF(osgb36); true)
+    @test (LLAfromECEF(gda94); true)
 end

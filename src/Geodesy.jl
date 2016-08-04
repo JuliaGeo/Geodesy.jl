@@ -27,9 +27,11 @@ export
     wgs84_ellipsoid, airy1830, clarke1866, grs80,
 
     # Datums
+    Datum,
     WGS84, wgs84,
     OSGB36, osgb36,
     NAD27, nad27,
+    NAD83, nad83,
     GRS80, grs80,
     GDA94, gda94,
 

@@ -152,7 +152,17 @@ ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
 """
 immutable NAD27 <: Datum; end
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
-ellipsoid(::Union{NAD27,Type{NAD27}})   = clarke1866
+ellipsoid(::Union{NAD27,Type{NAD27}}) = clarke1866
+
+"""
+`NAD83` - North American Datum of 1983
+
+For technical details, see "NAD83 (NSRS2007) National Readjustment Final Report"
+http://www.ngs.noaa.gov/PUBS_LIB/NSRS2007/NOAATRNOSNGS60.pdf
+"""
+immutable NAD83 <: Datum; end
+Base.show(io::IO, ::NAD83) = print(io,"nad83")
+ellipsoid(::Union{NAD83,Type{NAD83}}) = grs80
 
 
 """
@@ -167,5 +177,6 @@ ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
 const wgs84 = WGS84()
 const osgb36 = OSGB36()
 const nad27 = NAD27()
+const nad83 = NAD83()
 const gda94 = GDA94()
 
