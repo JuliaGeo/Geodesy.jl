@@ -226,7 +226,7 @@ with physical models.
 In geometry, a **coordinate system**
 [is a system](https://en.wikipedia.org/wiki/Coordinate_system)
 which uses one or more numbers, or **coordinates** to uniquely
-determine the position of a point on a mathematical space such as Euclidean
+determine the position of a point in a mathematical space such as Euclidean
 space.  For example, in geodesy a point is commonly referred to using geodetic
 latitude, longitude and height relative to a given reference ellipsoid; this is
 called a **geodetic coordinate system**.
@@ -238,11 +238,11 @@ mathematical form.  The term [**spheroid**](https://en.wikipedia.org/wiki/Sphero
 is also used because the ellipsoids in use today are rotationally symmetric
 around the pole. Note that there's several ways to define
 [latitude](https://en.wikipedia.org/wiki/Latitude) on an ellipsoid. The most
-natural for geodesy is geodetic latitude, used by default because it's
-*physically accessible* in any location as a good approximation to the angle
-between the gravity vector and the equatorial plane.  (This latitude is not an
-angle measured at the centre of the ellipsoid, which may be surprising if you're
-used to spherical coordinates!)
+natural for geodesy is **geodetic latitude**, used by default because it's
+physically accessible in any location as a good approximation to the angle
+between the gravity vector and the equatorial plane.  (This type of latitude
+is not an angle measured at the centre of the ellipsoid, which may be surprising
+if you're used to spherical coordinates!)
 
 There are usually several useful coordinate systems for the same space.  As well
 as the geodetic coordinates mentioned above, it's common to see
