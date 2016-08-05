@@ -7,10 +7,11 @@ immutable Ellipsoid
     b::Float64        # Semi-minor axis
     f::Float64        # Flattening
     e2::Float64       # Eccentricity squared
-    name::Symbol      # Conventional name (generally <creator><year>)
+    name::Symbol      # Conventional name - for clarity, should match the name
+                      # of the const instance in the package!
 end
 
-function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="", name=:Unknown)
+function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="", name=:UNKNOWN)
     if isempty(a) || isempty(b) == isempty(f_inv)
         throw(ArgumentError("Specify parameter 'a' and either 'b' or 'f_inv'"))
     end
@@ -32,7 +33,16 @@ function _ellipsoid_af(a::BigFloat, f_inv::BigFloat, name)
     _ellipsoid_ab(a, b, name)
 end
 
-Base.show(io::IO, el::Ellipsoid) = print(io, "Ellipsoid(name=:$(el.name))")
+function Base.show(io::IO, el::Ellipsoid)
+    if el.name != :UNKNOWN
+        # To clarify that these are Ellipsoids, we wrap the name in
+        # 'Ellipsoid', even though the name itself should resolve to the
+        # correct ellipsoid instance.
+        print(io, "Ellipsoid($(el.name))")
+    else
+        print(io, "Ellipsoid(a=$(el.a), b=$(el.b))")
+    end
+end
 
 
 #-------------------------------------------------------------------------------
