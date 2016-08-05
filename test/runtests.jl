@@ -16,4 +16,5 @@ Base.isapprox{T<:Tuple}(a::T, b::T; kwargs...) = all(ntuple(i->isapprox(a[i],b[i
     include("utm.jl")
     include("transformations.jl")
     include("conversion.jl")
+    include("datum_transformations.jl")
 end # @testset "Geodesy"

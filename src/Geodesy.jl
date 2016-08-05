@@ -1,3 +1,5 @@
+__precompile__()
+
 module Geodesy
 
 using CoordinateTransformations
@@ -21,11 +23,17 @@ export
     # Other types
     Ellipsoid, ellipsoid,
 
-    # Constants
+    # Ellipsoids
+    wgs84_ellipsoid, airy1830, clarke1866, grs80,
+
+    # Datums
+    Datum,
     WGS84, wgs84,
     OSGB36, osgb36,
     NAD27, nad27,
+    NAD83, nad83,
     GRS80, grs80,
+    GDA94, gda94,
 
     # Methods
     distance,
@@ -37,10 +45,15 @@ export
     UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU,
     UTMZfromUTM, UTMfromUTMZ,
 
+    # Datum transformations
+    datum_shift_ECEF,
+    ITRF, GDA94,
+
     # UTM helpers
     utm_zone
 
 include("points.jl")
+include("ellipsoids.jl")
 include("datums.jl")
 include("transverse_mercator.jl")
 include("polar_stereographic.jl")
@@ -48,5 +61,6 @@ include("transformations.jl")
 include("conversion.jl")
 include("distances.jl")
 include("utm.jl")
+include("datum_transformations.jl")
 
 end # module Geodesy

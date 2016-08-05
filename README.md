@@ -1,7 +1,8 @@
 # Geodesy
 
-[![Build Status](https://travis-ci.org/JuliaGeo/Geodesy.jl.svg?branch=master)](https://travis-ci.org/JuliaGeo/Geodesy.jl)
-[![Coverage Status](http://img.shields.io/coveralls/JuliaGeo/Geodesy.jl.svg)](https://coveralls.io/r/JuliaGeo/Geodesy.jl)
+| **Package Evaluator**                                           | **Build Status**                                                                                |
+|:---------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
+| [![0.4 package tests](http://pkg.julialang.org/badges/Geodesy_0.4.svg)](http://pkg.julialang.org/?pkg=Geodesy) [![0.5 package tests](http://pkg.julialang.org/badges/Geodesy_0.5.svg)](http://pkg.julialang.org/?pkg=Geodesy) | [![master build](https://travis-ci.org/JuliaGeo/Geodesy.jl.svg?branch=master)](https://travis-ci.org/JuliaGeo/Geodesy.jl) [![master coverage](http://img.shields.io/coveralls/JuliaGeo/Geodesy.jl.svg)](https://coveralls.io/r/JuliaGeo/Geodesy.jl) |
 
 **Geodesy** is a Julia package for working with points in various world and
 local coordinate systems. The primary feature of *Geodesy* is to define and
@@ -12,7 +13,7 @@ Transformations are accurate and efficient and implemented in native Julia code
 [C++ library](http://geographiclib.sourceforge.net/)), and some common geodetic
 datums are provided for convenience.
 
-### Quick start
+## Quick start
 
 Lets define a 3D point by it's latitude, longitude and altitude (LLA):
 ```julia
@@ -97,6 +98,192 @@ distance(x_lla, y_lla)                   # 401.54 meters
 ```
 (assuming the `wgs84` datum, which can be configured in `distance(x, y, datum)`).
 
+
+## Basic Terminology
+
+This section describes some terminology and concepts that are relevant to
+*Geodesy.jl*, attempting to define Geodesy-specific jargon where possible.  For
+a longer, less technical discussion with more historical context, ICSM's
+[Fundamentals of Mapping page](http://www.icsm.gov.au/mapping/index.html)
+is highly recommended.
+
+### Coordinate Reference Systems and Spatial Reference Identifiers
+
+A position on the Earth can be given by some numerical coordinate values, but
+those don't mean much without more information.  The extra information is called
+the **Coordinate Reference System** or **CRS** (also known as a *Spatial
+Reference System* or SRS).  A CRS tells you two main things:
+
+* The measurement procedure: which real world objects were used to
+  define the frame of reference or *datum* of the measurement?
+* The *coordinate system*: how do coordinate numerical values relate to the
+  reference frame defined by the datum?
+
+The full specification of a CRS can be complex, so a short label called a
+**Spatial Reference IDentifier** or **SRID** is usually used instead.  For
+example, [EPSG:4326](http://epsg.io/4326) is one way to refer to the 2D WGS84
+latitude and longitude you'd get from a mobile phone GPS device.  An SRID
+is of the form `AUTHORITY:CODE`, where the code is a number and the authority is
+the name of an organization maintaining a list of codes with associated CRS
+information.  There are services where you can look up a CRS, for example,
+<http://epsg.io> is a convenient interface to the SRIDs maintained by the
+*European Petroleum Survey Group* (EPSG) authority.  Likewise,
+<http://spatialreference.org> is an open registry to which anyone can
+contribute.
+
+When maintaining a spatial database, it's typical to define an internal list of
+SRIDs (effectively making your organization the authority), and a mapping from
+these to CRS information.  A link back to a definitive SRID from an external
+authority should also be included where possible.
+
+### Datums
+
+In spatial measurement and positioning, a **datum** is a set of reference
+objects and assigned coordinates *relative to which* other objects may be
+positioned.  For example, in traditional surveying a datum might comprise a
+pair of pegs in the ground, separated by a carefully measured distance.  When
+surveying the position of an unknown but nearby point, the angle back to the
+original datum objects can be measured using a theodolite.  After this, the
+relative position of the new point can be computed using simple triangulation.
+Repeating this trick with any of the now three known points, an entire
+triangulation network of surveyed objects can be extended outward.  Any point
+surveyed relative to the network is said to be measured *in the datum* of the
+original objects.  Datums are often named with an acronym, for example OSGB36 is
+the Ordnance Survey of Great Britain, 1936.
+
+In the era of satellite geodesy, coordinates are determined for an object
+by timing signals from a satellite constellation (eg, the GPS satellites) and
+computing position relative to those satellites.  Where is the datum here? At
+first glance the situation seems quite different from the traditional setup
+described above.  However, the satellite positions as a function of time
+(*ephemerides*, in the jargon) must themselves be defined relative to some
+frame. This is done by continuously observing the satellites from a set of
+highly stable ground stations equipped with GPS receivers. It is the full set of
+these ground stations and their assigned coordinates which form the datum.
+
+Let's inspect the flow of positional information in both cases:
+* For traditional surveying,
+  ```
+  datum object positions -> triangulation network -> newly surveyed point
+  ```
+* For satellite geodesy,
+  ```
+  datum object positions -> satellite ephemerides -> newly surveyed point
+  ```
+
+We see that the basic nature of a datum is precisely the same regardless of
+whether we're doing a traditional survey or using a GPS receiver.
+
+
+### Terrestrial reference systems and frames
+
+Coordinates for new points are measured by transferring coordinates from the
+datum objects, as described above.  However, how do we decide
+on coordinates for the datum objects themselves?  This is purely a matter of
+convention, consistency and measurement.
+
+For example, the **International Terrestrial Reference System** (**ITRS**) is a
+reference system that rotates with the Earth so that the average velocity of
+the crust is zero. That is, in this reference system the only crust movement is
+geophysical.  Roughly speaking, the *defining conventions* for the ITRS are:
+
+* Space is modeled as a three-dimensional Euclidean affine space.
+* The origin is at the center of mass of the Earth (it is *geocentric*).
+* The z-axis is the axis of rotation of the Earth.
+* The scale is set to 1 SI meter.
+* The x-axis is orthogonal to the z-axis and aligns with the international
+  reference meridian through Greenwich.
+* The y-axis is set to the cross product of the z and x axes, forming a right
+  handed coordinate frame.
+* Various rates of change of the above must also be specified, for example, the
+  scale should stay constant in time.
+
+The precise conventions are defined in chapter 4 of the
+[IERS conventions](https://www.iers.org/IERS/EN/Publications/TechnicalNotes/tn36.html)
+published by the International Earth Rotation and Reference Service (IERS).
+These conventions define an ideal reference *system*, but they're useless
+without physical measurements that give coordinates for a set of real world
+datum objects.  The process of measuring and computing coordinates for datum
+objects is called *realizing* the reference system and the result is called a
+*reference frame*.  For example, the **International Terrestrial Reference Frame
+of 2014** (**ITRF2014**) realizes the ITRS conventions using raw measurement
+data gathered in the 25 years prior to 2014.
+
+To measure and compute coordinates, several space geodesy techniques are used to
+gather raw measurement data; currently the IERS includes
+[VLBI (very long baseline interferometry)](https://en.wikipedia.org/wiki/Very-long-baseline_interferometry) of distant astronomical radio sources,
+[SLR (satellite laser ranging)](https://en.wikipedia.org/wiki/Satellite_laser_ranging),
+[GPS (global positioning system)](https://en.wikipedia.org/wiki/Global_Positioning_System) and
+[DORIS (gosh these acronyms are tiring)](https://en.wikipedia.org/wiki/DORIS_(geodesy)).
+The raw data is not in the form of positions, but must be condensed down in a
+large scale fitting problem, ideally by requiring physical and statistical
+consistency of all measurements, tying measurements at different sites together
+with physical models.
+
+
+### Coordinate systems
+
+In geometry, a **coordinate system**
+[is a system](https://en.wikipedia.org/wiki/Coordinate_system)
+which uses one or more numbers, or **coordinates** to uniquely
+determine the position of a point in a mathematical space such as Euclidean
+space.  For example, in geodesy a point is commonly referred to using geodetic
+latitude, longitude and height relative to a given reference ellipsoid; this is
+called a **geodetic coordinate system**.
+
+An [**ellipsoid**](https://en.wikipedia.org/wiki/Ellipsoid) is chosen because
+it's a reasonable model for the shape of the Earth and its gravitational field
+without being overly complex; it has only a few parameters, and a simple
+mathematical form.  The term [**spheroid**](https://en.wikipedia.org/wiki/Spheroid)
+is also used because the ellipsoids in use today are rotationally symmetric
+around the pole. Note that there's several ways to define
+[latitude](https://en.wikipedia.org/wiki/Latitude) on an ellipsoid. The most
+natural for geodesy is **geodetic latitude**, used by default because it's
+physically accessible in any location as a good approximation to the angle
+between the gravity vector and the equatorial plane.  (This type of latitude
+is not an angle measured at the centre of the ellipsoid, which may be surprising
+if you're used to spherical coordinates!)
+
+There are usually several useful coordinate systems for the same space.  As well
+as the geodetic coordinates mentioned above, it's common to see
+
+* The x,y,z components in an Earth-Centred Cartesian coordinate system rotating
+  with the Earth.  This is conventionally called an
+  **Earth-Centred Earth-Fixed** (**ECEF**) coordinate system. This is a natural
+  coordinate system in which to define coordinates for the datum objects
+  defining a terrestrial reference frame.
+* The east,north and up **ENU** components of a Cartesian coordinate frame at a
+  particular point on the ellipsoid.  This coordinate system is useful as a
+  local frame for navigation.
+* Easting,northing and vertical components of a **projected coordinate system** or
+  [**map projection**](http://www.icsm.gov.au/mapping/about_projections.html).
+  There's an entire zoo of these, designed to represent the curved surface of an
+  ellipsoid with a flat map.
+
+Different coordinates systems provide different coordinates for the same point,
+so it's obviously important to specify exactly which coordinate system you're
+using.  In particular, you should specify which ellipsoid parameters are in
+use if you deal with latitude and longitude, as in principle you could have more
+than one ellipsoid.  This is a point of confusion, because a datum in geodesy
+also comes with a reference ellipsoid as a very strong matter of convention
+(thus being called a **geodetic datum**).
+
+With its conventional ellipsoid, a geodetic datum also defines a conventional
+geodetic coordinate system, thus bringing together concepts which are
+interconnected but conceptually distinct.  To emphasize:
+
+* A coordinate system is a mathematical abstraction allowing us to manipulate
+  *geometric* quantities using numeric and algebraic techniques.  By itself,
+  mathematical geometry is pure abstraction without a connection to the physical
+  world.
+* A datum is a set of physical objects with associated coordinates, thereby
+  *defining* a reference frame in a way which is physically accessible.  A datum
+  is the bridge which connects physical reality to the abstract ideal of
+  mathematical geometry, via the algebraic mechanism of a coordinate system.
+
+
+## The API
+
 ### Coordinate types
 
 Geodesy provides several in-built coordinate storage types for convenience and
@@ -142,23 +329,34 @@ The `ENU` type is a local Cartesian coordinate that encodes a point's distance
 towards east `e`, towards north `n` and upwards `u` with respect to an
 unspecified origin.
 
-### Datums
+### Geodetic Datums
 
-Geodesy comes with several in-built geodetic (i.e. ellipsoidal) datums.
+Geodetic datums are modelled as subtypes of the abstract type `Datum`.  The
+associated ellipsoid may be obtained by calling the `ellipsoid()` function, for
+example, `ellipsoid(NAD83())`.
 
-* `wgs84`
-* `osgb36`
-* `nad27`
-* `grs80`
+There are several pre-defined datums.  Worldwide datums include
 
-These are instances of Julia singleton types (`WGS84`, etc) and are used to
-overload internal methods for getting the elliptical parameters (as a `Geodesy.Ellipsoid`)
-and pre-cached calculations for transverse-Mercator and polar-stereographic
-projections (as a `Geodesy.TransverseMercator`).
+* `WGS84` - standard GPS datum for moderate precision work (representing both
+  the latest frame realization, or if time is supplied a discontinuous dynamic
+  datum where time looks up the frame implementation date in the broadcast
+  ephemerides.)
+* `WGS84{GpsWeek}` - specific realizations of the WGS84 frame.
+* `ITRF{Year}` - Realizations of the International Terrestrial Reference System
+  for high precision surveying.
 
-To define your own ellipsoidal datum, it would be most efficient to define your own
-singleton types and add methods to `Geodesy.ellipsoid` and `Geodesy.TransverseMercator`
-to refer to pre-computed data `Ellipsoid`s and `TransverseMercator`s.
+National datums include
+
+* `OSGB36` - Ordnance Survey of Great Britain of 1936.
+* `NAD27`, `NAD83` - North American Datums of 1927 and 1983, respectively
+* `GDA94` - Geocentric Datum of Australia, 1994.
+
+Datums may also be passed to coordinate transformation constructors such as
+transverse-Mercator and polar-stereographic projections in which case the
+associated ellipsoid will be extracted to form the transformation.  For datums
+without extra parameters (everything except `ITRF` and `WGS84{Week}`) there is a
+standard instance defined to reduce the amount of brackets you have to type.
+For example, `LLAfromECEF(NAD83())` and `LLAfromECEF(nad83)` are equivalent.
 
 ### Transformations and conversions
 

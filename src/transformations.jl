@@ -2,7 +2,9 @@
 ## LLA <-> ECEF ##
 ##################
 
-immutable LLAfromECEF{Datum} <: Transformation
+immutable LLAfromECEF <: Transformation
+    el::Ellipsoid
+
     a::Float64      # major axis
     f::Float64      # flattening
     e2::Float64     # Eccentricity squared
@@ -10,39 +12,37 @@ immutable LLAfromECEF{Datum} <: Transformation
     e2a::Float64    # |e2|
     e4a::Float64    # e2^2
 
-    datum::Datum
-
-    function LLAfromECEF(a,f,e2,e2m,e2a,e4a,datum)
+    function LLAfromECEF(el,a,f,e2,e2m,e2a,e4a)
         if !(isfinite(a) && a > 0)
             error("Major radius is not positive")
         end
         if !(isfinite(f) && f < 1)
             error("Minor radius is not positive")
         end
-        return new(a,f,e2,e2m,e2a,e4a,datum)
+        return new(el,a,f,e2,e2m,e2a,e4a)
     end
 end
-Base.show(io::IO, trans::LLAfromECEF) = print(io, "LLAfromECEF($(trans.datum))")
+Base.show(io::IO, trans::LLAfromECEF) = print(io, "LLAfromECEF($(trans.el))")
 
 """
-    LLAfromECEF(datum)
+    LLAfromECEF(ellipsoid)
 
 Construct a `Transformation` object to convert from ECEF coordinates
 to LLA coordinates. Pre-caches ellipsoidal parameters for efficiency.
 """
-function LLAfromECEF{Datum}(datum::Datum)
-    el = ellipsoid(datum)
-
+function LLAfromECEF(el::Ellipsoid)
     a = el.a
     b = el.b
-    f = 1 - b/a
-    e2 = f*(2-f) # or el.e²
+    f = el.f
+    e2 = f*(2-f)
     e2m = (1-f)*(1-f)  #1 - e2
     e2a = abs(e2)
     e4a = e2*e2
 
-    return LLAfromECEF{Datum}(a, f, e2, e2m, e2a, e4a, datum)
+    return LLAfromECEF(el, a, f, e2, e2m, e2a, e4a)
 end
+
+LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
 
 
 @compat function (trans::LLAfromECEF)(ecef::ECEF)
@@ -159,23 +159,17 @@ end
 
 
 """
-    ECEFfromLLA(datum)
+    ECEFfromLLA(ellipsoid_or_datum)
 
 Construct a `Transformation` object to convert from LLA coordinates
 to ECEF coordinates.
 """
-immutable ECEFfromLLA{Datum} <: Transformation
-    a::Float64   # Ellipsoidal major axis
-    e²::Float64  # Ellipsoidal square-eccentricity = 1 - b^2/a^2
-
-    datum::Datum
+immutable ECEFfromLLA <: Transformation
+    el::Ellipsoid
 end
-Base.show(io::IO, trans::ECEFfromLLA) = print(io, "ECEFfromLLA($(trans.datum))")
+Base.show(io::IO, trans::ECEFfromLLA) = print(io, "ECEFfromLLA($(trans.el))")
 
-function ECEFfromLLA{Datum}(datum::Datum)
-    el = ellipsoid(datum)
-    return ECEFfromLLA{Datum}(el.a, el.e², datum)
-end
+ECEFfromLLA(datum::Datum) = ECEFfromLLA(ellipsoid(datum))
 
 
 @compat function (trans::ECEFfromLLA)(lla::LLA)
@@ -184,21 +178,18 @@ end
     sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
     sinλ, cosλ = sind(λdeg), cosd(λdeg)
 
-    N = trans.a / sqrt(1 - trans.e² * sinϕ^2)  # Radius of curvature (meters)
+    N = trans.el.a / sqrt(1 - trans.el.e2 * sinϕ^2)  # Radius of curvature (meters)
 
     x = (N + h) * cosϕ * cosλ
     y = (N + h) * cosϕ * sinλ
-    z = (N * (1 - trans.e²) + h) * sinϕ
+    z = (N * (1 - trans.el.e2) + h) * sinϕ
 
     return ECEF(x, y, z)
 end
 
-Base.inv(trans::LLAfromECEF) = ECEFfromLLA(trans.datum)
-Base.inv(trans::ECEFfromLLA) = LLAfromECEF(trans.datum)
+Base.inv(trans::LLAfromECEF) = ECEFfromLLA(trans.el)
+Base.inv(trans::ECEFfromLLA) = LLAfromECEF(trans.el)
 
-# It's not clear if this is worthwhile or not... (return is not type-certain)
-compose(trans1::ECEFfromLLA, trans2::LLAfromECEF) = t1.datum === t2.datum ? IdentityTransform{ECEF}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
-compose(trans1::LLAfromECEF, trans2::ECEFfromLLA) = t1.datum === t2.datum ? IdentityTransform{LLA}() : ComposedTransformation{outtype(trans1), intype(trans2), typeof(trans1), typeof(trans2)}(trans1, trans2)
 
 ##################
 ## ECEF <-> ENU ##
