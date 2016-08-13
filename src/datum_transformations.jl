@@ -102,7 +102,7 @@ function GDA94_from_ITRF_Dawson2010(ITRF_year, epoch)
                       -Rz  1.0   Rx;
                        Ry  -Rx  1.0]
 
-    AffineTransformation(M, Vec(Tx,Ty,Tz))
+    AffineMap(M, Vec(Tx,Ty,Tz))
 end
 
 
