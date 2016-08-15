@@ -287,9 +287,8 @@ interconnected but conceptually distinct.  To emphasize:
 ### Coordinate types
 
 Geodesy provides several in-built coordinate storage types for convenience and
-safety. The philosophy is to avoid carrying around raw data in `Vector`s,
-*FixedSizeArray* `Vec`s or `Point`s with no concept of what coordinate system it
-is in.
+safety. The philosophy is to avoid carrying around raw data in generic containers
+like `Vector`s with no concept of what coordinate system it is in.
 
 ##### `LLA{T}` - latitude, longitude and altitude
 
@@ -306,7 +305,10 @@ is also provided. `LatLon` is currently the only supported 2D coordinate.
 ##### `ECEF{T}` - Earth-centered, Earth-fixed
 
 The global `ECEF` type stores Cartesian coordinates `x`, `y`, `z`, according to the
-[usual convention](https://en.wikipedia.org/wiki/ECEF).
+[usual convention](https://en.wikipedia.org/wiki/ECEF). Being a Cartesian frame,
+`ECEF` is a subtype of [StaticArrays](https://github.com/andyferris/StaticArrays.jl)'
+`StaticVector` and they can be added and subtracted with themselves and other
+vectors.
 
 ##### `UTM{T}` - universal transverse-Mercator
 
@@ -327,7 +329,7 @@ projection about the corresponding pole, otherwise `zone` is an integer between
 
 The `ENU` type is a local Cartesian coordinate that encodes a point's distance
 towards east `e`, towards north `n` and upwards `u` with respect to an
-unspecified origin.
+unspecified origin. Like `ECEF`, `ENU` is also a subtype of `StaticVector`.
 
 ### Geodetic Datums
 
