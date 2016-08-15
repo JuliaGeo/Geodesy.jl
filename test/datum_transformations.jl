@@ -14,9 +14,9 @@ using CoordinateTransformations
 
         # Test inverse
         epoch = Date(2010,6,16)
-        T = datum_shift_ECEF(ITRF{2008}(epoch), GDA94) ∘ datum_shift_ECEF(GDA94, ITRF{2008}(epoch))
-        @test transformation_matrix(T) ≈ eye(3)
-        @test isapprox(translation_vector(T), zeros(3), atol=10*eps())
+        trans = datum_shift_ECEF(ITRF{2008}(epoch), GDA94) ∘ datum_shift_ECEF(GDA94, ITRF{2008}(epoch))
+        @test trans.m ≈ eye(3)
+        @test isapprox(trans.v, zeros(3), atol=10*eps())
     end
 
     @testset "ITRS realizations" begin

@@ -98,11 +98,11 @@ function GDA94_from_ITRF_Dawson2010(ITRF_year, epoch)
     unitconv = [1e-3, 1e-3, 1e-3, 1e-9, mas2rad, mas2rad, mas2rad]
     Tx,Ty,Tz, Sc, Rx,Ry,Rz = unitconv .* (params .+ rates*dt)
 
-    M = (1+Sc) * @fsa [1.0  Rz  -Ry;
-                      -Rz  1.0   Rx;
-                       Ry  -Rx  1.0]
+    M = (1+Sc) * @SMatrix [1.0  Rz  -Ry;
+                          -Rz  1.0   Rx;
+                           Ry  -Rx  1.0]
 
-    AffineMap(M, Vec(Tx,Ty,Tz))
+    AffineMap(M, SVector(Tx,Ty,Tz))
 end
 
 
@@ -111,4 +111,3 @@ datum_shift_ECEF{Y}(itrf::ITRF{Y}, ::GDA94) = inv(GDA94_from_ITRF_Dawson2010(Y, 
 
 # TODO - time-based transformation!
 # make_datum_transform_ECEF{Y}(::ITRF{Y,Void}, ::GDA94) =
-

@@ -5,12 +5,12 @@ The Cartesian distance between points `a` and `b`. Uses `datum` to perform
 transformations as necessary, and unlike other *Geodesy* functions, this defaults
 to use the common WGS-84 datum for convenience.
 """
-distance{T <: FixedVector}(a::T, b::T) = norm(a-b)
+distance{T <: AbstractVector}(a::T, b::T) = vecnorm(a-b)
 
 # Automatic transformations to ECEF
 # Uses wgs84 datum as a default. In most cases, the datum choice will only make
 # a small difference to the answer. Nevertheless, is this acceptable?
-distance{T <: FixedVector}(a::T, b::T, datum) = distance(a, b)
+distance{T <: AbstractVector}(a::T, b::T, datum) = distance(a, b)
 distance(a::LLA, b, datum = wgs84) = distance(ECEFfromLLA(datum)(a), b, datum)
 distance(a::ECEF, b::LLA, datum = wgs84) = distance(a, ECEFfromLLA(datum)(b), datum)
 distance(a::LatLon, b, datum = wgs84) = distance(ECEFfromLLA(datum)(LLA(a)), b, datum)

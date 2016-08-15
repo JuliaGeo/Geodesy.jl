@@ -45,7 +45,7 @@ end
 LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
 
 
-@compat function (trans::LLAfromECEF)(ecef::ECEF)
+ function (trans::LLAfromECEF)(ecef::ECEF)
     # Ported to Julia by Andy Ferris, 2016 and re-released under MIT license.
     #/**
     # * \file Geocentric.cpp
@@ -172,7 +172,7 @@ Base.show(io::IO, trans::ECEFfromLLA) = print(io, "ECEFfromLLA($(trans.el))")
 ECEFfromLLA(datum::Datum) = ECEFfromLLA(ellipsoid(datum))
 
 
-@compat function (trans::ECEFfromLLA)(lla::LLA)
+function (trans::ECEFfromLLA)(lla::LLA)
     ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
 
     sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
@@ -218,7 +218,7 @@ Base.show(io::IO, trans::ENUfromECEF) = print(io, "ENUfromECEF($(trans.origin), 
 Base.isapprox(t1::ENUfromECEF, t2::ENUfromECEF; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
 
-@compat function (trans::ENUfromECEF)(ecef::ECEF)
+function (trans::ENUfromECEF)(ecef::ECEF)
     ϕdeg, λdeg = trans.lat, trans.lon
 
     ∂x = ecef.x - trans.origin.x
@@ -263,7 +263,7 @@ end
 Base.show(io::IO, trans::ECEFfromENU) = print(io, "ECEFfromENU($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ECEFfromENU, t2::ECEFfromENU; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
-@compat function (trans::ECEFfromENU)(enu::ENU)
+function (trans::ECEFfromENU)(enu::ENU)
     ϕdeg, λdeg = trans.lat, trans.lon
 
     # Compute rotation matrix
@@ -330,7 +330,7 @@ LLAfromUTM(zone::UInt8, h, d) = LLAfromUTM(UInt8(zone), h, TransverseMercator(d)
 LLAfromUTM(zone::Integer, h, d) = LLAfromUTM(UInt8(zone), h, d)
 Base.show(io::IO, trans::LLAfromUTM) = print(io, "LLAfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 
-@compat function (trans::LLAfromUTM)(utm::UTM)
+function (trans::LLAfromUTM)(utm::UTM)
     if trans.zone == 0
         # Do inverse steriographic projection
         k0 = 0.994
@@ -370,7 +370,7 @@ UTMfromLLA(zone::UInt8, h, d) = UTMfromLLA(zone, h, TransverseMercator(d), d)
 UTMfromLLA(zone::Integer, h, d) = UTMfromLLA(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromLLA) = print(io, "UTMfromLLA(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 
-@compat function (trans::UTMfromLLA)(lla::LLA)
+function (trans::UTMfromLLA)(lla::LLA)
     if trans.zone == 0
         # Do polar steriographic projection
         k0 = 0.994
@@ -435,7 +435,7 @@ LLAfromUTMZ(datum) = LLAfromUTMZ(TransverseMercator(datum), datum)
 Base.show(io::IO, trans::LLAfromUTMZ) = print(io, "LLAfromUTMZ($(trans.datum))")
 
 
-@compat function (trans::LLAfromUTMZ)(utm::UTMZ)
+function (trans::LLAfromUTMZ)(utm::UTMZ)
     if utm.zone == 0
         # Do inverse steriographic projection
         k0 = 0.994
@@ -474,10 +474,8 @@ UTMZfromLLA(datum) = UTMZfromLLA(TransverseMercator(datum), datum)
 Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
 
 
-@compat function (trans::UTMZfromLLA)(lla::LLA)
+function (trans::UTMZfromLLA)(lla::LLA)
     (zone, isnorth) = utm_zone(lla)
-    zone::Int64
-    isnorth::Bool
     if zone == 0
         # Do polar steriographic projection
         k0 = 0.994
@@ -534,8 +532,8 @@ UTMfromUTMZ{D}(zone::Integer, h, d::D) = UTMfromUTMZ{D}(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
-@compat (trans::UTMZfromUTM)(utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth)
-@compat function (trans::UTMfromUTMZ)(utm::UTMZ)
+(trans::UTMZfromUTM)(utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth)
+function (trans::UTMfromUTMZ)(utm::UTMZ)
     if trans.zone == utm.zone && trans.isnorth == utm.isnorth
         UTM(utm.x, utm.y, utm.z)
     else

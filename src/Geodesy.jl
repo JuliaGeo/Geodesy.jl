@@ -3,8 +3,7 @@ __precompile__()
 module Geodesy
 
 using CoordinateTransformations
-using FixedSizeArrays
-using Compat
+using StaticArrays
 
 import CoordinateTransformations.transform_deriv,
        CoordinateTransformations.transform_deriv_params,
