@@ -1,5 +1,5 @@
 using Geodesy
-using BaseTestNext
+using Base.Test
 
 ################################################
 ### Helpers for testing approximate equality ###
