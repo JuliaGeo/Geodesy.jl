@@ -11,14 +11,14 @@ immutable Ellipsoid
                       # of the const instance in the package!
 end
 
-function Ellipsoid(; a::@compat(AbstractString)="", b::@compat(AbstractString)="", f_inv::@compat(AbstractString)="", name=:UNKNOWN)
+function Ellipsoid(; a::String="", b::String="", f_inv::String="", name=:UNKNOWN)
     if isempty(a) || isempty(b) == isempty(f_inv)
         throw(ArgumentError("Specify parameter 'a' and either 'b' or 'f_inv'"))
     end
     if isempty(b)
-        _ellipsoid_af(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,f_inv)), name)
+        _ellipsoid_af(parse(BigFloat, a), parse(BigFloat, f_inv), name)
     else
-        _ellipsoid_ab(@compat(parse(BigFloat,a)), @compat(parse(BigFloat,b)), name)
+        _ellipsoid_ab(parse(BigFloat, a), parse(BigFloat, b), name)
     end
 end
 

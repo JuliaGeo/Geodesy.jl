@@ -127,8 +127,8 @@ end
     end
 end
 
-@compat (::Type{ITRF{Year}}){Year}() = ITRF{Year,Void}(nothing)
-@compat (::Type{ITRF{Year}}){Year}(epoch) = ITRF{Year,typeof(epoch)}(epoch)
+(::Type{ITRF{Year}}){Year}() = ITRF{Year,Void}(nothing)
+(::Type{ITRF{Year}}){Year}(epoch) = ITRF{Year,typeof(epoch)}(epoch)
 
 Base.show{Y}(io::IO, ::ITRF{Y,Void}) = print(io,"ITRF{$Y}")
 Base.show{Y}(io::IO, itrf::ITRF{Y}) = print(io,"ITRF{$Y}($(itrf.epoch))")
@@ -179,4 +179,3 @@ const osgb36 = OSGB36()
 const nad27 = NAD27()
 const nad83 = NAD83()
 const gda94 = GDA94()
-

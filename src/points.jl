@@ -47,7 +47,7 @@ Base.isapprox(ll1::LatLon, ll2::LatLon; atol = 1e-6, kwargs...) = isapprox(ll1.l
 Earth-Centered-Earth-Fixed (ECEF) coordinates. A global Cartesian coordinate
 system rotating with the Earth.
 """
-immutable ECEF{T} <: FixedVectorNoTuple{3,Float64}
+immutable ECEF{T} <: FieldVector{T}
     x::T
     y::T
     z::T
@@ -60,7 +60,7 @@ Base.show(io::IO, ecef::ECEF) = print(io, "ECEF($(ecef.x), $(ecef.y), $(ecef.z))
 
 East-North-Up (ENU) coordinates. A local Cartesian coordinate system, linearized about a reference point.
 """
-immutable ENU{T} <: FixedVectorNoTuple{3,Float64}
+immutable ENU{T} <: FieldVector{T}
     e::T
     n::T
     u::T
