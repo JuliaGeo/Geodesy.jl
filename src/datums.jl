@@ -136,6 +136,29 @@ Base.show{Y}(io::IO, itrf::ITRF{Y}) = print(io,"ITRF{$Y}($(itrf.epoch))")
 ellipsoid(::ITRF)             = grs80
 ellipsoid{D<:ITRF}(::Type{D}) = grs80
 
+#
+# ETRF
+#
+
+"""
+    ETRF{Year}()
+
+Construct an object representing the European Terrestrial Reference Frame
+for the given `Year` of realization.
+
+ETRF realizations correspond to ITRF realizations - a measurement taken at the reference epoch YYYY will have the same coordinates
+in ETRFYYYY and ITRFYYYY.  Measurements taken at times other than the reference epoch will have different coordinates in ETRFYYYY and ITRFYYYY.
+
+
+See http://etrs89.ensg.ign.fr/ for a technical overview.
+"""
+immutable ETRF{Year} <: Datum
+end
+ellipsoid(::ETRF)             = grs80
+ellipsoid{D<:ETRF}(::Type{D}) = grs80
+
+typealias ETRS89 ETRF{1989} # this notation abuse seems to be in common usage
+
 
 #------------------------------------------------------------------------------
 # National geodetic datums
