@@ -52,7 +52,11 @@ immutable ECEF{T} <: FieldVector{T}
     y::T
     z::T
 end
-Base.show(io::IO, ecef::ECEF) = print(io, "ECEF($(ecef.x), $(ecef.y), $(ecef.z))")
+@inline function ECEF(x,y,z)
+    T = promote_type(promote_type(typeof(x),typeof(y)), typeof(z))
+    ECEF{T}(x,y,z)
+end
+Base.show(io::IO, ::MIME"text/plain", ecef::ECEF) = print(io, "ECEF($(ecef.x), $(ecef.y), $(ecef.z))")
 
 
 """
@@ -66,7 +70,11 @@ immutable ENU{T} <: FieldVector{T}
     u::T
 end
 ENU(x, y) = ENU(x, y, 0.0)
-Base.show(io::IO, enu::ENU) = print(io, "ENU($(enu.e), $(enu.n), $(enu.u))")
+@inline function ENU(x,y,z)
+    T = promote_type(promote_type(typeof(x),typeof(y)), typeof(z))
+    ENU{T}(x,y,z)
+end
+Base.show(io::IO, ::MIME"text/plain", enu::ENU) = print(io, "ENU($(enu.e), $(enu.n), $(enu.u))")
 
 
 """
