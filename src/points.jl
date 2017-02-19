@@ -14,7 +14,7 @@ immutable LLA{T <: Number}
     alt::T
 end
 LLA(;lat=NaN,lon=NaN,alt=0.0) = LLA(lat,lon,alt) # Constructor that is idependent of storage order
-LLA(lat, lon) = LLA(lat, lon, 0.0)
+LLA{T}(lat :: T, lon :: T) = LLA(lat, lon, zero(T))
 Base.show(io::IO, lla::LLA) = print(io, "LLA(lat=$(lla.lat)°, lon=$(lla.lon)°, alt=$(lla.alt))") # Maybe show to nearest mm, or 6 decimel places?
 Base.isapprox(lla1::LLA, lla2::LLA; atol = 1e-6, kwargs...) = isapprox(lla1.lat, lla2.lat; atol = 180*atol/6.371e6, kwargs...) & isapprox(lla1.lon, lla2.lon; atol = 180*atol/6.371e6, kwargs...) & isapprox(lla1.alt, lla2.alt; atol = atol, kwargs...) # atol in metres (1μm)
 
@@ -69,7 +69,7 @@ immutable ENU{T <: Number} <: FieldVector{T}
     n::T
     u::T
 end
-ENU(x, y) = ENU(x, y, 0.0)
+ENU{T}(x :: T, y :: T) = ENU(x, y, zero(T))
 @inline function ENU(x,y,z)
     T = promote_type(promote_type(typeof(x),typeof(y)), typeof(z))
     ENU{T}(x,y,z)
@@ -92,7 +92,7 @@ immutable UTM{T <: Number}
     y::T
     z::T
 end
-UTM(x, y) = UTM(x, y, 0.0)
+UTM{T}(x :: T, y :: T) = UTM(x, y, zero(T))
 Base.isapprox(utm1::UTM, utm2::UTM; atol = 1e-6, kwargs...) = isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
 Base.show(io::IO, utm::UTM) = print(io, "UTM($(utm.x), $(utm.y), $(utm.z))")
 
@@ -114,7 +114,7 @@ immutable UTMZ{T <: Number}
     zone::UInt8
     isnorth::Bool # which hemisphere
 end
-UTMZ{T}(x::T, y::T, zone::Integer, isnorth::Bool) = UTMZ(x, y, 0.0, UInt8(zone), isnorth)
+UTMZ{T}(x::T, y::T, zone::Integer, isnorth::Bool) = UTMZ(x, y, zero(T), UInt8(zone), isnorth)
 UTMZ(x, y, z, zone::Integer, isnorth::Bool) = UTMZ(x, y, z, UInt8(zone), isnorth)
 UTMZ(utm::UTM, zone::Integer, isnorth::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), isnorth)
 UTM(utmz::UTMZ) = UTM(utmz.x, utmz.y, utmz.z)
