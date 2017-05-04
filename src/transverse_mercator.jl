@@ -174,7 +174,7 @@ polar-stereographic transformations. Series expansion coefficients up to order
 `MaxPow` (between 4 and 8, default 6) are calculated and stored for fast
 transverse-Mercator and UTM calculations.
 """
-immutable TransverseMercator{MaxPow}
+struct TransverseMercator{MaxPow}
     a::Float64
     f::Float64
     e2::Float64
