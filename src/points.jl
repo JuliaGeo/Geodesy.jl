@@ -13,8 +13,9 @@ immutable LLA{T <: Number}
     lon::T
     alt::T
 end
+LLA(lat, lon, alt=zero(lat)) = LLA(promote(lat, lon, alt)...)
 LLA(;lat=NaN,lon=NaN,alt=0.0) = LLA(lat,lon,alt) # Constructor that is idependent of storage order
-LLA{T}(lat :: T, lon :: T) = LLA(lat, lon, zero(T))
+
 Base.show(io::IO, lla::LLA) = print(io, "LLA(lat=$(lla.lat)°, lon=$(lla.lon)°, alt=$(lla.alt))") # Maybe show to nearest mm, or 6 decimel places?
 Base.isapprox(lla1::LLA, lla2::LLA; atol = 1e-6, kwargs...) = isapprox(lla1.lat, lla2.lat; atol = 180*atol/6.371e6, kwargs...) & isapprox(lla1.lon, lla2.lon; atol = 180*atol/6.371e6, kwargs...) & isapprox(lla1.alt, lla2.alt; atol = atol, kwargs...) # atol in metres (1μm)
 
@@ -30,6 +31,7 @@ immutable LatLon{T <: Number}
     lat::T
     lon::T
 end
+LatLon(lat, lon) = LatLon(promote(lat, lon)...)
 LatLon(;lat=NaN,lon=NaN) = LatLon(lat,lon) # Constructor that is idependent of storage order
 LatLon(lla::LLA) = LatLon(lla.lat, lla.lon)
 function LatLon(x, datum) #?
