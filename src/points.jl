@@ -8,7 +8,7 @@
 
 Latitude, longitude, and alititude co-ordinates. *Note:* assumes degrees not radians
 """
-immutable LLA{T <: Number}
+struct LLA{T <: Number}
     lat::T
     lon::T
     alt::T
@@ -27,7 +27,7 @@ Base.isapprox(lla1::LLA, lla2::LLA; atol = 1e-6, kwargs...) = isapprox(lla1.lat,
 
 Latitude and longitude co-ordinates. *Note:* assumes degrees not radians
 """
-immutable LatLon{T <: Number}
+struct LatLon{T <: Number}
     lat::T
     lon::T
 end
@@ -49,7 +49,7 @@ Base.isapprox(ll1::LatLon, ll2::LatLon; atol = 1e-6, kwargs...) = isapprox(ll1.l
 Earth-Centered-Earth-Fixed (ECEF) coordinates. A global Cartesian coordinate
 system rotating with the Earth.
 """
-immutable ECEF{T <: Number} <: FieldVector{T}
+struct ECEF{T <: Number} <: FieldVector{3, T}
     x::T
     y::T
     z::T
@@ -66,7 +66,7 @@ Base.show(io::IO, ::MIME"text/plain", ecef::ECEF) = print(io, "ECEF($(ecef.x), $
 
 East-North-Up (ENU) coordinates. A local Cartesian coordinate system, linearized about a reference point.
 """
-immutable ENU{T <: Number} <: FieldVector{T}
+struct ENU{T <: Number} <: FieldVector{3, T}
     e::T
     n::T
     u::T
@@ -89,7 +89,7 @@ relavant transformations `UTMfromLLA` and `LLAfromUTM` (see also the `UTMZ` type
 This type may be used to parameterize UPS coordinates (Universal Polar
 Stereographic) to accurately represent the polar regions, in zone "0".
 """
-immutable UTM{T <: Number}
+struct UTM{T <: Number}
     x::T
     y::T
     z::T
@@ -109,7 +109,7 @@ projection type for world points. The UTM zone is included in coordinates
 This type may be used to parameterize UPS coordinates (Universal Polar
 Stereographic) to accurately represent the polar regions, in zone "0".
 """
-immutable UTMZ{T <: Number}
+struct UTMZ{T <: Number}
     x::T
     y::T
     z::T

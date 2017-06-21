@@ -2,7 +2,7 @@
 An ellipsoidal representation of the Earth, for converting between LLA and
 other co-ordinate systems such as ECEF.
 """
-immutable Ellipsoid
+struct Ellipsoid
     a::Float64        # Semi-major axis
     b::Float64        # Semi-minor axis
     f::Float64        # Flattening
