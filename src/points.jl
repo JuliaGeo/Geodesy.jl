@@ -2,6 +2,11 @@
 ### Point Types ###
 ###################
 
+# See the REQUIRE file for details.
+@static if VERSION >= v"0.6"
+    const FieldVector{T} = StaticArrays.FieldVector{3, T}
+end
+
 """
     LLA(lat, lon, alt = 0.0)
     LLA(lat = ϕ, lon = Θ, alt = h)
