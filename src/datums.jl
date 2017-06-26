@@ -7,7 +7,7 @@ which other objects may be positioned.  We model these in code with subtypes of
 which is required when transforming between coordinate systems.  The ellipsoid
 can be accessed with the `ellipsoid()` function.
 """
-abstract Datum
+@compat abstract type Datum end
 
 #------------------------------------------------------------------------------
 # Worldwide geodetic datums
@@ -54,7 +54,7 @@ use at a given date?  Does anybody care?)
    http://earth-info.nga.mil/GandG/publications/NGA_STND_0036_1_0_0_WGS84/NGA.STND.0036_1.0.0_WGS84.pdf
 """
 immutable WGS84{GpsWeek} <: Datum
-    WGS84() = check_wgs84_params(new())
+    (::Type{WGS84{GpsWeek}}){GpsWeek}() = check_wgs84_params(new{GpsWeek}())
 end
 
 WGS84() = WGS84{Void}()
@@ -111,8 +111,8 @@ technical papers:
 immutable ITRF{Year, EpochT} <: Datum
     epoch::EpochT
 
-    function ITRF(epoch::EpochT)
-        check_itrf_year(new(epoch))
+    function (::Type{ITRF{Year,EpochT}}){Year,EpochT}(epoch::EpochT)
+        check_itrf_year(new{Year,EpochT}(epoch))
     end
 end
 
