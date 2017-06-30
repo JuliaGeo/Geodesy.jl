@@ -2,7 +2,7 @@
 
 | **Package Evaluator**                                           | **Build Status**                                                                                |
 |:---------------------------------------------------------------:|:-----------------------------------------------------------------------------------------------:|
-| [![0.5 package tests](http://pkg.julialang.org/badges/Geodesy_0.5.svg)](http://pkg.julialang.org/?pkg=Geodesy) [![0.6 package tests](http://pkg.julialang.org/badges/Geodesy_0.6.svg)](http://pkg.julialang.org/?pkg=Geodesy) | [![Linux/macOS](https://travis-ci.org/JuliaGeo/Geodesy.jl.svg?branch=master)](https://travis-ci.org/JuliaGeo/Geodesy.jl) [![Windows](https://ci.appveyor.com/api/projects/status/github/NgYeeSian/Geodesy.jl?svg=true)](https://ci.appveyor.com/project/NgYeeSian/geodesy-jl) [![Coverage](http://img.shields.io/coveralls/JuliaGeo/Geodesy.jl.svg)](https://coveralls.io/r/JuliaGeo/Geodesy.jl) |
+| [![0.5 package tests](http://pkg.julialang.org/badges/Geodesy_0.5.svg)](http://pkg.julialang.org/?pkg=Geodesy) [![0.6 package tests](http://pkg.julialang.org/badges/Geodesy_0.6.svg)](http://pkg.julialang.org/?pkg=Geodesy) | [![Linux/macOS](https://travis-ci.org/JuliaGeo/Geodesy.jl.svg?branch=master)](https://travis-ci.org/JuliaGeo/Geodesy.jl) [![Windows](https://ci.appveyor.com/api/projects/status/github/JuliaGeo/Geodesy.jl?svg=true)](https://ci.appveyor.com/project/JuliaGeo/geodesy-jl) [![Coverage](http://img.shields.io/coveralls/JuliaGeo/Geodesy.jl.svg)](https://coveralls.io/r/JuliaGeo/Geodesy.jl) |
 
 **Geodesy** is a Julia package for working with points in various world and
 local coordinate systems. The primary feature of *Geodesy* is to define and
