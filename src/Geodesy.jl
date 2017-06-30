@@ -4,6 +4,7 @@ module Geodesy
 
 using CoordinateTransformations
 using StaticArrays
+using Compat
 
 import CoordinateTransformations.transform_deriv,
        CoordinateTransformations.transform_deriv_params,
@@ -51,9 +52,9 @@ export
     # UTM helpers
     utm_zone
 
-include("points.jl")
 include("ellipsoids.jl")
 include("datums.jl")
+include("points.jl")
 include("transverse_mercator.jl")
 include("polar_stereographic.jl")
 include("transformations.jl")

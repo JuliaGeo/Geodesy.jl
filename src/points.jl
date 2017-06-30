@@ -39,7 +39,7 @@ end
 LatLon(lat, lon) = LatLon(promote(lat, lon)...)
 LatLon(;lat=NaN,lon=NaN) = LatLon(lat,lon) # Constructor that is idependent of storage order
 LatLon(lla::LLA) = LatLon(lla.lat, lla.lon)
-function LatLon(x, datum) #?
+function LatLon(x, datum::Union{Datum,Ellipsoid})
     lla = LLA(x, datum)
     return LatLon(lla.lat, lla.lon)
 end

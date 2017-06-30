@@ -1,4 +1,5 @@
-julia 0.5-
+julia 0.5
+Compat 0.17.0
 CoordinateTransformations 0.3.0
 
 # Enforce that:
