@@ -3,9 +3,7 @@
 ###################
 
 # See the REQUIRE file for details.
-@static if VERSION >= v"0.6"
-    const FieldVector{T} = StaticArrays.FieldVector{3, T}
-end
+const FieldVector{T} = StaticArrays.FieldVector{3, T}
 
 """
     LLA(lat, lon, alt = 0.0)
@@ -13,7 +11,7 @@ end
 
 Latitude, longitude, and alititude co-ordinates. *Note:* assumes degrees not radians
 """
-immutable LLA{T <: Number}
+struct LLA{T <: Number}
     lat::T
     lon::T
     alt::T
@@ -32,7 +30,7 @@ Base.isapprox(lla1::LLA, lla2::LLA; atol = 1e-6, kwargs...) = isapprox(lla1.lat,
 
 Latitude and longitude co-ordinates. *Note:* assumes degrees not radians
 """
-immutable LatLon{T <: Number}
+struct LatLon{T <: Number}
     lat::T
     lon::T
 end
@@ -54,7 +52,7 @@ Base.isapprox(ll1::LatLon, ll2::LatLon; atol = 1e-6, kwargs...) = isapprox(ll1.l
 Earth-Centered-Earth-Fixed (ECEF) coordinates. A global Cartesian coordinate
 system rotating with the Earth.
 """
-immutable ECEF{T <: Number} <: FieldVector{T}
+struct ECEF{T <: Number} <: FieldVector{T}
     x::T
     y::T
     z::T
@@ -71,12 +69,12 @@ Base.show(io::IO, ::MIME"text/plain", ecef::ECEF) = print(io, "ECEF($(ecef.x), $
 
 East-North-Up (ENU) coordinates. A local Cartesian coordinate system, linearized about a reference point.
 """
-immutable ENU{T <: Number} <: FieldVector{T}
+struct ENU{T <: Number} <: FieldVector{T}
     e::T
     n::T
     u::T
 end
-ENU{T}(x :: T, y :: T) = ENU(x, y, zero(T))
+ENU(x :: T, y :: T) where {T} = ENU(x, y, zero(T))
 @inline function ENU(x,y,z)
     T = promote_type(promote_type(typeof(x),typeof(y)), typeof(z))
     ENU{T}(x,y,z)
@@ -94,12 +92,12 @@ relavant transformations `UTMfromLLA` and `LLAfromUTM` (see also the `UTMZ` type
 This type may be used to parameterize UPS coordinates (Universal Polar
 Stereographic) to accurately represent the polar regions, in zone "0".
 """
-immutable UTM{T <: Number}
+struct UTM{T <: Number}
     x::T
     y::T
     z::T
 end
-UTM{T}(x :: T, y :: T) = UTM(x, y, zero(T))
+UTM(x :: T, y :: T) where {T} = UTM(x, y, zero(T))
 Base.isapprox(utm1::UTM, utm2::UTM; atol = 1e-6, kwargs...) = isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
 Base.show(io::IO, utm::UTM) = print(io, "UTM($(utm.x), $(utm.y), $(utm.z))")
 
@@ -114,14 +112,14 @@ projection type for world points. The UTM zone is included in coordinates
 This type may be used to parameterize UPS coordinates (Universal Polar
 Stereographic) to accurately represent the polar regions, in zone "0".
 """
-immutable UTMZ{T <: Number}
+struct UTMZ{T <: Number}
     x::T
     y::T
     z::T
     zone::UInt8
     isnorth::Bool # which hemisphere
 end
-UTMZ{T}(x::T, y::T, zone::Integer, isnorth::Bool) = UTMZ(x, y, zero(T), UInt8(zone), isnorth)
+UTMZ(x::T, y::T, zone::Integer, isnorth::Bool) where {T} = UTMZ(x, y, zero(T), UInt8(zone), isnorth)
 UTMZ(x, y, z, zone::Integer, isnorth::Bool) = UTMZ(x, y, z, UInt8(zone), isnorth)
 UTMZ(utm::UTM, zone::Integer, isnorth::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), isnorth)
 UTM(utmz::UTMZ) = UTM(utmz.x, utmz.y, utmz.z)

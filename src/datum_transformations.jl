@@ -39,9 +39,9 @@ model at a future date.
 datum_shift_ECEF(dest_datum, source_datum) = error("No datum shift implemented for $dest_datum from $source_datum")
 
 # Convenience function for datums types without parameters
-datum_shift_ECEF{D1,D2}(::Type{D1}, ::Type{D2}) = datum_shift_ECEF(D1(), D2())
-datum_shift_ECEF{D1}(::Type{D1}, d2) = datum_shift_ECEF(D1(), d2)
-datum_shift_ECEF{D2}(d1, ::Type{D2}) = datum_shift_ECEF(d1, D2())
+datum_shift_ECEF(::Type{D1}, ::Type{D2}) where {D1,D2} = datum_shift_ECEF(D1(), D2())
+datum_shift_ECEF(::Type{D1}, d2) where {D1} = datum_shift_ECEF(D1(), d2)
+datum_shift_ECEF(d1, ::Type{D2}) where {D2} = datum_shift_ECEF(d1, D2())
 
 
 #-------------------------------------------------------------------------------
@@ -106,8 +106,8 @@ function GDA94_from_ITRF_Dawson2010(ITRF_year, epoch)
 end
 
 
-datum_shift_ECEF{Y}(::GDA94, itrf::ITRF{Y}) = GDA94_from_ITRF_Dawson2010(Y, itrf.epoch)
-datum_shift_ECEF{Y}(itrf::ITRF{Y}, ::GDA94) = inv(GDA94_from_ITRF_Dawson2010(Y, itrf.epoch))
+datum_shift_ECEF(::GDA94, itrf::ITRF{Y}) where {Y} = GDA94_from_ITRF_Dawson2010(Y, itrf.epoch)
+datum_shift_ECEF(itrf::ITRF{Y}, ::GDA94) where {Y} = inv(GDA94_from_ITRF_Dawson2010(Y, itrf.epoch))
 
 # TODO - time-based transformation!
 # make_datum_transform_ECEF{Y}(::ITRF{Y,Void}, ::GDA94) =

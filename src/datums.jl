@@ -7,7 +7,7 @@ which other objects may be positioned.  We model these in code with subtypes of
 which is required when transforming between coordinate systems.  The ellipsoid
 can be accessed with the `ellipsoid()` function.
 """
-@compat abstract type Datum end
+abstract type Datum end
 
 #------------------------------------------------------------------------------
 # Worldwide geodetic datums
@@ -53,15 +53,15 @@ use at a given date?  Does anybody care?)
 1. "World Geodetic System 1984", NGA standard NGA.STND.0036_1.0.0_WGS84, 2014-07-08,
    http://earth-info.nga.mil/GandG/publications/NGA_STND_0036_1_0_0_WGS84/NGA.STND.0036_1.0.0_WGS84.pdf
 """
-immutable WGS84{GpsWeek} <: Datum
-    (::Type{WGS84{GpsWeek}}){GpsWeek}() = check_wgs84_params(new{GpsWeek}())
+struct WGS84{GpsWeek} <: Datum
+    WGS84{GpsWeek}() where {GpsWeek} = check_wgs84_params(new{GpsWeek}())
 end
 
 WGS84() = WGS84{Void}()
 
 check_wgs84_params(wgs84::WGS84{Void}) = wgs84
 
-@generated function check_wgs84_params{GpsWeek}(wgs84::WGS84{GpsWeek})
+@generated function check_wgs84_params(wgs84::WGS84{GpsWeek}) where GpsWeek
     if GpsWeek <= WGS84_frames_last_updated && GpsWeek ∉ valid_WGS84_frame_weeks
         :(throw(ErrorException("No WGS84 realization exists for week $GpsWeek")))
     else
@@ -70,11 +70,11 @@ check_wgs84_params(wgs84::WGS84{Void}) = wgs84
 end
 
 Base.show(io::IO, ::WGS84{Void}) = print(io,"WGS84")
-Base.show{W}(io::IO, ::WGS84{W}) = print(io,"WGS84 (G$W)")
+Base.show(io::IO, ::WGS84{W}) where {W} = print(io,"WGS84 (G$W)")
 
 ellipsoid(::Type{WGS84}) = wgs84_ellipsoid
 ellipsoid(::WGS84)       = wgs84_ellipsoid
-ellipsoid{GpsWeek}(::Type{WGS84{GpsWeek}}) = wgs84_ellipsoid
+ellipsoid(::Type{WGS84{GpsWeek}}) where {GpsWeek} = wgs84_ellipsoid
 
 
 """
@@ -108,15 +108,15 @@ technical papers:
 * "The IGS contribution to ITRF2014", Rebischung et al., J. Geodesy (2016) 90:
    611, http://dx.doi.org/10.1007/s00190-016-0897-6
 """
-immutable ITRF{Year, EpochT} <: Datum
+struct ITRF{Year, EpochT} <: Datum
     epoch::EpochT
 
-    function (::Type{ITRF{Year,EpochT}}){Year,EpochT}(epoch::EpochT)
+    function ITRF{Year,EpochT}(epoch::EpochT) where {Year,EpochT}
         check_itrf_year(new{Year,EpochT}(epoch))
     end
 end
 
-@generated function check_itrf_year{Y}(itrf::ITRF{Y})
+@generated function check_itrf_year(itrf::ITRF{Y}) where Y
     if Y < 100
         :(throw(ErrorException("Two digit year $Y for ITRF found - this library expects a full four-digit year.")))
     elseif Y <= 2016 && Y ∉ [2014, 2008, 2005, 2000, 1997, 1996,
@@ -127,14 +127,14 @@ end
     end
 end
 
-(::Type{ITRF{Year}}){Year}() = ITRF{Year,Void}(nothing)
-(::Type{ITRF{Year}}){Year}(epoch) = ITRF{Year,typeof(epoch)}(epoch)
+ITRF{Year}() where {Year} = ITRF{Year,Void}(nothing)
+ITRF{Year}(epoch) where {Year} = ITRF{Year,typeof(epoch)}(epoch)
 
-Base.show{Y}(io::IO, ::ITRF{Y,Void}) = print(io,"ITRF{$Y}")
-Base.show{Y}(io::IO, itrf::ITRF{Y}) = print(io,"ITRF{$Y}($(itrf.epoch))")
+Base.show(io::IO, ::ITRF{Y,Void}) where {Y} = print(io,"ITRF{$Y}")
+Base.show(io::IO, itrf::ITRF{Y}) where {Y} = print(io,"ITRF{$Y}($(itrf.epoch))")
 
 ellipsoid(::ITRF)             = grs80
-ellipsoid{D<:ITRF}(::Type{D}) = grs80
+ellipsoid(::Type{D}) where {D<:ITRF} = grs80
 
 
 #------------------------------------------------------------------------------
@@ -142,7 +142,7 @@ ellipsoid{D<:ITRF}(::Type{D}) = grs80
 """
 `OSGB36` - Datum for Ordinance Survey of Great Britain, 1936
 """
-immutable OSGB36 <: Datum; end
+struct OSGB36 <: Datum; end
 Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
 ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
 
@@ -150,7 +150,7 @@ ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
 """
 `NAD27` - North American Datum of 1927
 """
-immutable NAD27 <: Datum; end
+struct NAD27 <: Datum; end
 Base.show(io::IO, ::NAD27) = print(io,"nad27")
 ellipsoid(::Union{NAD27,Type{NAD27}}) = clarke1866
 
@@ -160,7 +160,7 @@ ellipsoid(::Union{NAD27,Type{NAD27}}) = clarke1866
 For technical details, see "NAD83 (NSRS2007) National Readjustment Final Report"
 http://www.ngs.noaa.gov/PUBS_LIB/NSRS2007/NOAATRNOSNGS60.pdf
 """
-immutable NAD83 <: Datum; end
+struct NAD83 <: Datum; end
 Base.show(io::IO, ::NAD83) = print(io,"nad83")
 ellipsoid(::Union{NAD83,Type{NAD83}}) = grs80
 
@@ -168,7 +168,7 @@ ellipsoid(::Union{NAD83,Type{NAD83}}) = grs80
 """
 `GDA94` - Geocentric Datum of Australia, 1994
 """
-immutable GDA94 <: Datum; end
+struct GDA94 <: Datum; end
 ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
 
 

@@ -174,7 +174,7 @@ polar-stereographic transformations. Series expansion coefficients up to order
 `MaxPow` (between 4 and 8, default 6) are calculated and stored for fast
 transverse-Mercator and UTM calculations.
 """
-immutable TransverseMercator{MaxPow}
+struct TransverseMercator{MaxPow}
     a::Float64
     f::Float64
     e2::Float64
@@ -191,7 +191,7 @@ end
 TransverseMercator(datum) = TransverseMercator(ellipsoid(datum))
 TransverseMercator(el::Ellipsoid) = TransverseMercator(el.a, 1-el.b/el.a)
 TransverseMercator(a,f) = TransverseMercator(a,f,Val{6}) # Default to sixth-order expansion
-function TransverseMercator{MaxPow}(a::Float64, f::Float64, ::Type{Val{MaxPow}})
+function TransverseMercator(a::Float64, f::Float64, ::Type{Val{MaxPow}}) where MaxPow
     e2 = f * (2 - f)
     es = (f < 0 ? -1 : 1) * sqrt(abs(e2))
     e2m = (1 - e2)
@@ -465,7 +465,7 @@ meridian `lat0` and horizontal scaling `k0` (`= 0.9996` for UTM) using a
 series expansion approach (see `TransverseMercator`). `γ` and `k` are the local
 convergence and scaling factors, respectively.
 """
-function transverse_mercator_forward{MaxPow}(lon0, lat, lon, k0, tm::TransverseMercator{MaxPow})
+function transverse_mercator_forward(lon0, lat, lon, k0, tm::TransverseMercator{MaxPow}) where MaxPow
     lat = LatFix(lat)
     lon = AngDiff(lon0, lon)
     if abs(lon) > 50
@@ -661,7 +661,7 @@ meridian `lat0` and horizontal scaling `k0` (`= 0.9996` for UTM) using a
 series expansion approach (see `TransverseMercator`). `γ` and `k` are the local
 convergence and scaling factors, respectively.
 """
-function transverse_mercator_reverse{MaxPow}(lon0, x, y, k0, tm::TransverseMercator{MaxPow})
+function transverse_mercator_reverse(lon0, x, y, k0, tm::TransverseMercator{MaxPow}) where MaxPow
     # This undoes the steps in transverse_mercator_forward.  The wrinkles are: (1) Use of the
     # reverted series to express zeta' in terms of zeta. (2) Newton's method
     # to solve for phi in terms of tan(phi).
