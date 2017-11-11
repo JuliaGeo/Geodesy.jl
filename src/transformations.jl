@@ -2,7 +2,7 @@
 ## LLA <-> ECEF ##
 ##################
 
-immutable LLAfromECEF <: Transformation
+struct LLAfromECEF <: Transformation
     el::Ellipsoid
 
     a::Float64      # major axis
@@ -164,7 +164,7 @@ end
 Construct a `Transformation` object to convert from LLA coordinates
 to ECEF coordinates.
 """
-immutable ECEFfromLLA <: Transformation
+struct ECEFfromLLA <: Transformation
     el::Ellipsoid
 end
 Base.show(io::IO, trans::ECEFfromLLA) = print(io, "ECEFfromLLA($(trans.el))")
@@ -204,7 +204,7 @@ Construct a `Transformation` object to convert from global `ECEF` coordinates
 to local `ENU` coordinates centered at the `origin`. This object pre-caches both the
 ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
 """
-immutable ENUfromECEF{T} <: Transformation
+struct ENUfromECEF{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
@@ -250,7 +250,7 @@ Construct a `Transformation` object to convert from local `ENU` coordinates
 centred at `origin` to global `ECEF` coodinates. This object pre-caches both the
 ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
 """
-immutable ECEFfromENU{T} <: Transformation
+struct ECEFfromENU{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
@@ -320,7 +320,7 @@ Charles Karney's accurate 6th-order series expansion algorithm.
 
 (See also `LLAfromUTMZ`)
 """
-immutable LLAfromUTM{Datum,Order} <: Transformation
+struct LLAfromUTM{Datum,Order} <: Transformation
     zone::UInt8
     isnorth::Bool # hemisphere
     tm::TransverseMercator{Order}
@@ -360,7 +360,7 @@ ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 
 (See also `UTMZfromLLA`)
 """
-immutable UTMfromLLA{Datum,Order} <: Transformation
+struct UTMfromLLA{Datum,Order} <: Transformation
     zone::UInt8
     isnorth::Bool # true = north, false = south
     tm::TransverseMercator{Order}
@@ -427,7 +427,7 @@ ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 
 (See also `LLAfromUTM`)
 """
-immutable LLAfromUTMZ{Datum,Order} <: Transformation
+struct LLAfromUTMZ{Datum,Order} <: Transformation
     tm::TransverseMercator{Order}
     datum::Datum
 end
@@ -466,7 +466,7 @@ ellipsoidal parameters for efficiency and performs Charles Karney's accurate
 
 (See also `UTMfromLLA`)
 """
-immutable UTMZfromLLA{Datum,Order} <: Transformation
+struct UTMZfromLLA{Datum,Order} <: Transformation
     tm::TransverseMercator{Order}
     datum::Datum
 end
@@ -508,12 +508,12 @@ Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.tm, trans.datum)
 
 Transformation to append the UTM/UPS zone and hemisphere to a raw `UTM` data point.
 """
-immutable UTMZfromUTM{Datum} <: Transformation
+struct UTMZfromUTM{Datum} <: Transformation
     zone::Int
     isnorth::Bool
     datum::Datum
 end
-UTMZfromUTM{D}(zone::Integer, h, d::D) = UTMZfromUTM{D}(UInt8(zone), h, d)
+UTMZfromUTM(zone::Integer, h, d::D) where {D} = UTMZfromUTM{D}(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
@@ -523,12 +523,12 @@ Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone
 Transformation to remove the zone and hemisphere from `UTMZ` data point, and
 automatically convert the data to the specified zone if necessary.
 """
-immutable UTMfromUTMZ{Datum} <: Transformation
+struct UTMfromUTMZ{Datum} <: Transformation
     zone::Int
     isnorth::Bool
     datum::Datum
 end
-UTMfromUTMZ{D}(zone::Integer, h, d::D) = UTMfromUTMZ{D}(UInt8(zone), h, d)
+UTMfromUTMZ(zone::Integer, h, d::D) where {D} = UTMfromUTMZ{D}(UInt8(zone), h, d)
 Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 

@@ -6,7 +6,7 @@ using Base.Test
 ################################################
 
 # Interesting that this isn't in Base...
-Base.isapprox{T<:Tuple}(a::T, b::T; kwargs...) = all(ntuple(i->isapprox(a[i],b[i]), length(a)); kwargs...)
+Base.isapprox(a::T, b::T; kwargs...) where {T<:Tuple} = all(ntuple(i->isapprox(a[i],b[i]), length(a)); kwargs...)
 
 @testset "Geodesy" begin
     include("points.jl")

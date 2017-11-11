@@ -13,7 +13,7 @@ Find the UTM zone and hemisphere (`isnorth = true` or `false`) for the given
 latitude and longitude (or world point), including the special rules for Norway
 and Svalbard. Zone 0 corresponds to the poles, using the UPS regions.
 """
-function utm_zone{T}(lat::T, lon::T)
+function utm_zone(lat::T, lon::T) where T
     if lat > 84
         return (0, true)
     elseif lat < -80
