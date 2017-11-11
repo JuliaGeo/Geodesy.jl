@@ -4,7 +4,6 @@ module Geodesy
 
 using CoordinateTransformations
 using StaticArrays
-using Compat
 
 import CoordinateTransformations.transform_deriv,
        CoordinateTransformations.transform_deriv_params,
