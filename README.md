@@ -15,7 +15,7 @@ datums are provided for convenience.
 
 ## Quick start
 
-Lets define a 3D point by it's latitude, longitude and altitude (LLA):
+Lets define a 3D point by its latitude, longitude and altitude (LLA):
 ```julia
 x_lla = LLA(-27.468937, 153.023628, 0.0) # City Hall, Brisbane, Australia
 ```
