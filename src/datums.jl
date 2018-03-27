@@ -143,7 +143,7 @@ ellipsoid(::Type{D}) where {D<:ITRF} = grs80
 `OSGB36` - Datum for Ordinance Survey of Great Britain, 1936
 """
 struct OSGB36 <: Datum; end
-Base.show(io::IO, ::OSGB36) = print(io,"osbg84")
+Base.show(io::IO, ::OSGB36) = print(io,"osgb36")
 ellipsoid(::Union{OSGB36,Type{OSGB36}}) = airy1830
 
 
