@@ -169,6 +169,7 @@ ellipsoid(::Union{NAD83,Type{NAD83}}) = grs80
 `GDA94` - Geocentric Datum of Australia, 1994
 """
 struct GDA94 <: Datum; end
+Base.show(io::IO, ::GDA94) = print(io,"gda94")
 ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
 
 
