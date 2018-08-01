@@ -1,4 +1,5 @@
 using CoordinateTransformations
+using Base.Dates
 
 @testset "Datum transforms" begin
 
