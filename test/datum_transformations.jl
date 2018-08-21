@@ -1,5 +1,6 @@
+using Dates
+using LinearAlgebra: I, norm
 using CoordinateTransformations
-using Base.Dates
 
 @testset "Datum transforms" begin
 
@@ -16,7 +17,7 @@ using Base.Dates
         # Test inverse
         epoch = Date(2010,6,16)
         trans = datum_shift_ECEF(ITRF{2008}(epoch), GDA94) ∘ datum_shift_ECEF(GDA94, ITRF{2008}(epoch))
-        @test trans.linear ≈ eye(3)
+        @test trans.linear ≈ Matrix(1.0I, 3, 3)
         @test isapprox(trans.translation, zeros(3), atol=10*eps())
     end
 

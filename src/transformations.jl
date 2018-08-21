@@ -79,7 +79,7 @@ LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
         h -= trans.a
     else # Ellipsoidal
         # Treat prolate spheroids by swapping r and z here and by switching
-        # the arguments to phi = atan2(...) at the end.
+        # the arguments to phi = atan(...) at the end.
         p = (R / trans.a) * (R / trans.a)
         q = trans.e2m * (ecef.z / trans.a) * (ecef.z / trans.a)
         r = (p + q - trans.e4a) / 6
@@ -111,7 +111,7 @@ LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
                 u += T + (T != 0 ? r2 / T : 0.0)
             else
                 # T is complex, but the way u is defined the result is real.
-                ang = atan2(sqrt(-disc), -(S + r3))
+                ang = atan(sqrt(-disc), -(S + r3))
                 # There are three possible cube roots.  We choose the root which
                 # avoids cancellation.  Note that disc < 0 implies that r < 0.
                 u += 2 * r * cos(ang / 3)
@@ -151,8 +151,8 @@ LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
             h = - trans.a * (trans.f >= 0 ? trans.e2m : 1.0) * H / trans.e2a
         end
     end
-    lat = 180 * atan2(sphi, cphi) / pi
-    lon = 180 * atan2(slam, clam) / pi
+    lat = 180 * atan(sphi, cphi) / pi
+    lon = 180 * atan(slam, clam) / pi
 
     return LLA(lat, lon, h)
 end

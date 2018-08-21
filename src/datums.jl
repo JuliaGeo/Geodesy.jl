@@ -57,9 +57,9 @@ struct WGS84{GpsWeek} <: Datum
     WGS84{GpsWeek}() where {GpsWeek} = check_wgs84_params(new{GpsWeek}())
 end
 
-WGS84() = WGS84{Void}()
+WGS84() = WGS84{Nothing}()
 
-check_wgs84_params(wgs84::WGS84{Void}) = wgs84
+check_wgs84_params(wgs84::WGS84{Nothing}) = wgs84
 
 @generated function check_wgs84_params(wgs84::WGS84{GpsWeek}) where GpsWeek
     if GpsWeek <= WGS84_frames_last_updated && GpsWeek ∉ valid_WGS84_frame_weeks
@@ -69,7 +69,7 @@ check_wgs84_params(wgs84::WGS84{Void}) = wgs84
     end
 end
 
-Base.show(io::IO, ::WGS84{Void}) = print(io,"WGS84")
+Base.show(io::IO, ::WGS84{Nothing}) = print(io,"WGS84")
 Base.show(io::IO, ::WGS84{W}) where {W} = print(io,"WGS84 (G$W)")
 
 ellipsoid(::Type{WGS84}) = wgs84_ellipsoid
@@ -127,10 +127,10 @@ end
     end
 end
 
-ITRF{Year}() where {Year} = ITRF{Year,Void}(nothing)
+ITRF{Year}() where {Year} = ITRF{Year,Nothing}(nothing)
 ITRF{Year}(epoch) where {Year} = ITRF{Year,typeof(epoch)}(epoch)
 
-Base.show(io::IO, ::ITRF{Y,Void}) where {Y} = print(io,"ITRF{$Y}")
+Base.show(io::IO, ::ITRF{Y,Nothing}) where {Y} = print(io,"ITRF{$Y}")
 Base.show(io::IO, itrf::ITRF{Y}) where {Y} = print(io,"ITRF{$Y}($(itrf.epoch))")
 
 ellipsoid(::ITRF)             = grs80

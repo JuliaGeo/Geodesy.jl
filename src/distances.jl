@@ -1,3 +1,5 @@
+using LinearAlgebra: norm
+
 """
     distance(a, b, [datum = wgs84])
 
@@ -5,7 +7,7 @@ The Cartesian distance between points `a` and `b`. Uses `datum` to perform
 transformations as necessary, and unlike other *Geodesy* functions, this defaults
 to use the common WGS-84 datum for convenience.
 """
-distance(a::T, b::T) where {T <: AbstractVector} = vecnorm(a-b)
+distance(a::T, b::T) where {T <: AbstractVector} = norm(a-b)
 
 # Automatic transformations to ECEF
 # Uses wgs84 datum as a default. In most cases, the datum choice will only make

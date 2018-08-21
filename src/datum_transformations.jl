@@ -110,4 +110,4 @@ datum_shift_ECEF(::GDA94, itrf::ITRF{Y}) where {Y} = GDA94_from_ITRF_Dawson2010(
 datum_shift_ECEF(itrf::ITRF{Y}, ::GDA94) where {Y} = inv(GDA94_from_ITRF_Dawson2010(Y, itrf.epoch))
 
 # TODO - time-based transformation!
-# make_datum_transform_ECEF{Y}(::ITRF{Y,Void}, ::GDA94) =
+# make_datum_transform_ECEF{Y}(::ITRF{Y,Nothing}, ::GDA94) =
