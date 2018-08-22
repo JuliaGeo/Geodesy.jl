@@ -3,7 +3,7 @@
     # File has 5000 entries of lon between ±50°, lat between ±90° (with UTM scaling 0.9996)
     # Adapted from Charles Karney's test data (http://zenodo.org/record/32470#.VzF-Krp97CI)
     f = open("TMcoords_lite.bin") # Binary file, Float64: lat, lon, x, y, γ, k
-    tmdat = read(f, Float64, (5000, 6))
+    tmdat = read!(f, Array{Float64}(undef, (5000, 6)))
     close(f)
 
     tm = Geodesy.TransverseMercator(wgs84)

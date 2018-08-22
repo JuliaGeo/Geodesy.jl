@@ -2,6 +2,7 @@ __precompile__()
 
 module Geodesy
 
+using Dates
 using CoordinateTransformations
 using StaticArrays
 

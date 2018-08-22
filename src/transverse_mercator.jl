@@ -128,7 +128,7 @@ end
 
 function atan2d(y, x)
     # In order to minimize round-off errors, this function rearranges the
-    # arguments so that result of atan2 is in the range [-pi/4, pi/4] before
+    # arguments so that result of atan is in the range [-pi/4, pi/4] before
     # converting it to degrees and mapping the result to the correct
     # quadrant.
     q = 0
@@ -143,7 +143,7 @@ function atan2d(y, x)
         q = q + 1
     end
     # here x >= 0 and x >= abs(y), so angle is in [-pi/4, pi/4]
-    ang = atan2(y, x) * 180 / pi
+    ang = atan(y, x) * 180 / pi
     # Note that atan2d(-0.0, 1.0) will return -0.  However, we expect that
     # atan2d will not be called with y = -0.  If need be, include
     #
@@ -364,8 +364,8 @@ function TransverseMercator(a::Float64, f::Float64, ::Type{Val{MaxPow}}) where M
     a1 = b1 * a
     o = 1
     d = n
-    _alp = Vector{Float64}(MaxPow)
-    _bet = Vector{Float64}(MaxPow)
+    _alp = Vector{Float64}(undef, MaxPow)
+    _bet = Vector{Float64}(undef, MaxPow)
     for l = 1:MaxPow
         m = MaxPow - l
         _alp[l] = d * polyval(alpcoeff[o:o+m], n) / alpcoeff[o + m + 1]
@@ -375,8 +375,8 @@ function TransverseMercator(a::Float64, f::Float64, ::Type{Val{MaxPow}}) where M
     end
     # Post condition: o == sizeof(alpcoeff) / sizeof(real) &&
     # o == sizeof(betcoeff) / sizeof(real)
-    alp = (_alp...)
-    bet = (_bet...)
+    alp = (_alp...,)
+    bet = (_bet...,)
 
     return TransverseMercator{MaxPow}(a,f,e2,es,e2m,c,n,a1,b1,alp,bet)
 end
@@ -509,7 +509,7 @@ function transverse_mercator_forward(lon0, lat, lon, k0, tm::TransverseMercator{
     if (lat != 90)
         tau = sphi / cphi
         taup = taupf(tau, tm.e2) # TODO maybe switch to the C++ version of taupf using tm.es?
-        xip = atan2(taup, clam)
+        xip = atan(taup, clam)
         # Used to be
         #   etap = Math::atanh(sin(lam) / cosh(psi));
         etap = asinh(slam / hypot(taup, clam))
@@ -731,7 +731,7 @@ function transverse_mercator_reverse(lon0, x, y, k0, tm::TransverseMercator{MaxP
     etap = eta + ai * xip0 + ar * etap0
 
     # Convergence and scale for Gauss-Schreiber TM to Gauss-Krueger TM.
-    gamma = atan2(yi1, yr1) * 180/pi
+    gamma = atan(yi1, yr1) * 180/pi
     k = tm.b1 / hypot(yr1, yi1)
     # JHS 154 has
     #
@@ -744,12 +744,12 @@ function transverse_mercator_reverse(lon0, x, y, k0, tm::TransverseMercator{MaxP
     r = hypot(s, c)
 
     if (r != 0)
-        lon = atan2(s, c) * 180/pi # Krueger p 17 (25)
+        lon = atan(s, c) * 180/pi # Krueger p 17 (25)
 
         # Use Newton's method to solve for tau
         sxip = sin(xip)
         tau = tauf(sxip/r, tm.e2) # TODO maybe change to C++ es version
-        gamma += atan2(sxip * tanh(etap), c) * 180/pi # Krueger p 19 (31)
+        gamma += atan(sxip * tanh(etap), c) * 180/pi # Krueger p 19 (31)
         lat = atand(tau)
         # Note cos(phi') * cosh(eta') = r
         k *= sqrt(tm.e2m + tm.e2 / (1 + tau*tau)) * hypot(1.0, tau) * r

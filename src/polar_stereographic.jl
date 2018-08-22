@@ -46,7 +46,7 @@ function polarst_inv(northp::Bool, k0::Float64, tm::TransverseMercator, x, y) # 
     secphi = hypot(1.0, tau)
     k = (rho > 0 ? (rho / tm.a) * secphi * sqrt(tm.e2m + tm.e2 / (secphi*secphi)) : k0)
     lat = (northp ? 1 : -1) * atand(tau)
-    lon = atan2(x, northp ? -y : y ) * 180/pi
+    lon = atan(x, northp ? -y : y ) * 180/pi
     gamma = AngNormalize(northp ? lon : -lon)
 
     return (lat, lon, gamma, k)
