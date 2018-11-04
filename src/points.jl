@@ -34,8 +34,8 @@ struct LatLon{T <: Number}
     lat::T
     lon::T
 end
-LatLon(lat, lon) = LatLon(promote(lat, lon)...)
-LatLon(;lat=NaN,lon=NaN) = LatLon(lat,lon) # Constructor that is idependent of storage order
+LatLon(lat::Number, lon::Number) = LatLon(promote(lat, lon)...)
+LatLon(;lat=NaN,lon=NaN) = LatLon(lat,lon) # Constructor that is independent of storage order
 LatLon(lla::LLA) = LatLon(lla.lat, lla.lon)
 function LatLon(x, datum::Union{Datum,Ellipsoid})
     lla = LLA(x, datum)

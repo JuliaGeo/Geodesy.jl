@@ -12,6 +12,7 @@
     @test LatLon(lla) == latlon
     @test LatLon(1//1, 1.) == latlon
     @test LatLon(1, 1) == LatLon{Int}(1, 1)
+    @test_throws MethodError LatLon(missing, missing)
 
     @test LLA(latlon) == lla
 
