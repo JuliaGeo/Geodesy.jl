@@ -145,7 +145,7 @@ LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
             H = hypot(zz, xx)
             sphi = zz / H
             cphi = xx / H
-            if (Z < 0)
+            if (ecef.z < 0)
                 sphi = -sphi # for tiny negative Z (not for prolate)
             end
             h = - trans.a * (trans.f >= 0 ? trans.e2m : 1.0) * H / trans.e2a
