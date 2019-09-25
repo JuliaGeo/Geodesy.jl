@@ -32,5 +32,43 @@ distance(a::UTM, b::UTM, zone::Integer, isnorth::Bool, datum = wgs84) = distance
 distance(a, b::UTM, zone::Integer, isnorth::Bool, datum = wgs84) = distance(a, ECEFfromUTM(zone, isnorth, datum)(b), datum)
 distance(a::UTM, b, zone::Integer, isnorth::Bool, datum = wgs84) = distance(ECEFfromUTM(zone, isnorth, datum)(a), b, datum)
 
+import GeographicLib
 
-# Also add geodesic distances here
+export GreatCircle
+
+"""
+    GreatCircle
+
+A `GreatCircle` object stores a cache of values needed to quickly compute
+great circles.
+"""
+struct GreatCircle
+    geod::GeographicLib.Geodesic
+    datum::Datum
+end
+
+"""
+    GreatCircle(datum) -> gc
+
+Construct a `GreatCircle` `gc` from a datum.
+
+The object `gc` can then be used as a function to calculate great circle properties
+"""
+GreatCircle(datum::Datum) =
+    (el = ellipsoid(datum); GreatCircle(GeographicLib.Geodesic(el.a, el.f), datum))
+
+
+(g::GreatCircle)(a::Union{LatLon,LLA}, b::Union{LatLon,LLA}) =
+    GeographicLib.inverse(g.geod, a.lon, a.lat, b.lon, b.lat)
+
+function (g::GreatCircle)(p::Union{LatLon,LLA}; azi, dist=nothing, angle=nothing)
+    sum(x -> x === nothing, (dist, angle)) == 1 ||
+        throw(ArgumentError("must specify one and only one of dist or angle"))
+    if dist !== nothing
+        GeographicLib.forward(g.geod, p.lon, p.lat, azi, dist)
+    elseif angle !== nothing
+        GeographicLib.forward_deg(g.geod, p.lon, p.lat, azi, angle)
+    end
+end
+
+(g::GreatCircle)(a; kwargs...) = g(LLA(a, g.datum); kwargs...)
