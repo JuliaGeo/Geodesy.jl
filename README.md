@@ -383,6 +383,10 @@ The `LLAfromECEF` and `ECEFfromLLA` transformations require an ellipsoidal datum
 to perform the conversion. The exact transformation is performed in both directions,
 using a port the ECEF → LLA transformation from *GeographicLib*.
 
+Note that in some cases where points are very close to the centre of the ellipsoid,
+multiple equivalent `LLA` points are valid solutions to the transformation problem.
+Here, as in *GeographicLib*, the point with the greatest altitude is chosen.
+
 #### Between `LLA` and `UTM`/`UTMZ`
 
 The `LLAfromUTM(Z)` and `UTM(Z)fromLLA` transformations also require an
