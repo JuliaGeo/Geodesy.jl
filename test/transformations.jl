@@ -58,6 +58,8 @@
     @test enu ≈ ENU(-6103.186938282723, 10222.54767562731, -295.55857190545794)
     @test ecef_enu(ENU(-6103.186938282723, 10222.54767562731, -295.55857190545794)) ≈ ecef
 
+    # https://github.com/JuliaGeo/Geodesy.jl/issues/49
+    @test LLA(ECEF(1, 0, 0), wgs84) ≈ LLA(89.99866260445, 0.00000000000, -6356752.314234)
 
     # Inverses
     @test inv(ecef_lla) == lla_ecef
