@@ -48,7 +48,10 @@ export
     ITRF, GDA94,
 
     # UTM helpers
-    utm_zone
+    utm_zone,
+
+    # Great circle constructors
+    GreatCircle
 
 include("ellipsoids.jl")
 include("datums.jl")
@@ -58,6 +61,7 @@ include("polar_stereographic.jl")
 include("transformations.jl")
 include("conversion.jl")
 include("distances.jl")
+include("geodesics.jl")
 include("utm.jl")
 include("datum_transformations.jl")
 
