@@ -306,7 +306,7 @@ is also provided. `LatLon` is currently the only supported 2D coordinate.
 
 The global `ECEF` type stores Cartesian coordinates `x`, `y`, `z`, according to the
 [usual convention](https://en.wikipedia.org/wiki/ECEF). Being a Cartesian frame,
-`ECEF` is a subtype of [StaticArrays](https://github.com/andyferris/StaticArrays.jl)'
+`ECEF` is a subtype of [StaticArrays](https://github.com/JuliaArrays/StaticArrays.jl)'
 `StaticVector` and they can be added and subtracted with themselves and other
 vectors.
 
