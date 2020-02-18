@@ -96,6 +96,12 @@ distance(x_lla, y_lla)                   # 401.54 meters
 ```
 (assuming the `wgs84` datum, which can be configured in `distance(x, y, datum)`).
 
+Or the great circle distance can equivalently be calculated:
+```julia
+z_lla = LatLon(51.5077, -0.1277) # Nelson's Column, London, UK
+g = GreatCircle(wgs84)           # Construct a great circle cache
+g(x_lla, z_lla).dist             # 16521.975 km
+```
 
 ## Basic Terminology
 
@@ -446,7 +452,9 @@ counterparts.
 
 ### Distance
 
-Currently, the only defined distance measure is the Cartesian distance,
+#### `distance`
+
+The simplest distance measure is the Cartesian distance,
 `distance(x, y, [datum = wgs84])`, which works for all combinations of types for
 `x` and `y` - except that the UTM zone and hemisphere must also be provided
 for `UTM` types, as in `distance(utm1, utm2, zone, hemisphere, [datum = wgs84])`
@@ -455,5 +463,29 @@ conversion to `ECEF`).
 
 This is the only function currently in
 *Geodesy* which takes a default datum, and *should* be relatively accurate for
-close points where Cartesian distances may be most important. Future work
-may focus on geodesics and related calculations (contributions welcome!).
+close points where Cartesian distances may be most important.
+
+#### `GreatCircle`
+
+Great circle distances, which are calculated along the shortest path along
+the surface of the ellipsoid between points, are calculated by creating a
+`GreatCircle` specfiying the datum to use, like `g = GreatCircle(wgs84)`.
+This creates a cache of values for the ellipsoid, and can be used in two ways:
+
+1. Compute the distance between two points: `g(p1, p2)`.
+2. Compute the end point from moving a set distance from a starting point
+   along a set azimuth: `g(p1, azi=45, dist=100_000)`.
+
+As well as distance, other properties of the great circle arc such as
+azimuth are found.
+
+Case (1) returns a named tuple of azimuth from `p1` to `p2` (`azi` °),
+backazimuth from `p2` to `p1` (`baz`, °), the distance (`dist`, m) and angular
+distance between points on the equivalent sphere (`angle`, °).
+
+Case (2) returns a named tuple of final longitude and latitude
+(`lon`, and `lat`, °), backazimuth from the final point (`baz`, °),
+as well as distance and angular distance (`dist`, m, and `angle`, °).
+
+The great circle calculations in *Geodesy* are ported from *GeographicLib*
+and have the equivalent accuracy as the original library.

@@ -1,3 +1,5 @@
+# Cartesian distances
+
 using LinearAlgebra: norm
 
 """
@@ -32,5 +34,3 @@ distance(a::UTM, b::UTM, zone::Integer, isnorth::Bool, datum = wgs84) = distance
 distance(a, b::UTM, zone::Integer, isnorth::Bool, datum = wgs84) = distance(a, ECEFfromUTM(zone, isnorth, datum)(b), datum)
 distance(a::UTM, b, zone::Integer, isnorth::Bool, datum = wgs84) = distance(ECEFfromUTM(zone, isnorth, datum)(a), b, datum)
 
-
-# Also add geodesic distances here
