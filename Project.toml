@@ -1,7 +1,7 @@
 name = "Geodesy"
 uuid = "0ef565a4-170c-5f04-8de2-149903a85f3d"
 license = "MIT"
-version = "0.6.0"
+version = "1.0.0"
 
 [deps]
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
