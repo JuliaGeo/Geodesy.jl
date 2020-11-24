@@ -446,14 +446,15 @@ counterparts.
 
 ### Distance
 
-Currently, the only defined distance measure is the Cartesian distance,
-`distance(x, y, [datum = wgs84])`, which works for all combinations of types for
-`x` and `y` - except that the UTM zone and hemisphere must also be provided
-for `UTM` types, as in `distance(utm1, utm2, zone, hemisphere, [datum = wgs84])`
-(the Cartesian distance for `UTM` types is not approximated, but achieved via
-conversion to `ECEF`).
+Currently, the only defined distance measure is the straight-line or [Euclidean
+distance](https://en.wikipedia.org/wiki/Euclidean_distance),
+`euclidean_distance(x, y, [datum = wgs84])`, which works for all combinations
+of types for `x` and `y` - except that the UTM zone and hemisphere must also be
+provided for `UTM` types, as in `euclidean_distance(utm1, utm2, zone,
+hemisphere, [datum = wgs84])` (the Cartesian distance for `UTM` types is not
+approximated, but achieved via conversion to `ECEF`).
 
-This is the only function currently in
-*Geodesy* which takes a default datum, and *should* be relatively accurate for
-close points where Cartesian distances may be most important. Future work
-may focus on geodesics and related calculations (contributions welcome!).
+This is the only function currently in *Geodesy* which takes a default datum,
+and *should* be relatively accurate for close points where Euclidean distances
+are most important. Future work may focus on geodesics and related calculations
+(contributions welcome!).

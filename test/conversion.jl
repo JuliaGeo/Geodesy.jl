@@ -82,18 +82,18 @@
             lla1 = randLLA()
             lla2 = randLLA()
 
-            d = distance(lla1, lla2)
+            d = euclidean_distance(lla1, lla2)
 
             ecef1 = ECEF(lla1, wgs84)
             ecef2 = ECEF(lla2, wgs84)
 
-            @test distance(ecef1, ecef2) ≈ sqrt((ecef1.x - ecef2.x)^2 + (ecef1.y - ecef2.y)^2 + (ecef1.z - ecef2.z)^2)
-            @test distance(ecef1, ecef2) ≈ d
+            @test euclidean_distance(ecef1, ecef2) ≈ sqrt((ecef1.x - ecef2.x)^2 + (ecef1.y - ecef2.y)^2 + (ecef1.z - ecef2.z)^2)
+            @test euclidean_distance(ecef1, ecef2) ≈ d
 
             utmz1 = UTMZ(lla1, wgs84)
             utmz2 = UTMZ(lla2, wgs84)
 
-            @test distance(utmz1, utmz2) ≈ d
+            @test euclidean_distance(utmz1, utmz2) ≈ d
 
             if utmz1.zone == utmz2.zone && utmz1.isnorth == utmz2.isnorth
                 number_of_utm_distance_tests += 1
@@ -104,15 +104,15 @@
                 zone = utmz1.zone
                 isnorth = utmz1.isnorth
 
-                @test distance(utm1,  utm2,  zone, isnorth) ≈ d
-                @test distance(utm1,  ecef2, zone, isnorth) ≈ d
-                @test distance(ecef1, utm2,  zone, isnorth) ≈ d
+                @test euclidean_distance(utm1,  utm2,  zone, isnorth) ≈ d
+                @test euclidean_distance(utm1,  ecef2, zone, isnorth) ≈ d
+                @test euclidean_distance(ecef1, utm2,  zone, isnorth) ≈ d
             end
 
             enu000 = ENU(0.0, 0.0, 0.0)
             enu = ENU(ecef1, ecef2, wgs84)
 
-            @test distance(enu, enu000) ≈ d
+            @test euclidean_distance(enu, enu000) ≈ d
         end
         @test number_of_utm_distance_tests > 0
     end

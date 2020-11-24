@@ -34,7 +34,7 @@ export
     GDA94, gda94,
 
     # Methods
-    distance,
+    euclidean_distance,
 
     # transformation methods
     transform_deriv, transform_deriv_params, compose, ∘,
