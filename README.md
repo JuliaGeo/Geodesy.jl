@@ -102,7 +102,7 @@ distance(x_lla, y_lla)                   # 401.54 meters
 This section describes some terminology and concepts that are relevant to
 *Geodesy.jl*, attempting to define Geodesy-specific jargon where possible.  For
 a longer, less technical discussion with more historical context, ICSM's
-[Fundamentals of Mapping page](http://www.icsm.gov.au/mapping/index.html)
+[Fundamentals of Mapping page](https://www.icsm.gov.au/education/fundamentals-mapping)
 is highly recommended.
 
 ### Coordinate Reference Systems and Spatial Reference Identifiers
@@ -137,7 +137,7 @@ authority should also be included where possible.
 ### Datums
 
 In spatial measurement and positioning, a **datum** is a set of reference
-objects and assigned coordinates *relative to which* other objects may be
+objects with given coordinates, *relative to which* other objects may be
 positioned.  For example, in traditional surveying a datum might comprise a
 pair of pegs in the ground, separated by a carefully measured distance.  When
 surveying the position of an unknown but nearby point, the angle back to the
