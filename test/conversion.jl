@@ -36,7 +36,7 @@
         @test ENU(utm, z, h, lla_ref, wgs84) ≈ enu
 
         # LLA <-> UTMZ
-        utmz = UTMZ(327412.48528248386, 4.692686244318043e6, 0.0, z, h)
+        utmz = UTMZ(327412.48528248386, 4.692686244318043e6, 0, z, h)
         @test UTMZ(lla, wgs84) ≈ utmz
         @test LLA(utmz, wgs84) ≈ lla
 
