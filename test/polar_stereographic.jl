@@ -2,6 +2,19 @@
 
     tm = Geodesy.TransverseMercator(wgs84)
 
+    # Exact north pole
+    lat = 90.0
+    lon = 180.0
+    x = 2000000.0 - 2e6
+    y = 2000000.0 - 2e6
+    northpole = true
+
+    (x2, y2, γ, k) = Geodesy.polarst_fwd(northpole, 0.994, tm, lat, lon)
+    @test (x2, y2) ≈ (x, y)
+
+    (lat2, lon2, γ, k) = Geodesy.polarst_inv(northpole, 0.994, tm, x, y)
+    @test (lat2, lon2) ≈ (lat, lon)
+
     # Data generated independely from Charles Karney's http://geographiclib.sourceforge.net/cgi-bin/GeoConvert?input=89+1&zone=0&prec=9&option=Submit
 
     lat = 89.0
@@ -92,6 +105,19 @@
     lon = -89.0
     x = 1555799.234876368 - 2e6
     y = 2007753.553196397 - 2e6
+    northpole = false
+
+    (x2, y2, γ, k) = Geodesy.polarst_fwd(northpole, 0.994, tm, lat, lon)
+    @test (x2, y2) ≈ (x, y)
+
+    (lat2, lon2, γ, k) = Geodesy.polarst_inv(northpole, 0.994, tm, x, y)
+    @test (lat2, lon2) ≈ (lat, lon)
+
+    # Exact south pole
+    lat = -90.0
+    lon = 0.0
+    x = 2000000.0 - 2e6
+    y = 2000000.0 - 2e6
     northpole = false
 
     (x2, y2, γ, k) = Geodesy.polarst_fwd(northpole, 0.994, tm, lat, lon)
