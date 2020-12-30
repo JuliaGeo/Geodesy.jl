@@ -16,6 +16,10 @@ function polarst_fwd(northp::Bool, k0::Float64, tm::TransverseMercator, lat, lon
     lat = LatFix(lat) * (northp ? 1 : -1)
 
     tau = tand(lat)
+    if abs(lat) == 90
+        overflow = one(tau)/eps(typeof(tau))^2
+        tau = sign(lat)*overflow
+    end
     secphi = hypot(1.0, tau)
     taup = taupf(tau, tm.e2) # TODO revert to C++ es here?
     rho = hypot(1.0, taup) + abs(taup)
