@@ -38,7 +38,7 @@ function (trans::WebMercatorfromLLA)(lla::LLA)
 end
 
 function (trans::WebMercatorfromLLA)(ll::LatLon)
-    lat_lim = 85.6 # according to https://epsg.io/3857
+    lat_lim = 85.06 # according to https://epsg.io/3857
     if abs(ll.lat) > lat_lim
         throw(ArgumentError("Exceeded Web Mercator latitude bounds"))
     end
