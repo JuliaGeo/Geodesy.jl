@@ -225,6 +225,9 @@ function (::NEDfromENU)(enu::ENU)
     NED(enu.n, enu.e, -enu.u)
 end
 
+Base.inv(trans::ENUfromNED) = NEDfromENU()
+Base.inv(trans::NEDfromENU) = ENUfromNED()
+
 
 ##################
 ## ECEF <-> ENU ##
