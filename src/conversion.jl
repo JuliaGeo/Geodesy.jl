@@ -6,8 +6,17 @@
 ECEF(ecef::ECEF, datum) = ecef
 LLA(lla::LLA, datum) = lla
 ENU(enu::ENU, datum) = enu
+NED(ned::NED, datum) = ned
 UTM(utm::UTM, datum) = utm
 UTMZ(utmz::UTMZ, datum) = utmz
+
+
+################################
+### ENU <-> NED coordinates  ###
+################################
+
+ENU(ned::NED) = ENUfromNED()(ned)
+NED(enu::ENU) = NEDfromENU()(enu)
 
 
 ################################
@@ -23,8 +32,15 @@ LLA(ecef::ECEF, datum) = LLAfromECEF(datum)(ecef)
 ################################
 
 ENU(ecef::ECEF, origin, datum) = ENUfromECEF(origin, datum)(ecef)
-
 ECEF(enu::ENU, origin, datum) = ECEFfromENU(origin, datum)(enu)
+
+
+################################
+### ECEF <-> NED coordinates ###
+################################
+
+NED(ecef::ECEF, origin, datum) = NEDfromECEF(origin, datum)(ecef)
+ECEF(ned::NED, origin, datum) = ECEFfromNED(origin, datum)(ned)
 
 
 ################################
@@ -33,6 +49,14 @@ ECEF(enu::ENU, origin, datum) = ECEFfromENU(origin, datum)(enu)
 
 ENU(lla::LLA, origin, datum) =  ENUfromLLA(origin, datum)(lla)
 LLA(enu::ENU, origin, datum) = LLAfromENU(origin, datum)(enu)
+
+
+################################
+### LLA <-> NED coordinates ###
+################################
+
+NED(lla::LLA, origin, datum) =  NEDfromLLA(origin, datum)(lla)
+LLA(ned::NED, origin, datum) = LLAfromNED(origin, datum)(ned)
 
 
 ################################
@@ -59,6 +83,14 @@ ENU(utm::UTMZ, origin, datum) = ENUfromUTMZ(origin, datum)(utm)
 UTMZ(enu::ENU, origin, datum) = UTMZfromENU(origin, datum)(enu)
 
 
+################################
+### NED <-> UTMZ coordinates ###
+################################
+
+NED(utm::UTMZ, origin, datum) = NEDfromUTMZ(origin, datum)(utm)
+UTMZ(ned::NED, origin, datum) = UTMZfromNED(origin, datum)(ned)
+
+
 ###############################
 ### LLA <-> UTM coordinates ###
 ###############################
@@ -81,6 +113,15 @@ UTM(ecef::ECEF, zone::Integer, hemisphere::Bool, datum) = UTMfromECEF(zone, hemi
 
 ENU(utm::UTM, zone::Integer, hemisphere::Bool, origin, datum) = ENUfromUTM(origin, zone, hemisphere, datum)(utm)
 UTM(enu::ENU, zone::Integer, hemisphere::Bool, origin, datum) = UTMfromENU(origin, zone, hemisphere, datum)(enu)
+
+
+###############################
+### NED <-> UTM coordinates ###
+###############################
+
+NED(utm::UTM, zone::Integer, hemisphere::Bool, origin, datum) = NEDfromUTM(origin, zone, hemisphere, datum)(utm)
+UTM(ned::NED, zone::Integer, hemisphere::Bool, origin, datum) = UTMfromNED(origin, zone, hemisphere, datum)(ned)
+
 
 ###############################
 ### UTMZ <-> UTM coordinates ###

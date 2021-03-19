@@ -21,6 +21,15 @@
         @test ENU(ecef, lla_ref, wgs84) ≈ enu
         @test ECEF(enu, lla_ref, wgs84) ≈ ecef
 
+         # LLA <-> NED
+         ned = NED(enu.n, enu.e, -enu.u)
+         @test NED(lla, lla_ref, wgs84) ≈ ned
+         @test LLA(ned, lla_ref, wgs84) ≈ lla
+ 
+         # ECEF <-> NED
+         @test NED(ecef, lla_ref, wgs84) ≈ ned
+         @test ECEF(ned, lla_ref, wgs84) ≈ ecef
+
         # LLA <-> UTM
         (z, h) = (19, true)
         utm = UTM(327412.48528248386, 4.692686244318043e6, 0.0)
@@ -35,6 +44,10 @@
         @test UTM(enu, z, h, lla_ref, wgs84) ≈ utm
         @test ENU(utm, z, h, lla_ref, wgs84) ≈ enu
 
+        # NED <-> UTM
+        @test UTM(ned, z, h, lla_ref, wgs84) ≈ utm
+        @test NED(utm, z, h, lla_ref, wgs84) ≈ ned
+
         # LLA <-> UTMZ
         utmz = UTMZ(327412.48528248386, 4.692686244318043e6, 0, z, h)
         @test UTMZ(lla, wgs84) ≈ utmz
@@ -48,6 +61,10 @@
         @test UTMZ(enu, lla_ref, wgs84) ≈ utmz
         @test ENU(utmz, lla_ref, wgs84) ≈ enu
 
+        # NED <-> UTMZ
+        @test UTMZ(ned, lla_ref, wgs84) ≈ utmz
+        @test NED(utmz, lla_ref, wgs84) ≈ ned
+
         # UTM <-> UTMZ
         @test UTMZ(utm, z, h, wgs84) ≈ utmz
         @test UTM(utmz, z, h, wgs84) ≈ utm
@@ -56,6 +73,7 @@
         @test ECEF(ecef, wgs84) == ecef
         @test LLA(lla, wgs84) == lla
         @test ENU(enu, wgs84) == enu
+        @test NED(ned, wgs84) == ned
         @test UTM(utm, wgs84) == utm
         @test UTMZ(utmz, wgs84) == utmz
     end
@@ -113,6 +131,11 @@
             enu = ENU(ecef1, ecef2, wgs84)
 
             @test euclidean_distance(enu, enu000) ≈ d
+
+            ned000 = NED(0.0, 0.0, 0.0)
+            ned = NED(ecef1, ecef2, wgs84)
+
+            @test euclidean_distance(ned, ned000) ≈ d
         end
         @test number_of_utm_distance_tests > 0
     end
