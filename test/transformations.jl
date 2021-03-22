@@ -73,6 +73,29 @@
     @test inv(enu_ecef) == ecef_enu
     @test inv(ecef_enu) == enu_ecef
 
+    # Web Mercator
+    points = [LLA(0, 0, 0),
+              LLA(49, 2, 0),
+			  LLA(-19, -128, 4),
+			  LLA(36, -77, 6)]
+    # Reference generated using Proj4
+    # [Proj4.transform(Proj4.Projection("+proj=longlat +datum=WGS84"),
+    #                  Proj4.Projection("+proj=webmerc +datum=WGS84"),
+    #                  [point.lon, point.lat, point.alt]) for point in points]
+    points_wm = [[0.0, 0.0, 0.0],
+                 [222638.98158654713, 6.274861394006577e6, 0.0],
+                 [-1.4248894821539015e7, -2.1549359150858945e6, 4.0],
+                 [-8.571600791082064e6, 4.300621372044271e6, 6.0]]
+    wm_lla = WebMercatorfromLLA()
+    lla_wm = LLAfromWebMercator()
+    @testset "WebMercator" for (lla,wm) in zip(points, points_wm)
+        @test wm_lla(lla) ≈ wm
+        @test lla_wm(wm) ≈ lla
+        ll = LatLon(lla.lat, lla.lon)
+        wm_2d = wm[1:2]
+        @test wm_lla(ll) ≈ wm_2d
+        @test lla_wm(wm_2d) ≈ ll
+	end
 
     # Composed transformation functions
     @test LLAfromENU(ecef, wgs84) == LLAfromECEF(wgs84) ∘ ECEFfromENU(ecef, wgs84)
