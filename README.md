@@ -431,6 +431,18 @@ same origin. Moreover, the `ENUfromNED` transformation and its inverse `NEDfromE
 can be used to change a local frame's orientation convention between `ENU` and `NED`, 
 while keeping the same origin.
 
+#### Web Mercator support
+
+We support the Web Mercator / Pseudo Mercator projection with the
+`WebMercatorfromLLA` and `LLAfromWebMercator` transformations for
+interoperability with many web mapping systems. The scaling of the
+northing and easting is defined to be meters at the Equator, the same as how
+proj handles this (see https://proj.org/operations/projections/webmerc.html ).
+
+If you need to deal with web mapping tile coordinate systems (zoom levels and
+pixel coordinates, etc) these could be added by composing another
+transformation on top of the web mercator projection defined in this package.
+
 #### Composed transformations
 
 Many other methods are defined as convenience constructors for composed

@@ -44,6 +44,7 @@ export
     UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM, ENUfromUTM, UTMfromENU, NEDfromUTM, UTMfromNED,
     UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU, NEDfromUTMZ, UTMZfromNED,
     UTMZfromUTM, UTMfromUTMZ,
+    WebMercatorfromLLA, LLAfromWebMercator,
 
     # Datum transformations
     datum_shift_ECEF,
@@ -57,6 +58,7 @@ include("datums.jl")
 include("points.jl")
 include("transverse_mercator.jl")
 include("polar_stereographic.jl")
+include("web_mercator.jl")
 include("transformations.jl")
 include("conversion.jl")
 include("distances.jl")
