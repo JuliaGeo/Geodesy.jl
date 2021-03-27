@@ -200,9 +200,9 @@ Base.inv(trans::ECEFfromLLA) = LLAfromECEF(trans.el)
 
 Construct a `Transformation` object to convert from local `NED` coordinates
 to local `ENU` coordinates centered at the same origin. This is a simple
-permutation and sign change.
+permutation of coordinates and sign change for the altitude.
 """
-struct ENUfromNED <: Transformation; end
+struct ENUfromNED <: Transformation end     # singleton type
 
 Base.show(io::IO, ::ENUfromNED) = print(io, "ENUfromNED()")
 
@@ -215,9 +215,9 @@ end
 
 Construct a `Transformation` object to convert from local `ENU` coordinates
 to local `NED` coordinates centered at the same origin. This is a simple
-permutation and sign change.
+permutation of coordinates and sign change for the altitude.
 """
-struct NEDfromENU <: Transformation; end
+struct NEDfromENU <: Transformation end     # singleton type
 
 Base.show(io::IO, ::NEDfromENU) = print(io, "NEDfromENU()")
 
@@ -225,8 +225,8 @@ function (::NEDfromENU)(enu::ENU)
     NED(enu.n, enu.e, -enu.u)
 end
 
-Base.inv(trans::ENUfromNED) = NEDfromENU()
-Base.inv(trans::NEDfromENU) = ENUfromNED()
+Base.inv(::ENUfromNED) = NEDfromENU()
+Base.inv(::NEDfromENU) = ENUfromNED()
 
 
 ##################
@@ -347,7 +347,7 @@ NEDfromECEF(origin, datum) = NEDfromENU() ∘ ENUfromECEF(origin, datum)
     ECEFfromNED(origin::UTM, zone, isnorth, datum)
     ECEFfromNED(origin::ECEF, lat, lon)
 
-Construct a composite transformation ECEFfromENU(origin,datum) ∘ ENUfromECEF()
+Construct a composite transformation ECEFfromENU(origin,datum) ∘ ENUfromNED()
 to convert from local `NED` coordinates centred at `origin` to global `ECEF` coodinates. 
 This object pre-caches both the ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
 """

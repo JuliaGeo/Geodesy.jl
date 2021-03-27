@@ -21,6 +21,13 @@
         @test ENU(ecef, lla_ref, wgs84) ≈ enu
         @test ECEF(enu, lla_ref, wgs84) ≈ ecef
 
+        # ENU <-> NED
+        ned = NED(478.764855466788, -343.493749083977, 0.027242885224325164)
+        @test NED(enu) == ned
+        @test ENU(ned) == enu
+        @test NED((ENU(ned))) == ned
+        @test ENU((NED(enu))) == enu
+
          # LLA <-> NED
          ned = NED(enu.n, enu.e, -enu.u)
          @test NED(lla, lla_ref, wgs84) ≈ ned

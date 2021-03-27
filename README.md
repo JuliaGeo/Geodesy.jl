@@ -47,8 +47,10 @@ trans = ENUfromLLA(origin_lla, wgs84)
 point_enu = trans(point_lla)
 
 # Equivalently
-point_enu = ENU(point_enu, point_origin, wgs84)
+point_enu = ENU(point_lla, origin_lla, wgs84)
 ```
+The `NED` coordinate system is also available as an alternative to `ENU`, with 
+the same interface.
 
 Similarly, we could convert to UTM/UPS coordinates, and two types are provided
 for this - `UTM` stores 3D coordinates `x`, `y`, and `z` in an unspecified zone,
@@ -252,7 +254,8 @@ as the geodetic coordinates mentioned above, it's common to see
   defining a terrestrial reference frame.
 * The east,north and up **ENU** components of a Cartesian coordinate frame at a
   particular point on the ellipsoid.  This coordinate system is useful as a
-  local frame for navigation.
+  local frame for navigation. It is also common for navigation systems to use
+  north,east and down (**NED**) coordinates.
 * Easting,northing and vertical components of a **projected coordinate system** or
   [**map projection**](http://www.icsm.gov.au/mapping/about_projections.html).
   There's an entire zoo of these, designed to represent the curved surface of an
@@ -325,9 +328,16 @@ projection about the corresponding pole, otherwise `zone` is an integer between
 
 ##### `ENU{T}` - east-north-up
 
-The `ENU` type is a local Cartesian coordinate that encodes a point's distance
+The `ENU` type stores local Cartesian coordinates that encode a point's distance
 towards east `e`, towards north `n` and upwards `u` with respect to an
 unspecified origin. Like `ECEF`, `ENU` is also a subtype of `StaticVector`.
+
+##### `NED{T}` - north-east-down
+
+The `NED` type is an alternative convention to `ENU`. It stores local Cartesian 
+coordinates that encode a point's distance towards north `n`, towards east `e` 
+and downwards `d` with respect to an unspecified origin. Like `ECEF`, `NED` is 
+also a subtype of `StaticVector`.
 
 ### Geodetic Datums
 
@@ -379,7 +389,7 @@ be pre-cached (for instance, the origin of an ENU transformation).
 
 The `LLAfromECEF` and `ECEFfromLLA` transformations require an ellipsoidal datum
 to perform the conversion. The exact transformation is performed in both directions,
-using a port the ECEF → LLA transformation from *GeographicLib*.
+using a port of the ECEF → LLA transformation from *GeographicLib*.
 
 Note that in some cases where points are very close to the centre of the ellipsoid,
 multiple equivalent `LLA` points are valid solutions to the transformation problem.
@@ -402,22 +412,24 @@ native Julia port of that used in *GeographicLib*, and is accurate to nanometers
 for up to several UTM zones away from the reference meridian. However, the
 series expansion diverges at ±90° from the reference meridian. While the `UTMZ`-methods
 will automatically choose the canonical zone and hemisphere for the input,
-extreme care must be taken to choose an appropriate zone for the `UTM` methods.
-(In the future, we implement the exact UTM transformation as a fallback —
-contributions welcome!)
+extreme care must be taken to choose an appropriate zone for the `UTM` methods
+(In the future, we will implement the exact UTM transformation as a fallback —
+contributions welcome!).
 
 There is also `UTMfromUTMZ` and `UTMZfromUTM` transformations that are helpful
 for converting between these two formats and putting data into the same `UTM`
 zone.
 
-#### To and from local `ENU` frames
+#### To and from local `ENU` and `NED` frames
 
 The `ECEFfromENU` and `ENUfromECEF` transformations define the transformation
 around a specific origin. Both the origin coordinates as an `ECEF` as well as
 its corresponding latitude and longitude are stored in the transformation for
 maximal efficiency when performing multiple `transform`s. The transformation can
 be inverted with `inv` to perform the reverse transformation with respect to the
-same origin.
+same origin. Moreover, the `ENUfromNED` transformation and its inverse `NEDfromENU` 
+can be used to change a local frame's orientation convention between `ENU` and `NED`, 
+while keeping the same origin.
 
 #### Composed transformations
 
@@ -431,11 +443,17 @@ These include:
 * `ECEFfromUTM(zone, hemisphere, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, hemisphere, datum)`
 * `ENUfromLLA(origin, datum) = ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)`
 * `LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)`
+* `NEDfromLLA(origin, datum) = NEDfromENU() ∘ ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)`
+* `LLAfromNED(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin,datum) ∘ ENUfromNED()`
 * `ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)`
 * `ENUfromUTMZ(origin, datum)  = ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum`
 * `UTMZfromENU(origin, datum)  = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)`
+* `NEDfromUTMZ(origin, datum)  = NEDfromLLA(origin, datum) ∘ LLAfromUTMZ(datum`
+* `UTMZfromNED(origin, datum)  = UTMZfromLLA(datum) ∘ LLAfromNED(origin, datum)`
 * `UTMfromENU(origin, zone, hemisphere, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromENU(origin, datum)`
 * `ENUfromUTM(origin, zone, hemisphere, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTM(zone, hemisphere, datum)`
+* `UTMfromNED(origin, zone, hemisphere, datum) = UTMfromLLA(zone, hemisphere, datum) ∘ LLAfromNED(origin, datum)`
+* `NEDfromUTM(origin, zone, hemisphere, datum) = NEDfromLLA(origin, datum) ∘ LLAfromUTM(zone, hemisphere, datum)`
 
 Constructor-based transforms for these are also provided, such as `UTMZ(ecef, datum)`
 which converts to `LLA` as an intermediary, as above. When converting multiple
