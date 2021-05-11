@@ -731,7 +731,7 @@ function transverse_mercator_reverse(lon0, x, y, k0, tm::TransverseMercator{MaxP
     etap = eta + ai * xip0 + ar * etap0
 
     # Convergence and scale for Gauss-Schreiber TM to Gauss-Krueger TM.
-    gamma = atan(yi1, yr1) * 180/pi
+    gamma = atand(yi1, yr1) * 180/pi
     k = tm.b1 / hypot(yr1, yi1)
     # JHS 154 has
     #
@@ -744,12 +744,12 @@ function transverse_mercator_reverse(lon0, x, y, k0, tm::TransverseMercator{MaxP
     r = hypot(s, c)
 
     if (r != 0)
-        lon = atan(s, c) * 180/pi # Krueger p 17 (25)
+        lon = atand(s, c) * 180/pi # Krueger p 17 (25)
 
         # Use Newton's method to solve for tau
         sxip = sin(xip)
         tau = tauf(sxip/r, tm.e2) # TODO maybe change to C++ es version
-        gamma += atan(sxip * tanh(etap), c) * 180/pi # Krueger p 19 (31)
+        gamma += atand(sxip * tanh(etap), c) * 180/pi # Krueger p 19 (31)
         lat = atand(tau)
         # Note cos(phi') * cosh(eta') = r
         k *= sqrt(tm.e2m + tm.e2 / (1 + tau*tau)) * hypot(1.0, tau) * r
