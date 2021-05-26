@@ -749,7 +749,7 @@ function transverse_mercator_reverse(lon0, x, y, k0, tm::TransverseMercator{MaxP
         # Use Newton's method to solve for tau
         sxip = sin(xip)
         tau = tauf(sxip/r, tm.e2) # TODO maybe change to C++ es version
-        gamma += atand(sxip * tanh(etap), c) * 180/pi # Krueger p 19 (31)
+        gamma += atand(sxip * tanh(etap), c) # Krueger p 19 (31)
         lat = atand(tau)
         # Note cos(phi') * cosh(eta') = r
         k *= sqrt(tm.e2m + tm.e2 / (1 + tau*tau)) * hypot(1.0, tau) * r
