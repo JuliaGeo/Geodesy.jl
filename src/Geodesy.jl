@@ -57,7 +57,7 @@ export
     UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM, ENUfromUTM, UTMfromENU,
     UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU,
     UTMZfromUTM, UTMfromUTMZ,
-    WebMercatorfromLLA, LLAfromWebMercator, geoid
+    WebMercatorfromLLA, LLAfromWebMercator, geoid,
 
     # Datum transformations
     datum_shift_ECEF,
