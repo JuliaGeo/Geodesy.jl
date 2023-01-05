@@ -1,13 +1,13 @@
 """
-    geoid(geoid::String; goids_folder::String = "~/Documents/geoids")
+    geoid(geoid::String; folder::String = "~/Documents/geoids")
 returns geoid::GeoArray{} height file [relative to WGS 84 (EPSG::4979) ellipsoid]
 
-If geoid file not found in `goids_folder` it will be downloaded from:
+If geoid file not found in `folder` it will be downloaded from:
 https://www.agisoft.com/downloads/geoids/ 
 
 Models Converted from USA NGA data by agisoft under Public Domain license.
 """
-function geoid(geoid::String; goids_folder::String="~/Documents/geoids")
+function geoid(geoid::String; folder::String="~/Documents/geoids")
 
     if geoid == "egm84"
         # EGM84 30' geoid model
@@ -25,12 +25,12 @@ function geoid(geoid::String; goids_folder::String="~/Documents/geoids")
         error("geoid not recognized, valid geoid names are \"egm84\", \"egm96\" and \"egm2008\"")
     end
 
-    path2goid = joinpath(goids_folder, geoid_fn)
+    path2goid = joinpath(folder, geoid_fn)
 
     # download if file does not exist
     if !isfile(path2goid)
-        if !isdir(goids_folder)
-            error("goids folder does not exist: $goids_folder")
+        if !isdir(folder)
+            error("goids folder does not exist: $folder")
         else
             url = joinpath("https://s3-eu-west-1.amazonaws.com/download.agisoft.com/gtg/", geoid_fn)
             printstyled("local copy of $geoid file not found, downloading from: $url \n"; color = :blue, bold = true)
@@ -39,5 +39,5 @@ function geoid(geoid::String; goids_folder::String="~/Documents/geoids")
     end
 
     # not sure if this Type decleration helps at all, feel free to delete
-    return GeoArrays.read(path2goid; masked=false)::GeoArray{Float32, ArchGDAL.RasterDataset{Float32, ArchGDAL.IDataset}} 
+    return GeoArrays.read(path2goid; masked=false)
 end
