@@ -6,6 +6,8 @@ version = "1.1.0"
 [deps]
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+GeoArrays = "2fb1d81b-e6a0-5fc5-82e6-8e06903437ab"
+HTTP = "cd3eb016-35fb-5094-929b-558a96fad6f3"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
