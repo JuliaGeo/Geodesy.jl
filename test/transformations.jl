@@ -30,19 +30,19 @@
     utmz = utmz_lla(lla)
     utmz2 = utmz_lla(lla2)
     # Test also the poles go to UPS
-    @test utmz_lla(LLA(89.0, 89.0, 89.0)) ≈ UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true)
-    @test lla_utmz(UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true)) ≈ LLA(89.0, 89.0, 89.0)
+    @test utmz_lla(LLA(89.0, 89.0, 89.0)) ≈ UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true, 'X')
+    @test lla_utmz(UTMZ(2.111009610242531e6, 1.9980623200455606e6, 89.0, 0, true, 'X')) ≈ LLA(89.0, 89.0, 89.0)
 
-    @test utmz ≈ UTMZ(239579.67583179142,7.342551466042985e6,1374.7804632852078, UInt8(47), false)
+    @test utmz ≈ UTMZ(239579.67583179142,7.342551466042985e6,1374.7804632852078, UInt8(47), false, 'J')
     @test lla ≈ lla_utmz(utmz)
 
-    utmz_utm = UTMZfromUTM(47, false, wgs84)
-    utm_utmz = UTMfromUTMZ(47, false, wgs84)
+    utmz_utm = UTMZfromUTM(47, false, 'X', wgs84)
+    utm_utmz = UTMfromUTMZ(47, false, 'X', wgs84)
 
     @test utmz == utmz_utm(utm)
     @test utm == utm_utmz(utmz)
     # Sometimes this has to do something non-trivial - make sure it does
-    utm_utmz2 = UTMfromUTMZ(46, false, wgs84)
+    utm_utmz2 = UTMfromUTMZ(46, false,'X', wgs84)
     @test utm_utmz2(utmz) ≈ UTM(850009.7418418773, 7.340641097689279e6, 1374.7804632852078)
 
     # ENU coordinates
