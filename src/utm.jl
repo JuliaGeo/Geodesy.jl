@@ -54,3 +54,60 @@ function utm_meridian(zone::Integer)
     end
     return 6 * zone - 183
 end
+
+"""
+    utm_lat_letter(lat)
+
+Calculates the latitude bands from the latitude poistion.
+This is part of the military grid reference system (MGRS).
+A letter coming before "N" in the alphabet is in the southern 
+hemisphere and any letter "N" or after is in the northern hemisphere.
+"""
+function utm_lat_letter(lat)
+
+    lat_letter::Char = ' '
+    if lat <-72 
+        lat_letter='C'
+    elseif lat <-64
+        lat_letter='D'
+    elseif lat <-56
+        lat_letter='E'
+    elseif lat <-48
+        lat_letter='F'
+    elseif lat <-40
+        lat_letter='G'
+    elseif lat <-32
+        lat_letter='H'
+    elseif lat <-24
+        lat_letter='J'
+    elseif lat <-16
+        lat_letter='K'
+    elseif lat <-8
+        lat_letter='L'
+    elseif lat <0
+        lat_letter='M'
+    elseif lat <8
+        lat_letter='N'
+    elseif lat <16
+        lat_letter='P'
+    elseif lat <24
+        lat_letter='Q'
+    elseif lat <32
+        lat_letter='R'
+    elseif lat <40
+        lat_letter='S'
+    elseif lat <48
+        lat_letter='T'
+    elseif lat <56
+        lat_letter='U'
+    elseif lat <64
+        lat_letter='V'
+    elseif lat <72
+        lat_letter='W'
+    else
+        lat_letter='X'
+    end
+
+    return lat_letter
+
+end

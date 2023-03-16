@@ -118,10 +118,11 @@ struct UTMZ{T <: Number}
     z::T
     zone::UInt8
     isnorth::Bool # which hemisphere
+    latletter::Char # which latitude band
 end
-UTMZ(x::T, y::T, zone::Integer, isnorth::Bool) where {T} = UTMZ(x, y, zero(T), UInt8(zone), isnorth)
-UTMZ(x, y, z, zone::Integer, isnorth::Bool) = UTMZ(promote(x, y, z)..., UInt8(zone), isnorth)
-UTMZ(utm::UTM, zone::Integer, isnorth::Bool) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), isnorth)
+UTMZ(x::T, y::T, zone::Integer, isnorth::Bool, latletter::Char) where {T} = UTMZ(x, y, zero(T), UInt8(zone), isnorth, latletter)
+UTMZ(x, y, z, zone::Integer, isnorth::Bool, latletter::Char) = UTMZ(promote(x, y, z)..., UInt8(zone), isnorth, latletter)
+UTMZ(utm::UTM, zone::Integer, isnorth::Bool, latletter::Char) = UTMZ(utm.x, utm.y, utm.z, UInt8(zone), isnorth, latletter)
 UTM(utmz::UTMZ) = UTM(utmz.x, utmz.y, utmz.z)
-Base.isapprox(utm1::UTMZ, utm2::UTMZ; atol = 1e-6, kwargs...) = (utm1.zone == utm2.zone) & (utm1.isnorth == utm2.isnorth) & isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
-Base.show(io::IO, utm::UTMZ) = print(io, "UTMZ($(utm.x), $(utm.y), $(utm.z), zone=$(utm.zone == 0 ? "polar" : Int(utm.zone)) ($(utm.isnorth ? "north" : "south")))")
+Base.isapprox(utm1::UTMZ, utm2::UTMZ; atol = 1e-6, kwargs...) = (utm1.zone == utm2.zone) & (utm1.isnorth == utm2.isnorth) & (utm1.latletter == utm2.latletter) & isapprox(utm1.x, utm2.x; atol = atol, kwargs...) & isapprox(utm1.y, utm2.y; atol = atol, kwargs...) & isapprox(utm1.z, utm2.z; atol = atol, kwargs...) # atol in metres (1μm)
+Base.show(io::IO, utm::UTMZ) = print(io, "UTMZ($(utm.x), $(utm.y), $(utm.z), zone=$(utm.zone == 0 ? "polar" : Int(utm.zone)) $(utm.latletter) ($(utm.isnorth ? "north" : "south")))") 
