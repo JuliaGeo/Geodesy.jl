@@ -52,9 +52,9 @@ point_enu = ENU(point_enu, point_origin, wgs84)
 
 Similarly, we could convert to UTM/UPS coordinates, and two types are provided
 for this - `UTM` stores 3D coordinates `x`, `y`, and `z` in an unspecified zone,
-while `UTMZ` includes the `zone` number and `hemisphere` bool (where `true` =
-northern, `false` = southern). To get the canonical zone for your coordinates,
-simply use:
+while `UTMZ` includes the `zone` number, `hemisphere` bool (where `true` =
+northern, `false` = southern) and `latletter` char with the latitude band letter. 
+To get the canonical zone for your coordinates, simply use:
 ```julia
 x_utmz = UTMZ(x_lla, wgs84)
 ```
@@ -317,11 +317,12 @@ universal polar-stereographic (UPS) coordinates (where the zone is `0`).
 ##### `UTMZ{T}` - universal transverse-Mercator + zone
 
 In addition to the easting `x`, northing `y` and height `z`, the global `UTMZ` type
-also encodes the UTM `zone` and `hemisphere`, where `zone` is a `UInt8` and
-`hemisphere` is a `Bool` for compact storage. The northern hemisphere is
-denoted as `true`, and the southern as `false`. Zone `0` corresponds to the UPS
+also encodes the UTM `zone` , `hemisphere` and `latletter`, where `zone` is a `UInt8`,
+`hemisphere` is a `Bool` for compact storage and `latletter` a char. The northern hemisphere 
+is denoted as `true`, and the southern as `false`. Zone `0` corresponds to the UPS
 projection about the corresponding pole, otherwise `zone` is an integer between
-`1` and `60`.
+`1` and `60`. The latitude band letter`latletter` char with the latitude band is a char
+that can go from `C` to `X`.
 
 ##### `ENU{T}` - east-north-up
 
