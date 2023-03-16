@@ -15,9 +15,9 @@ and Svalbard. Zone 0 corresponds to the poles, using the UPS regions.
 """
 function utm_zone(lat::T, lon::T) where T
     if lat > 84
-        return (0, true)
+        return (0, true, 'X')
     elseif lat < -80
-        return (0, false)
+        return (0, false, 'X')
     end
 
     # int versions

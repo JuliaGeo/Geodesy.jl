@@ -475,7 +475,8 @@ Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
 
 
 function (trans::UTMZfromLLA)(lla::LLA)
-    (zone, isnorth, latletter) = utm_zone(lla)
+    (zone, isnorth) = utm_zone(lla)
+    latletter = utm_lat_letter(lla.lat)
     if zone == 0
         # Do polar steriographic projection
         k0 = 0.994
