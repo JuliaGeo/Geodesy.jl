@@ -47,7 +47,7 @@ trans = ENUfromLLA(origin_lla, wgs84)
 point_enu = trans(point_lla)
 
 # Equivalently
-point_enu = ENU(point_enu, point_origin, wgs84)
+point_enu = ENU(point_lla, origin_lla, wgs84)
 ```
 
 Similarly, we could convert to UTM/UPS coordinates, and two types are provided
