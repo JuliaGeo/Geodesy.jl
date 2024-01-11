@@ -92,7 +92,7 @@ automatic transformation to a Cartesian frame:
 ```julia
 x_lla = LLA(-27.468937, 153.023628, 0.0) # City Hall, Brisbane, Australia
 y_lla = LLA(-27.465933, 153.025900, 0.0) # Central Station, Brisbane, Australia
-distance(x_lla, y_lla)                   # 401.54 meters
+euclidean_distance(x_lla, y_lla)                   # 401.54 meters
 ```
 (assuming the `wgs84` datum, which can be configured in `distance(x, y, datum)`).
 
