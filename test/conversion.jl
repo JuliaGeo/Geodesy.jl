@@ -22,7 +22,7 @@
         @test ECEF(enu, lla_ref, wgs84) ≈ ecef
 
         # LLA <-> UTM
-        (z, h) = (19, true)
+        (z, h, l) = (19, true, 'T')
         utm = UTM(327412.48528248386, 4.692686244318043e6, 0.0)
         @test UTM(lla, z, h, wgs84) ≈ utm
         @test LLA(utm, z, h, wgs84) ≈ lla
@@ -36,7 +36,7 @@
         @test ENU(utm, z, h, lla_ref, wgs84) ≈ enu
 
         # LLA <-> UTMZ
-        utmz = UTMZ(327412.48528248386, 4.692686244318043e6, 0, z, h)
+        utmz = UTMZ(327412.48528248386, 4.692686244318043e6, 0, z, h, l)
         @test UTMZ(lla, wgs84) ≈ utmz
         @test LLA(utmz, wgs84) ≈ lla
 
@@ -49,8 +49,8 @@
         @test ENU(utmz, lla_ref, wgs84) ≈ enu
 
         # UTM <-> UTMZ
-        @test UTMZ(utm, z, h, wgs84) ≈ utmz
-        @test UTM(utmz, z, h, wgs84) ≈ utm
+        @test UTMZ(utm, z, h, l, wgs84) ≈ utmz
+        @test UTM(utmz, z, h, l, wgs84) ≈ utm
 
         # Identity
         @test ECEF(ecef, wgs84) == ecef
