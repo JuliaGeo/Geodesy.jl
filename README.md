@@ -11,6 +11,11 @@ Transformations are accurate and efficient and implemented in native Julia code
 [C++ library](http://geographiclib.sourceforge.net/)), and some common geodetic
 datums are provided for convenience.
 
+## Alternatives
+
+- [CoordRefSystems.jl](https://github.com/JuliaEarth/CoordRefSystems.jl) - Native Julia implementation with built-in support for units, widely tested against the PROJ C library.
+- [MapMaths.jl](https://github.com/subnero1/MapMaths.jl) - Another Julia implementation with support for the WGS84 datum and local coordinates.
+
 ## Quick start
 
 Lets define a 3D point by its latitude, longitude and altitude (LLA):
