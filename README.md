@@ -2,13 +2,6 @@
 
 [![Build Status](https://github.com/JuliaGeo/Geodesy.jl/workflows/CI/badge.svg)](https://github.com/JuliaGeo/Geodesy.jl/actions)
 
-> ### ⚠️ This package is not actively maintained
-> 
-> Alternatives with improved design are available:
->
-> - [CoordRefSystems.jl](https://github.com/JuliaEarth/CoordRefSystems.jl) - Native Julia implementation with built-in support for units, thoroughly tested against the PROJ C library.
-> - [MapMaths.jl](https://github.com/subnero1/MapMaths.jl) - Another Julia implementation with support for the WGS84 datum and local coordinates.
-
 **Geodesy** is a Julia package for working with points in various world and
 local coordinate systems. The primary feature of *Geodesy* is to define and
 perform coordinate transformations in a convenient and safe framework,
@@ -17,6 +10,11 @@ Transformations are accurate and efficient and implemented in native Julia code
 (with many functions being ported from Charles Karney's *GeographicLib*
 [C++ library](http://geographiclib.sourceforge.net/)), and some common geodetic
 datums are provided for convenience.
+
+## Alternatives
+
+- [CoordRefSystems.jl](https://github.com/JuliaEarth/CoordRefSystems.jl) - Native Julia implementation with built-in support for units, widely tested against the PROJ C library.
+- [MapMaths.jl](https://github.com/subnero1/MapMaths.jl) - Another Julia implementation with support for the WGS84 datum and local coordinates.
 
 ## Quick start
 
