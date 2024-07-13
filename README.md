@@ -11,10 +11,7 @@ Transformations are accurate and efficient and implemented in native Julia code
 [C++ library](http://geographiclib.sourceforge.net/)), and some common geodetic
 datums are provided for convenience.
 
-## Alternatives
-
-- [CoordRefSystems.jl](https://github.com/JuliaEarth/CoordRefSystems.jl) - Native Julia implementation with built-in support for units, widely tested against the PROJ C library.
-- [MapMaths.jl](https://github.com/subnero1/MapMaths.jl) - Another Julia implementation with support for the WGS84 datum and local coordinates.
+*This package is currently in maintenance mode and new features are not being developed. We endeavour to fix any bugs that are reported.*
 
 ## Quick start
 
@@ -100,6 +97,12 @@ y_lla = LLA(-27.465933, 153.025900, 0.0) # Central Station, Brisbane, Australia
 euclidean_distance(x_lla, y_lla)                   # 401.54 meters
 ```
 (assuming the `wgs84` datum, which can be configured in `distance(x, y, datum)`).
+
+
+## Alternatives
+- [CoordRefSystems.jl](https://github.com/JuliaEarth/CoordRefSystems.jl) - Native Julia implementation with built-in support for units, widely tested against the PROJ C library.
+- [MapMaths.jl](https://github.com/subnero1/MapMaths.jl) - Native Julia implementation with support for the WGS84 datum and local coordinates.
+- [Proj.jl](https://github.com/JuliaGeo/Proj.jl) - Julia wrapper for the PROJ C library, which provides a wide range of coordinate system transformations and projections.
 
 
 ## Basic Terminology
