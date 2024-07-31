@@ -476,6 +476,7 @@ Base.show(io::IO, trans::UTMZfromLLA) = print(io, "UTMZfromLLA($(trans.datum))")
 
 function (trans::UTMZfromLLA)(lla::LLA)
     (zone, isnorth) = utm_zone(lla)
+    latletter = utm_lat_letter(lla.lat)
     if zone == 0
         # Do polar steriographic projection
         k0 = 0.994
@@ -483,7 +484,7 @@ function (trans::UTMZfromLLA)(lla::LLA)
         x = x + 2e6
         y = y + 2e6
 
-        return UTMZ(x, y, lla.alt, 0, isnorth)
+        return UTMZ(x, y, lla.alt, 0, isnorth, latletter)
     else
         lon_ref = Float64(utm_meridian(zone))
         k0 = 0.9996 # Horizontal scaling factor
@@ -492,7 +493,7 @@ function (trans::UTMZfromLLA)(lla::LLA)
         x = 5e5 + x # Convention has 500km offset for easting
         y = (isnorth ? 0.0 : 1e7) + y # Northing offset for southern hemisphere
         # also, k = k * k0
-        return UTMZ(x, y, lla.alt, zone, isnorth) # Note: scaling not applied to vertical dimension
+        return UTMZ(x, y, lla.alt, zone, isnorth, latletter) # Note: scaling not applied to vertical dimension
     end
 end
 
@@ -511,9 +512,10 @@ Transformation to append the UTM/UPS zone and hemisphere to a raw `UTM` data poi
 struct UTMZfromUTM{Datum} <: Transformation
     zone::Int
     isnorth::Bool
+    latletter::Char
     datum::Datum
 end
-UTMZfromUTM(zone::Integer, h, d::D) where {D} = UTMZfromUTM{D}(UInt8(zone), h, d)
+UTMZfromUTM(zone::Integer, h, l, d::D) where {D} = UTMZfromUTM{D}(UInt8(zone), h, l, d)
 Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMZfromUTM) = print(io, "UTMZfromUTM(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
@@ -526,15 +528,16 @@ automatically convert the data to the specified zone if necessary.
 struct UTMfromUTMZ{Datum} <: Transformation
     zone::Int
     isnorth::Bool
+    latletter::Char
     datum::Datum
 end
-UTMfromUTMZ(zone::Integer, h, d::D) where {D} = UTMfromUTMZ{D}(UInt8(zone), h, d)
+UTMfromUTMZ(zone::Integer, h, l, d::D) where {D} = UTMfromUTMZ{D}(UInt8(zone), h, l, d)
 Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")), $(trans.datum))")
 #Base.show(io::IO, trans::UTMfromUTMZ) = print(io, "UTMfromUTMZ(zone=$(trans.zone == 0 ? "polar" : trans.zone) ($(trans.isnorth ? "north" : "south")))")
 
-(trans::UTMZfromUTM)(utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth)
+(trans::UTMZfromUTM)(utm::UTM) = UTMZ(utm.x, utm.y, utm.z, trans.zone, trans.isnorth, trans.latletter)
 function (trans::UTMfromUTMZ)(utm::UTMZ)
-    if trans.zone == utm.zone && trans.isnorth == utm.isnorth
+    if trans.zone == utm.zone && trans.isnorth == utm.isnorth && trans.latletter == utm.latletter
         UTM(utm.x, utm.y, utm.z)
     else
         # Should this be an error or an automatic transformation to the correct zone?
@@ -543,8 +546,8 @@ function (trans::UTMfromUTMZ)(utm::UTMZ)
     end
 end
 
-Base.inv(trans::UTMfromUTMZ) = UTMZfromUTM(trans.zone, trans.isnorth, trans.datum)
-Base.inv(trans::UTMZfromUTM) = UTMfromUTMZ(trans.zone, trans.isnorth, trans.datum)
+Base.inv(trans::UTMfromUTMZ) = UTMZfromUTM(trans.zone, trans.isnorth, trans.latletter, trans.datum)
+Base.inv(trans::UTMZfromUTM) = UTMfromUTMZ(trans.zone, trans.isnorth, trans.latletter, trans.datum)
 
 ###################
 ## ECEF <-> UTMZ ##
