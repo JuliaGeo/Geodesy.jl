@@ -83,6 +83,24 @@ Base.show(io::IO, ::MIME"text/plain", enu::ENU) = print(io, "ENU($(enu.e), $(enu
 
 
 """
+    NED(n, e, d = 0.0)
+
+North-East-Down (NED) coordinates. A local Cartesian coordinate system, linearized about a reference point.
+"""
+struct NED{T <: Number} <: FieldVector{T}
+    n::T
+    e::T
+    d::T
+end
+NED(x :: T, y :: T) where {T} = NED(x, y, zero(T))
+@inline function NED(x,y,z)
+    T = promote_type(promote_type(typeof(x),typeof(y)), typeof(z))
+    NED{T}(x,y,z)
+end
+Base.show(io::IO, ::MIME"text/plain", ned::NED) = print(io, "NED($(ned.n), $(ned.e), $(ned.d))")
+
+
+"""
     UTM(x, y, z = 0.0)
 
 Universal transverse Mercator (UTM) coordinates. Common projection type for
