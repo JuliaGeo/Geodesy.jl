@@ -5,12 +5,14 @@
     @test ellipsoid(NAD83) == grs80
     @test ellipsoid(OSGB36) == airy1830
     @test ellipsoid(GDA94) == grs80
+    @test ellipsoid(GDA2020) == grs80
 
     # Check transverse-Mercator pre-calculations
     @test Geodesy.TransverseMercator(WGS84) == Geodesy.wgs84_tm
     @test Geodesy.TransverseMercator(NAD27) == Geodesy.clarke1866_tm
     @test Geodesy.TransverseMercator(OSGB36) == Geodesy.airy1830_tm
     @test Geodesy.TransverseMercator(GDA94) == Geodesy.grs80_tm
+    @test Geodesy.TransverseMercator(GDA2020) == Geodesy.grs80_tm
 
     # The LLAfromECEF aren't pre-cached, as yet. Probably should just create a
     # large ellispoid thingie for all of them to share...
@@ -19,6 +21,7 @@
     @test (LLAfromECEF(nad83); true)
     @test (LLAfromECEF(osgb36); true)
     @test (LLAfromECEF(gda94); true)
+    @test (LLAfromECEF(gda2020); true)
 
     # Show methods for datums
     @test sprint(show, WGS84()) == "WGS84"
@@ -29,4 +32,5 @@
     @test sprint(show, NAD27()) == "nad27"
     @test sprint(show, NAD83()) == "nad83"
     @test sprint(show, GDA94()) == "gda94"
+    @test sprint(show, GDA2020()) == "gda2020"
 end
