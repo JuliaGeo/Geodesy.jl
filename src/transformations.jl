@@ -208,11 +208,20 @@ struct ENUfromECEF{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
+    sinλ::T
+    cosλ::T
+    sinϕ::T
+    cosϕ::T
 end
 ENUfromECEF(origin::LLA, datum) = ENUfromECEF(ECEFfromLLA(datum)(origin), origin.lat, origin.lon)
 function ENUfromECEF(origin::ECEF, datum)
     origin_lla = LLAfromECEF(datum)(origin)
     ENUfromECEF(origin, origin_lla.lat, origin_lla.lon)
+end
+function ENUfromECEF(origin::ECEF, lat, lon)
+    sinλ, cosλ = sincosd(lon)
+    sinϕ, cosϕ = sincosd(lat)
+    ENUfromECEF(origin, lat, lon, sinλ, cosλ, sinϕ, cosϕ)
 end
 Base.show(io::IO, trans::ENUfromECEF) = print(io, "ENUfromECEF($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ENUfromECEF, t2::ENUfromECEF; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
@@ -226,8 +235,8 @@ function (trans::ENUfromECEF)(ecef::ECEF)
     ∂z = ecef.z - trans.origin.z
 
     # Compute rotation matrix
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    sinλ, cosλ = trans.sinλ, trans.cosλ
+    sinϕ, cosϕ = trans.sinϕ, trans.cosϕ
 
     # R = [     -sinλ       cosλ  0.0
     #      -cosλ*sinϕ -sinλ*sinϕ cosϕ
@@ -254,11 +263,20 @@ struct ECEFfromENU{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
+    sinλ::T
+    cosλ::T
+    sinϕ::T
+    cosϕ::T
 end
 ECEFfromENU(origin::LLA, datum) = ECEFfromENU(ECEFfromLLA(datum)(origin), origin.lat, origin.lon)
 function ECEFfromENU(origin::ECEF, datum)
     origin_lla = LLAfromECEF(datum)(origin)
     ECEFfromENU(origin, origin_lla.lat, origin_lla.lon)
+end
+function ECEFfromENU(origin::ECEF, lat, lon)
+    sinλ, cosλ = sincosd(lon)
+    sinϕ, cosϕ = sincosd(lat)
+    ECEFfromENU(origin, lat, lon, sinλ, cosλ, sinϕ, cosϕ)
 end
 Base.show(io::IO, trans::ECEFfromENU) = print(io, "ECEFfromENU($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ECEFfromENU, t2::ECEFfromENU; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
@@ -267,8 +285,8 @@ function (trans::ECEFfromENU)(enu::ENU)
     ϕdeg, λdeg = trans.lat, trans.lon
 
     # Compute rotation matrix
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    sinλ, cosλ = trans.sinλ, trans.cosλ
+    sinϕ, cosϕ = trans.sinϕ, trans.cosϕ
 
     # Rᵀ = [-sinλ -cosλ*sinϕ cosλ*cosϕ
     #        cosλ -sinλ*sinϕ sinλ*cosϕ
