@@ -175,8 +175,8 @@ ECEFfromLLA(datum::Datum) = ECEFfromLLA(ellipsoid(datum))
 function (trans::ECEFfromLLA)(lla::LLA)
     ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
 
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+    sinϕ, cosϕ = sincosd(ϕdeg)
+    sinλ, cosλ = sincosd(λdeg)
 
     N = trans.el.a / sqrt(1 - trans.el.e2 * sinϕ^2)  # Radius of curvature (meters)
 
