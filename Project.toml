@@ -1,7 +1,7 @@
 name = "Geodesy"
 uuid = "0ef565a4-170c-5f04-8de2-149903a85f3d"
 license = "MIT"
-version = "1.1.0"
+version = "1.1.1"
 
 [deps]
 CoordinateTransformations = "150eb455-5306-5404-9cee-2592286d6298"
@@ -12,7 +12,7 @@ StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 [compat]
 CoordinateTransformations = "0.5, 0.6"
 StaticArrays = "0.8, 0.9, 0.10, 0.11, 0.12, 1"
-julia = "1"
+julia = "1.6"
 
 [extras]
 Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"

@@ -175,8 +175,8 @@ ECEFfromLLA(datum::Datum) = ECEFfromLLA(ellipsoid(datum))
 function (trans::ECEFfromLLA)(lla::LLA)
     ϕdeg, λdeg, h = lla.lat, lla.lon, lla.alt
 
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
+    sinϕ, cosϕ = sincosd(ϕdeg)
+    sinλ, cosλ = sincosd(λdeg)
 
     N = trans.el.a / sqrt(1 - trans.el.e2 * sinϕ^2)  # Radius of curvature (meters)
 
@@ -208,35 +208,43 @@ struct ENUfromECEF{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
+    sin_lon::T
+    cos_lon::T
+    sin_lat::T
+    cos_lat::T
 end
 ENUfromECEF(origin::LLA, datum) = ENUfromECEF(ECEFfromLLA(datum)(origin), origin.lat, origin.lon)
 function ENUfromECEF(origin::ECEF, datum)
     origin_lla = LLAfromECEF(datum)(origin)
     ENUfromECEF(origin, origin_lla.lat, origin_lla.lon)
 end
+function ENUfromECEF(origin::ECEF, lat, lon)
+    sin_lon, cos_lon = sincosd(lon)
+    sin_lat, cos_lat = sincosd(lat)
+    ENUfromECEF(origin, lat, lon, sin_lon, cos_lon, sin_lat, cos_lat)
+end
 Base.show(io::IO, trans::ENUfromECEF) = print(io, "ENUfromECEF($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ENUfromECEF, t2::ENUfromECEF; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
 
 function (trans::ENUfromECEF)(ecef::ECEF)
-    ϕdeg, λdeg = trans.lat, trans.lon
 
     ∂x = ecef.x - trans.origin.x
     ∂y = ecef.y - trans.origin.y
     ∂z = ecef.z - trans.origin.z
 
     # Compute rotation matrix
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    sin_lon, cos_lon = trans.sin_lon, trans.cos_lon
+    sin_lat, cos_lat = trans.sin_lat, trans.cos_lat
 
     # R = [     -sinλ       cosλ  0.0
     #      -cosλ*sinϕ -sinλ*sinϕ cosϕ
     #       cosλ*cosϕ  sinλ*cosϕ sinϕ]
     #
     # east, north, up = R * [∂x, ∂y, ∂z]
-    east  = ∂x * -sinλ      + ∂y * cosλ       + ∂z * 0.0
-    north = ∂x * -cosλ*sinϕ + ∂y * -sinλ*sinϕ + ∂z * cosϕ
-    up    = ∂x * cosλ*cosϕ  + ∂y * sinλ*cosϕ  + ∂z * sinϕ
+    east  = ∂x * -sin_lon      + ∂y * cos_lon       + ∂z * 0.0
+    north = ∂x * -cos_lon*sin_lat + ∂y * -sin_lon*sin_lat + ∂z * cos_lat
+    up    = ∂x * cos_lon*cos_lat  + ∂y * sin_lon*cos_lat  + ∂z * sin_lat
 
     return ENU(east, north, up)
 end
@@ -254,29 +262,38 @@ struct ECEFfromENU{T} <: Transformation
     origin::ECEF{T}
     lat::T
     lon::T
+    sin_lon::T
+    cos_lon::T
+    sin_lat::T
+    cos_lat::T
 end
 ECEFfromENU(origin::LLA, datum) = ECEFfromENU(ECEFfromLLA(datum)(origin), origin.lat, origin.lon)
 function ECEFfromENU(origin::ECEF, datum)
     origin_lla = LLAfromECEF(datum)(origin)
     ECEFfromENU(origin, origin_lla.lat, origin_lla.lon)
 end
+function ECEFfromENU(origin::ECEF, lat, lon)
+    sin_lon, cos_lon = sincosd(lon)
+    sin_lat, cos_lat = sincosd(lat)
+    ECEFfromENU(origin, lat, lon, sin_lon, cos_lon, sin_lat, cos_lat)
+end
 Base.show(io::IO, trans::ECEFfromENU) = print(io, "ECEFfromENU($(trans.origin), lat=$(trans.lat)°, lon=$(trans.lon)°)")
 Base.isapprox(t1::ECEFfromENU, t2::ECEFfromENU; kwargs...) = isapprox(t1.origin, t2.origin; kwargs...) && isapprox(t1.lat, t2.lat; kwargs...) && isapprox(t1.lon, t2.lon; kwargs...)
 
 function (trans::ECEFfromENU)(enu::ENU)
-    ϕdeg, λdeg = trans.lat, trans.lon
+    lat_deg, lon_deg = trans.lat, trans.lon
 
     # Compute rotation matrix
-    sinλ, cosλ = sind(λdeg), cosd(λdeg)
-    sinϕ, cosϕ = sind(ϕdeg), cosd(ϕdeg)
+    sin_lon, cos_lon = trans.sin_lon, trans.cos_lon
+    sin_lat, cos_lat = trans.sin_lat, trans.cos_lat
 
     # Rᵀ = [-sinλ -cosλ*sinϕ cosλ*cosϕ
     #        cosλ -sinλ*sinϕ sinλ*cosϕ
     #         0.0       cosϕ      sinϕ]
     # Δx, Δy, Δz = Rᵀ * [east, north, up]
-    Δx = -sinλ * enu.e + -cosλ*sinϕ * enu.n + cosλ*cosϕ * enu.u
-    Δy =  cosλ * enu.e + -sinλ*sinϕ * enu.n + sinλ*cosϕ * enu.u
-    Δz =   0.0 * enu.e +       cosϕ * enu.n +      sinϕ * enu.u
+    Δx = -sin_lon * enu.e + -cos_lon*sin_lat * enu.n + cos_lon*cos_lat * enu.u
+    Δy =  cos_lon * enu.e + -sin_lon*sin_lat * enu.n + sin_lon*cos_lat * enu.u
+    Δz =   0.0 * enu.e    +       cos_lat    * enu.n +         sin_lat * enu.u
 
     X = trans.origin.x + Δx
     Y = trans.origin.y + Δy
