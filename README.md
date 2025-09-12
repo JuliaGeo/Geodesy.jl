@@ -358,6 +358,7 @@ National datums include
 * `OSGB36` - Ordnance Survey of Great Britain of 1936.
 * `NAD27`, `NAD83` - North American Datums of 1927 and 1983, respectively
 * `GDA94` - Geocentric Datum of Australia, 1994.
+* `GDA2020` - Geocentric Datum of Australia, 2020.
 
 Datums may also be passed to coordinate transformation constructors such as
 transverse-Mercator and polar-stereographic projections in which case the
