@@ -19,9 +19,9 @@
     utm = UTM(10., 10., 0.)
     @test UTM(10., 10.) == utm
 
-    utmz = UTMZ(10., 10., 0., 1, true)
-    @test UTMZ(10., 10., 1, true) == utmz
-    @test UTMZ(utm, 1, true) == utmz
+    utmz = UTMZ(10., 10., 0., 1, true, 'D')
+    @test UTMZ(10., 10., 1, true, 'D') == utmz
+    @test UTMZ(utm, 1, true, 'D') == utmz
 
     @test UTM(utmz) == utm
 end # @testset
