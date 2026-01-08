@@ -173,6 +173,13 @@ Base.show(io::IO, ::GDA94) = print(io,"gda94")
 ellipsoid(::Union{GDA94,Type{GDA94}})   = grs80
 
 
+"""
+`GDA2020` - Geocentric Datum of Australia, 2020
+"""
+struct GDA2020 <: Datum; end
+Base.show(io::IO, ::GDA2020) = print(io,"gda2020")
+ellipsoid(::Union{GDA2020,Type{GDA2020}})   = grs80
+
 #-------------------------------------------------------------------------------
 # Datum instances
 const wgs84 = WGS84()
@@ -180,3 +187,4 @@ const osgb36 = OSGB36()
 const nad27 = NAD27()
 const nad83 = NAD83()
 const gda94 = GDA94()
+const gda2020 = GDA2020()

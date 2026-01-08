@@ -390,6 +390,7 @@ TransverseMercator(::WGS84) = wgs84_tm
 TransverseMercator(::OSGB36) = airy1830_tm
 TransverseMercator(::NAD27) = clarke1866_tm
 TransverseMercator(::GDA94) = grs80_tm
+TransverseMercator(::GDA2020) = grs80_tm
 
 # // Engsager and Poder (2007) use trigonometric series to convert between phi
 # // and phip.  Here are the series...
