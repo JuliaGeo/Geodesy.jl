@@ -5,6 +5,7 @@
     @test LLA(lat = 1., lon = 1., alt = 0.) == lla
     @test LLA(1//1, 1, 0.) == lla
     @test LLA(1, 1) == LLA{Int}(1, 1, 0)
+    @test_throws MethodError LLA(missing, missing)
 
     latlon = LatLon(1., 1.)
     @test LatLon(lat = 1., lon = 1.) == latlon

@@ -16,7 +16,7 @@ struct LLA{T <: Number}
     lon::T
     alt::T
 end
-LLA(lat, lon, alt=zero(lat)) = LLA(promote(lat, lon, alt)...)
+LLA(lat::Number, lon::Number, alt::Number=zero(lat)) = LLA(promote(lat, lon, alt)...)
 LLA(;lat=NaN,lon=NaN,alt=0.0) = LLA(lat,lon,alt) # Constructor that is idependent of storage order
 
 Base.show(io::IO, lla::LLA) = print(io, "LLA(lat=$(lla.lat)°, lon=$(lla.lon)°, alt=$(lla.alt))") # Maybe show to nearest mm, or 6 decimel places?
