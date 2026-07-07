@@ -13,6 +13,7 @@ export
     # Points
     ECEF,
     ENU,
+    NED,
     LLA,
     LatLon,
     UTM,
@@ -38,9 +39,10 @@ export
 
     # transformation methods
     transform_deriv, transform_deriv_params, compose, ∘,
-    ECEFfromLLA, LLAfromECEF, ENUfromECEF, ECEFfromENU, ENUfromLLA, LLAfromENU,
-    UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM, ENUfromUTM, UTMfromENU,
-    UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU,
+    ECEFfromLLA, LLAfromECEF, ENUfromECEF, ECEFfromENU, ENUfromLLA, LLAfromENU, 
+    ENUfromNED, NEDfromENU, NEDfromECEF, ECEFfromNED, NEDfromLLA, LLAfromNED,
+    UTMfromLLA, LLAfromUTM, UTMfromECEF, ECEFfromUTM, ENUfromUTM, UTMfromENU, NEDfromUTM, UTMfromNED,
+    UTMZfromLLA, LLAfromUTMZ, UTMZfromECEF, ECEFfromUTMZ, ENUfromUTMZ, UTMZfromENU, NEDfromUTMZ, UTMZfromNED,
     UTMZfromUTM, UTMfromUTMZ,
     WebMercatorfromLLA, LLAfromWebMercator,
 

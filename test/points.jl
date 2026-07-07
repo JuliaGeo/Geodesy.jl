@@ -24,4 +24,10 @@
     @test UTMZ(utm, 1, true) == utmz
 
     @test UTM(utmz) == utm
+
+    enu = ENU(1.0, 1.0, 0.0)
+    @test ENU(1.0, 1.0) == enu
+
+    ned = NED(1.0, 1.0, 0.0)
+    @test NED(1.0, 1.0) == ned
 end # @testset

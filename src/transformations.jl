@@ -45,7 +45,7 @@ end
 LLAfromECEF(datum::Datum) = LLAfromECEF(ellipsoid(datum))
 
 
- function (trans::LLAfromECEF)(ecef::ECEF)
+function (trans::LLAfromECEF)(ecef::ECEF)
     # Ported to Julia by Andy Ferris, 2016 and re-released under MIT license.
     #/**
     # * \file Geocentric.cpp
@@ -192,6 +192,44 @@ Base.inv(trans::ECEFfromLLA) = LLAfromECEF(trans.el)
 
 
 ##################
+## ENU <-> NED ##
+##################
+
+"""
+    ENUfromNED(ned::NED)
+
+Construct a `Transformation` object to convert from local `NED` coordinates
+to local `ENU` coordinates centered at the same origin. This is a simple
+permutation of coordinates and sign change for the altitude.
+"""
+struct ENUfromNED <: Transformation end     # singleton type
+
+Base.show(io::IO, ::ENUfromNED) = print(io, "ENUfromNED()")
+
+function (::ENUfromNED)(ned::NED)
+    ENU(ned.e, ned.n, -ned.d)
+end
+
+"""
+    NEDfromENU(enu::ENU)
+
+Construct a `Transformation` object to convert from local `ENU` coordinates
+to local `NED` coordinates centered at the same origin. This is a simple
+permutation of coordinates and sign change for the altitude.
+"""
+struct NEDfromENU <: Transformation end     # singleton type
+
+Base.show(io::IO, ::NEDfromENU) = print(io, "NEDfromENU()")
+
+function (::NEDfromENU)(enu::ENU)
+    NED(enu.n, enu.e, -enu.u)
+end
+
+Base.inv(::ENUfromNED) = NEDfromENU()
+Base.inv(::NEDfromENU) = ENUfromNED()
+
+
+##################
 ## ECEF <-> ENU ##
 ##################
 
@@ -305,6 +343,34 @@ end
 Base.inv(trans::ECEFfromENU) = ENUfromECEF(trans.origin, trans.lat, trans.lon)
 Base.inv(trans::ENUfromECEF) = ECEFfromENU(trans.origin, trans.lat, trans.lon)
 
+
+##################
+## ECEF <-> NED ##
+##################
+
+"""
+    NEDfromECEF(origin, datum)
+    NEDfromECEF(origin::UTM, zone, isnorth, datum)
+    NEDfromECEF(origin::ECEF, lat, lon)
+
+Construct a composite transformation NEDfromENU() ∘ ENUfromECEF(origin, datum)
+to convert from global `ECEF` coordinates to local `NED` coordinates centered at the `origin`. 
+This object pre-caches both the ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
+"""
+NEDfromECEF(origin, datum) = NEDfromENU() ∘ ENUfromECEF(origin, datum)
+
+"""
+    ECEFfromNED(origin, datum)
+    ECEFfromNED(origin::UTM, zone, isnorth, datum)
+    ECEFfromNED(origin::ECEF, lat, lon)
+
+Construct a composite transformation ECEFfromENU(origin,datum) ∘ ENUfromNED()
+to convert from local `NED` coordinates centred at `origin` to global `ECEF` coodinates. 
+This object pre-caches both the ECEF coordinates and latitude and longitude of the origin for maximal efficiency.
+"""
+ECEFfromNED(origin, datum) = ECEFfromENU(origin,datum) ∘ ENUfromNED()
+
+
 #################
 ## LLA <-> ENU ##
 #################
@@ -322,6 +388,26 @@ ENUfromLLA(origin, datum) = ENUfromECEF(origin, datum) ∘ ECEFfromLLA(datum)
 Creates composite transformation `LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)`.
 """
 LLAfromENU(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromENU(origin, datum)
+
+
+#################
+## LLA <-> NED ##
+#################
+
+"""
+    NEDfromLLA(origin, datum)
+
+Creates composite transformation `NEDfromECEF(origin, datum) ∘ ECEFfromLLA(datum)`.
+"""
+NEDfromLLA(origin, datum) = NEDfromECEF(origin, datum) ∘ ECEFfromLLA(datum)
+
+"""
+    LLAfromNED(origin, datum)
+
+Creates composite transformation `LLAfromECEF(datum) ∘ ECEFfromNED(origin, datum)`.
+"""
+LLAfromNED(origin, datum) = LLAfromECEF(datum) ∘ ECEFfromNED(origin, datum)
+
 
 #################
 ## LLA <-> UTM ##
@@ -430,6 +516,7 @@ Creates composite transformation `ECEFfromLLA(datum) ∘ LLAfromUTM(zone, isnort
 """
 ECEFfromUTM(zone, isnorth, datum) = ECEFfromLLA(datum) ∘ LLAfromUTM(zone, isnorth, datum)
 
+
 ##################
 ## LLA <-> UTMZ ##
 ##################
@@ -516,6 +603,7 @@ end
 Base.inv(trans::LLAfromUTMZ) = UTMZfromLLA(trans.tm, trans.datum)
 Base.inv(trans::UTMZfromLLA) = LLAfromUTMZ(trans.tm, trans.datum)
 
+
 ###################
 ## UTM <-> UTMZ ##
 ###################
@@ -563,6 +651,7 @@ end
 Base.inv(trans::UTMfromUTMZ) = UTMZfromUTM(trans.zone, trans.isnorth, trans.datum)
 Base.inv(trans::UTMZfromUTM) = UTMfromUTMZ(trans.zone, trans.isnorth, trans.datum)
 
+
 ###################
 ## ECEF <-> UTMZ ##
 ###################
@@ -580,6 +669,7 @@ UTMZfromECEF(datum) = UTMZfromLLA(datum) ∘ LLAfromECEF(datum)
 Creates composite transformation `ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)`.
 """
 ECEFfromUTMZ(datum) = ECEFfromLLA(datum) ∘ LLAfromUTMZ(datum)
+
 
 ##################
 ## ENU <-> UTMZ ##
@@ -601,6 +691,7 @@ ENUfromUTMZ(origin, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)
 Creates composite transformation `UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)`.
 """
 UTMZfromENU(origin, datum) = UTMZfromLLA(datum) ∘ LLAfromENU(origin, datum)
+
 
 #################
 ## ENU <-> UTM ##
@@ -627,3 +718,51 @@ Creates composite transformation `UTMfromLLA(zone, isnorth, datum) ∘ LLAfromEN
 If `origin` is a `UTM` point, then it is assumed it is in the given specified zone and hemisphere.
 """
 ENUfromUTM(origin, zone::Integer, isnorth::Bool, datum) = ENUfromLLA(origin, datum) ∘ LLAfromUTM(zone, isnorth, datum)
+
+
+##################
+## NED <-> UTMZ ##
+##################
+
+NEDfromECEF(origin::UTMZ, datum) = NEDfromECEF(LLAfromUTMZ(datum)(origin), datum)
+ECEFfromNED(origin::UTMZ, datum) = ECEFfromNED(LLAfromUTMZ(datum)(origin), datum)
+
+"""
+    NEDfromUTMZ(origin, datum)
+
+Creates composite transformation `ENUfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)`.
+"""
+NEDfromUTMZ(origin, datum) = NEDfromLLA(origin, datum) ∘ LLAfromUTMZ(datum)
+
+"""
+    UTMZfromNED(origin, datum)
+
+Creates composite transformation `UTMZfromLLA(datum) ∘ LLAfromNED(origin, datum)`.
+"""
+UTMZfromNED(origin, datum) = UTMZfromLLA(datum) ∘ LLAfromNED(origin, datum)
+
+#################
+## NED <-> UTM ##
+#################
+NEDfromECEF(origin::UTM, zone::Integer, isnorth::Bool, datum) = NEDfromECEF(LLAfromUTM(zone, isnorth, datum)(origin), datum)
+ECEFfromNED(origin::UTM, zone::Integer, isnorth::Bool, datum) = ECEFfromNED(LLAfromUTM(zone, isnorth, datum)(origin), datum)
+
+# Assume origin and utm point share the same zone and hemisphere
+UTMfromNED(origin::UTM, zone::Integer, isnorth::Bool, datum) = UTMfromLLA(zone, isnorth, datum) ∘ LLAfromNED(UTMZ(origin, zone, isnorth), datum)
+NEDfromUTM(origin::UTM, zone::Integer, isnorth::Bool, datum) = NEDfromLLA(UTMZ(origin, zone, isnorth), datum) ∘ LLAfromUTM(zone, isnorth, datum)
+
+"""
+    UTMfromNED(origin, zone, isnorth, datum)
+
+Creates composite transformation `UTMfromLLA(zone, isnorth, datum) ∘ LLAfromNED(origin, datum)`.
+If `origin` is a `UTM` point, then it is assumed it is in the given specified zone and hemisphere.
+"""
+UTMfromNED(origin, zone::Integer, isnorth::Bool, datum) = UTMfromLLA(zone, isnorth, datum) ∘ LLAfromNED(origin, datum)
+
+"""
+    NEDfromUTM(origin, zone, isnorth, datum)
+
+Creates composite transformation `UTMfromLLA(zone, isnorth, datum) ∘ LLAfromNED(origin, datum)`.
+If `origin` is a `UTM` point, then it is assumed it is in the given specified zone and hemisphere.
+"""
+NEDfromUTM(origin, zone::Integer, isnorth::Bool, datum) = NEDfromLLA(origin, datum) ∘ LLAfromUTM(zone, isnorth, datum)
