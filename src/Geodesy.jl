@@ -32,6 +32,7 @@ export
     NAD83, nad83,
     GRS80, grs80,
     GDA94, gda94,
+    GDA2020, gda2020,
 
     # Methods
     euclidean_distance,
