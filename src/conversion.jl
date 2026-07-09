@@ -86,5 +86,5 @@ UTM(enu::ENU, zone::Integer, hemisphere::Bool, origin, datum) = UTMfromENU(origi
 ### UTMZ <-> UTM coordinates ###
 ###############################
 
-UTMZ(utm::UTM, zone::Integer, hemisphere::Bool, datum) = UTMZfromUTM(zone, hemisphere, datum)(utm)
-UTM(utmz::UTMZ, zone::Integer, hemisphere::Bool, datum) = UTMfromUTMZ(zone, hemisphere, datum)(utmz)
+UTMZ(utm::UTM, zone::Integer, hemisphere::Bool, latletter::Char, datum) = UTMZfromUTM(zone, hemisphere, latletter, datum)(utm)
+UTM(utmz::UTMZ, zone::Integer, hemisphere::Bool, latletter::Char, datum) = UTMfromUTMZ(zone, hemisphere, latletter, datum)(utmz)

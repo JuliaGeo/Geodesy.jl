@@ -49,7 +49,7 @@ export
     ITRF, GDA94,
 
     # UTM helpers
-    utm_zone
+    utm_zone, utm_lat_letter
 
 include("ellipsoids.jl")
 include("datums.jl")
